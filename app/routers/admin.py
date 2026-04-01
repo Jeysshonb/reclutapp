@@ -185,11 +185,15 @@ async def upload_db(
     _: Usuario = Depends(require_role("administrador")),
 ):
     """Sube la BD SQLite. Solo admin. Endpoint temporal de migración."""
-    dest = "/home/data/reclutapp.db"
-    os.makedirs("/home/data", exist_ok=True)
-    tmp = dest + ".tmp"
-    with open(tmp, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    os.replace(tmp, dest)
-    size_mb = os.path.getsize(dest) / 1024 / 1024
-    return {"ok": True, "size_mb": round(size_mb, 1)}
+    try:
+        dest = "/home/data/reclutapp.db"
+        os.makedirs("/home/data", exist_ok=True)
+        tmp = dest + ".tmp"
+        data = await file.read()
+        with open(tmp, "wb") as f:
+            f.write(data)
+        os.replace(tmp, dest)
+        size_mb = os.path.getsize(dest) / 1024 / 1024
+        return {"ok": True, "size_mb": round(size_mb, 1)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
