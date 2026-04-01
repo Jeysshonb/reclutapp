@@ -1,0 +1,578 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reclutamiento ARA — Seguimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--orange:#1A9ECC;--orange-dark:#0D7BA8;--orange-light:#E0F6FF;--dark:#1d3557}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+
+  /* ── NAV ── */
+  nav{
+    background:linear-gradient(90deg,var(--orange) 0%,var(--orange-dark) 100%);
+    color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:60px;box-shadow:0 2px 12px rgba(26,158,204,.35);
+    position:sticky;top:0;z-index:100
+  }
+  .nav-brand{display:flex;align-items:center;gap:14px}
+  .nav-banner{height:32px;object-fit:contain;filter:brightness(0) invert(1)}
+  .nav-title{font-size:1rem;font-weight:700;letter-spacing:.3px;opacity:.9}
+  .nav-links{display:flex;align-items:center;gap:4px}
+  .nav-links a{
+    display:flex;align-items:center;gap:6px;
+    color:rgba(255,255,255,.85);text-decoration:none;
+    padding:7px 14px;border-radius:8px;font-size:.85rem;font-weight:500;transition:.2s
+  }
+  .nav-links a svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .nav-links a:hover{background:rgba(255,255,255,.15);color:#fff}
+  .nav-links a.active{background:rgba(255,255,255,.2);color:#fff;font-weight:700}
+  .nav-user{display:flex;align-items:center;gap:10px;font-size:.85rem}
+  .avatar{
+    width:34px;height:34px;background:rgba(255,255,255,.25);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:.9rem;border:2px solid rgba(255,255,255,.4)
+  }
+  .nav-name{font-weight:600;opacity:.95}
+  .btn-logout{
+    background:rgba(255,255,255,.15);border:none;color:#fff;
+    padding:6px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;
+    display:flex;align-items:center;gap:5px;transition:.2s
+  }
+  .btn-logout:hover{background:rgba(255,255,255,.25)}
+  .btn-logout svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* ── CONTAINER ── */
+  .container{max-width:1440px;margin:0 auto;padding:28px 24px}
+
+  /* ── WELCOME BANNER ── */
+  .welcome{
+    background:linear-gradient(135deg,var(--dark) 0%,#2a4a7f 100%);
+    color:#fff;border-radius:14px;padding:22px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:24px;overflow:hidden;position:relative
+  }
+  .welcome::before{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;background:rgba(26,158,204,.15);border-radius:50%}
+  .welcome-left .wb-title{font-size:1.15rem;font-weight:700;margin-bottom:4px}
+  .welcome-left .wb-sub{font-size:.82rem;opacity:.65}
+  .welcome-ara{height:36px;object-fit:contain;opacity:.75;position:relative;z-index:1;filter:brightness(0) invert(1)}
+
+  /* ── KPI ROW ── */
+  .kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+  .kpi{
+    background:#fff;border-radius:12px;padding:18px 16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+    border-top:3px solid #e5e7eb;transition:.2s;cursor:default
+  }
+  .kpi:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.09)}
+  .kpi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .kpi-icon svg{width:18px;height:18px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .kpi .num{font-size:1.9rem;font-weight:800;line-height:1;margin-bottom:4px}
+  .kpi .lbl{font-size:.7rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .kpi.dark{border-top-color:var(--dark)}.kpi.dark .num{color:var(--dark)}.kpi.dark .kpi-icon{background:#f0f0f5}.kpi.dark .kpi-icon svg{stroke:var(--dark)}
+  .kpi.green{border-top-color:#16a34a}.kpi.green .num{color:#16a34a}.kpi.green .kpi-icon{background:#dcfce7}.kpi.green .kpi-icon svg{stroke:#16a34a}
+  .kpi.orange{border-top-color:var(--orange)}.kpi.orange .num{color:var(--orange)}.kpi.orange .kpi-icon{background:var(--orange-light)}.kpi.orange .kpi-icon svg{stroke:var(--orange)}
+  .kpi.blue{border-top-color:#2563eb}.kpi.blue .num{color:#2563eb}.kpi.blue .kpi-icon{background:#dbeafe}.kpi.blue .kpi-icon svg{stroke:#2563eb}
+  .kpi.red{border-top-color:#dc2626}.kpi.red .num{color:#dc2626}.kpi.red .kpi-icon{background:#fee2e2}.kpi.red .kpi-icon svg{stroke:#dc2626}
+  .kpi.black{border-top-color:#111}.kpi.black .num{color:#111}.kpi.black .kpi-icon{background:#f3f4f6}.kpi.black .kpi-icon svg{stroke:#111}
+
+  /* ── FILTERS ── */
+  .filters{background:#fff;border-radius:12px;padding:18px 22px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  .filters-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+  .fg label{font-size:.72rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px}
+  .fg input,.fg select{
+    padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:8px;
+    font-size:.88rem;outline:none;transition:.2s;font-family:inherit;color:var(--dark)
+  }
+  .fg input:focus,.fg select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(26,158,204,.08)}
+  .btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+  .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .btn-primary{background:var(--orange);color:#fff;box-shadow:0 2px 6px rgba(26,158,204,.2)}.btn-primary:hover{background:var(--orange-dark)}
+  .btn-outline{background:#fff;color:var(--orange);border:1.5px solid var(--orange)}.btn-outline:hover{background:var(--orange-light)}
+  .btn-success{background:#16a34a;color:#fff;box-shadow:0 2px 6px rgba(22,163,74,.2)}.btn-success:hover{background:#15803d}
+  .btn-dark{background:var(--dark);color:#fff}.btn-dark:hover{background:#2a4a7f}
+
+  /* ── TABLE CARD ── */
+  .table-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden}
+  .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #f0f0f0}
+  .table-header h3{font-size:.95rem;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:8px}
+  .table-header h3 svg{width:18px;height:18px;stroke:var(--orange);fill:none;stroke-width:2}
+  .table-header .t-actions{display:flex;gap:8px}
+  .table-count{background:var(--orange-light);color:var(--orange);font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
+  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  thead tr{background:var(--dark)}
+  th{padding:11px 14px;text-align:left;font-size:.7rem;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.6px}
+  td{padding:11px 14px;border-bottom:1px solid #f5f5f5;vertical-align:middle;color:#444}
+  tbody tr:hover td{background:var(--orange-light);cursor:pointer}
+  tbody tr:last-child td{border-bottom:none}
+  .negra-row td{background:#fef2f2!important}
+  .negra-row:hover td{background:#fee2e2!important}
+
+  /* ── BADGES ── */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.73rem;font-weight:600;white-space:nowrap}
+  .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .badge-green{background:#dcfce7;color:#15803d}.badge-green::before{background:#16a34a}
+  .badge-red{background:#fee2e2;color:#b91c1c}.badge-red::before{background:#dc2626}
+  .badge-blue{background:#dbeafe;color:#1d4ed8}.badge-blue::before{background:#2563eb}
+  .badge-yellow{background:#fef9c3;color:#854d0e}.badge-yellow::before{background:#d97706}
+  .badge-gray{background:#f3f4f6;color:#4b5563}.badge-gray::before{background:#9ca3af}
+  .badge-black{background:#1d3557;color:#fff}.badge-black::before{background:#1A9ECC}
+
+  /* ── PAGINATION ── */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-top:1px solid #f0f0f0;font-size:.82rem;color:#888}
+  .pg-btns{display:flex;gap:5px}
+  .pg-btn{padding:5px 12px;border:1.5px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:.8rem;transition:.2s;font-weight:500}
+  .pg-btn:hover{border-color:var(--orange);color:var(--orange)}
+  .pg-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+  /* ── EMPTY ── */
+  .empty{text-align:center;padding:60px 20px;color:#bbb}
+  .empty svg{width:48px;height:48px;stroke:#ddd;fill:none;stroke-width:1.5;margin-bottom:16px}
+  .empty p{font-size:.9rem;font-weight:500}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:10px;font-size:.88rem;font-weight:600;color:#fff;z-index:9999;transform:translateY(16px);opacity:0;transition:.3s;max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast-success{background:#16a34a}
+  .toast-error{background:#dc2626}
+  .toast-info{background:var(--orange)}
+
+  @media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}.filters-row{flex-direction:column}.nav-title{display:none}}
+
+  /* ── PANEL EDICIÓN ── */
+  .edit-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800}
+  .edit-overlay.open{display:block}
+  .edit-panel{
+    position:fixed;top:0;right:0;width:min(860px,96vw);height:100vh;
+    background:#fff;z-index:801;
+    transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.18)
+  }
+  .edit-panel.open{transform:translateX(0)}
+  .edit-panel-hdr{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;background:linear-gradient(90deg,var(--orange),var(--orange-dark));
+    color:#fff;flex-shrink:0
+  }
+  .edit-panel-hdr h3{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px}
+  .edit-panel-hdr h3 svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2}
+  .edit-panel-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .edit-panel-close:hover{background:rgba(255,255,255,.35)}
+  .edit-panel iframe{flex:1;border:none;width:100%}
+</style>
+</head>
+<body>
+
+<!-- PANEL EDICIÓN DESLIZANTE -->
+<div class="edit-overlay" id="editOverlay" onclick="cerrarPanel()"></div>
+<div class="edit-panel" id="editPanel">
+  <div class="edit-panel-hdr">
+    <h3>
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <span id="editPanelTitulo">Editar candidato</span>
+    </h3>
+    <button class="edit-panel-close" onclick="cerrarPanel()">✕</button>
+  </div>
+  <iframe id="editFrame" src="" title="Editar candidato"></iframe>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <img src="/img/banner%20ARA.png" class="nav-banner" alt="ARA">
+    <span class="nav-title">Reclutamiento ARA</span>
+  </div>
+  <div class="nav-links">
+    <a href="/seguimiento" class="active">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Seguimiento
+    </a>
+    <a href="/captura">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo Candidato
+    </a>
+    <a href="/admin" id="lnkAdmin" style="display:none">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+      Admin
+    </a>
+  </div>
+  <div class="nav-user">
+    <div class="avatar" id="initials">?</div>
+    <span class="nav-name" id="userName"></span>
+    <button class="btn-logout" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Salir
+    </button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- WELCOME -->
+  <div class="welcome">
+    <div class="welcome-left">
+      <div class="wb-title"><span id="wbSaludo">Hola</span>, <span id="wbNombre">cargando...</span></div>
+      <div class="wb-sub" id="wbFecha">Cargando fecha...</div>
+    </div>
+    <img src="/img/ARA.png" class="welcome-ara" alt="ARA" onerror="this.style.display='none'">
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi dark">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="num" id="kTotal">—</div><div class="lbl">Total</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="num" id="kContratados">—</div><div class="lbl">Contratados</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <div class="num" id="kAptosOp">—</div><div class="lbl">Aptos Ops</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="num" id="kEnProceso">—</div><div class="lbl">En Proceso</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+      <div class="num" id="kNoAptos">—</div><div class="lbl">No Aptos</div>
+    </div>
+    <div class="kpi black">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="num" id="kNegra">—</div><div class="lbl">Lista Negra</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="filters-row">
+      <div class="fg" style="min-width:220px">
+        <label>Buscar nombre o cédula</label>
+        <input type="text" id="fBuscar" placeholder="Nombre o número de cédula...">
+      </div>
+      <div class="fg">
+        <label>Negocio</label>
+        <select id="fNegocio" onchange="buscar(0)"><option value="">Todos</option></select>
+      </div>
+      <div class="fg">
+        <label>Reclutador</label>
+        <select id="fReclutador" onchange="buscar(0)"><option value="">Todos</option></select>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="fStatus" onchange="buscar(0)">
+          <option value="">Todos</option>
+          <option>En Proceso</option>
+          <option>Cerrado</option>
+          <option>Contratado</option>
+          <option>No Apto EMO</option>
+          <option>No Apto ES</option>
+          <option>No Apto Es</option>
+          <option>Desiste</option>
+          <option>Sin comunicación</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Resultado Ops</label>
+        <select id="fResultadoOps" onchange="buscar(0)">
+          <option value="">Todos</option>
+          <option>Apto</option>
+          <option>No Apto</option>
+          <option>No Asiste</option>
+          <option>Aplazado</option>
+          <option>Apto con Restriccion</option>
+        </select>
+      </div>
+      <div class="fg" style="min-width:auto;flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="buscar()">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Buscar
+        </button>
+      </div>
+      <div class="fg" style="min-width:auto;flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-outline" onclick="limpiar()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-card">
+    <div class="table-header">
+      <h3>
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Candidatos
+        <span class="table-count" id="tableCount">0</span>
+      </h3>
+      <div class="t-actions">
+        <button class="btn btn-success" onclick="exportarExcel()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Exportar Excel
+        </button>
+        <a href="/captura" class="btn btn-primary" style="text-decoration:none">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo
+        </a>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Candidato</th>
+            <th>Cargo</th>
+            <th>Negocio</th>
+            <th>Reclutador</th>
+            <th>Fecha Entrevista</th>
+            <th>Ops</th>
+            <th>RRHH</th>
+            <th>EMO</th>
+            <th>ES</th>
+            <th>Status</th>
+            <th>Registro</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="emptyMsg" class="empty" style="display:none">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>No se encontraron candidatos con estos filtros.</p>
+    </div>
+    <div class="pagination">
+      <span id="pgInfo">—</span>
+      <div class="pg-btns" id="pgBtns"></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const token=()=>localStorage.getItem('token');
+let page=0, totalRegistros=0, limit=50;
+
+function auth(h={}){return{...h,'Authorization':'Bearer '+token()}}
+function logout(){localStorage.clear();location.href='/'}
+
+function toast(msg,type='info'){
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},3000);
+}
+
+function fmtFecha(v){
+  if(!v)return'—';
+  const m=(v+'').match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m?`${m[3]}/${m[2]}/${m[1]}`:v;
+}
+function statusBadge(s){
+  if(!s)return'<span class="badge badge-gray">—</span>';
+  const sl=s.toLowerCase();
+  if(sl==='contratado')return`<span class="badge badge-green">${s}</span>`;
+  if(sl.includes('no apto'))return`<span class="badge badge-red">${s}</span>`;
+  if(sl==='en proceso')return`<span class="badge badge-blue">${s}</span>`;
+  if(sl==='cerrado')return`<span class="badge badge-gray">Cerrado</span>`;
+  if(sl==='desiste'||sl==='sin interés'||sl==='sin interes')return`<span class="badge badge-yellow">${s}</span>`;
+  if(sl.includes('sin comunicac'))return`<span class="badge badge-yellow">${s}</span>`;
+  return`<span class="badge badge-gray">${s}</span>`;
+}
+function resultBadge(r){
+  if(!r)return'<span style="color:#ccc;font-size:.8rem">—</span>';
+  if(r==='Apto')return`<span class="badge badge-green">${r}</span>`;
+  if(r.includes('No Apto'))return`<span class="badge badge-red">${r}</span>`;
+  if(r==='No Asiste')return`<span class="badge badge-yellow">${r}</span>`;
+  if(r==='Aplazado')return`<span class="badge badge-gray">${r}</span>`;
+  return`<span class="badge badge-gray">${r}</span>`;
+}
+
+async function init(){
+  const rol=localStorage.getItem('rol');
+  const nombre=localStorage.getItem('nombre')||'Usuario';
+  document.getElementById('userName').textContent=nombre;
+  document.getElementById('initials').textContent=nombre.charAt(0).toUpperCase();
+  document.getElementById('wbNombre').textContent=nombre.split(' ')[0];
+  // Hora colombiana (UTC-5, sin horario de verano)
+  const nowUTC=new Date();
+  const colMs=nowUTC.getTime()+(nowUTC.getTimezoneOffset()*60000)+(-5*3600000);
+  const colDate=new Date(colMs);
+  const h=colDate.getHours();
+  document.getElementById('wbSaludo').textContent=h>=5&&h<12?'Buenos días':h>=12&&h<19?'Buenas tardes':'Buenas noches';
+  document.getElementById('wbFecha').textContent=colDate.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(rol==='administrador')document.getElementById('lnkAdmin').style.display='flex';
+  if(!token()){location.href='/';return}
+  await Promise.all([cargarKpis(),cargarFiltros(),buscar()]);
+}
+
+async function cargarKpis(){
+  try{
+    const r=await fetch('/api/candidatos/stats/resumen',{headers:auth()});
+    const d=await r.json();
+    document.getElementById('kTotal').textContent=d.total;
+    document.getElementById('kContratados').textContent=d.contratados;
+    document.getElementById('kAptosOp').textContent=d.aptos_operaciones;
+    document.getElementById('kEnProceso').textContent=d.en_proceso;
+    document.getElementById('kNoAptos').textContent=d.no_aptos;
+    document.getElementById('kNegra').textContent=d.lista_negra;
+  }catch(e){}
+}
+
+async function cargarFiltros(){
+  try{
+    const [neg,rec]=await Promise.all([
+      fetch('/api/admin/catalogos/negocio',{headers:auth()}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/reclutador',{headers:auth()}).then(r=>r.json()),
+    ]);
+    const sNeg=document.getElementById('fNegocio');
+    neg.filter(n=>n.activo).forEach(n=>{const o=document.createElement('option');o.value=n.nombre;o.textContent=n.nombre;sNeg.appendChild(o)});
+    const sRec=document.getElementById('fReclutador');
+    rec.filter(r=>r.activo).forEach(r=>{const o=document.createElement('option');o.value=r.nombre;o.textContent=r.nombre;sRec.appendChild(o)});
+  }catch(e){}
+}
+
+function buildParams(p=0){
+  const params=new URLSearchParams();
+  const b=document.getElementById('fBuscar').value.trim();
+  const n=document.getElementById('fNegocio').value;
+  const r=document.getElementById('fReclutador').value;
+  const s=document.getElementById('fStatus').value;
+  const ro=document.getElementById('fResultadoOps').value;
+  if(b)params.set('buscar',b);
+  if(n)params.set('negocio',n);
+  if(r)params.set('reclutador',r);
+  if(s)params.set('status',s);
+  if(ro)params.set('resultado_operaciones',ro);
+  params.set('skip',p*limit);
+  params.set('limit',limit);
+  return params.toString();
+}
+
+async function buscar(p=0){
+  page=p;
+  try{
+    const r=await fetch('/api/candidatos/?'+buildParams(p),{headers:auth()});
+    if(r.status===401){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
+    const resp=await r.json();
+    // nuevo formato {total, items} o lista legacy
+    const items=Array.isArray(resp)?resp:(resp.items||[]);
+    totalRegistros=Array.isArray(resp)?items.length:(resp.total||items.length);
+    renderTabla(items);
+    renderPaginacion();
+    await cargarKpis();
+  }catch(e){console.error(e)}
+}
+
+function renderPaginacion(){
+  const totalPags=Math.ceil(totalRegistros/limit);
+  const info=document.getElementById('pgInfo');
+  const btns=document.getElementById('pgBtns');
+  const desde=page*limit+1;
+  const hasta=Math.min((page+1)*limit,totalRegistros);
+  info.textContent=totalRegistros>0?`Mostrando ${desde}–${hasta} de ${totalRegistros}`:'Sin resultados';
+  if(totalPags<=1){btns.innerHTML='';return}
+  let html='';
+  if(page>0)html+=`<button class="pg-btn" onclick="buscar(${page-1})">‹ Anterior</button>`;
+  // páginas cercanas
+  const start=Math.max(0,page-2), end=Math.min(totalPags-1,page+2);
+  for(let i=start;i<=end;i++){
+    html+=`<button class="pg-btn${i===page?' active':''}" onclick="buscar(${i})">${i+1}</button>`;
+  }
+  if(page<totalPags-1)html+=`<button class="pg-btn" onclick="buscar(${page+1})">Siguiente ›</button>`;
+  btns.innerHTML=html;
+}
+
+function renderTabla(data){
+  const tbody=document.getElementById('tbody');
+  const empty=document.getElementById('emptyMsg');
+  tbody.innerHTML='';
+  document.getElementById('tableCount').textContent=totalRegistros;
+  if(!data.length){
+    empty.style.display='block';
+    document.getElementById('pgInfo').textContent='0 resultados';
+    document.getElementById('pgBtns').innerHTML='';
+    return
+  }
+  empty.style.display='none';
+  data.forEach(c=>{
+    const tr=document.createElement('tr');
+    if(c.lista_negra)tr.className='negra-row';
+    tr.innerHTML=`
+      <td style="min-width:180px">
+        <div style="font-weight:700;display:flex;align-items:center;gap:5px;white-space:normal;word-break:break-word">
+          ${c.lista_negra?'<span style="color:#dc2626;display:inline-flex;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>':''}
+          <span onclick="abrirPanel(${c.id},'${(c.nombre||c.cedula).replace(/'/g,"\\'")}')" style="color:var(--orange);cursor:pointer;text-decoration:underline dotted">${c.nombre||'Sin nombre'}</span>
+        </div>
+        <div style="font-size:.75rem;color:#aaa;margin-top:2px">${c.cedula||''}</div>
+      </td>
+      <td style="font-size:.82rem;white-space:normal;min-width:140px">${c.cargo||'—'}</td>
+      <td style="font-size:.82rem">${c.negocio||'—'}</td>
+      <td style="font-size:.8rem;color:#666;white-space:normal;min-width:120px">${c.reclutador||'—'}</td>
+      <td style="font-size:.8rem;white-space:nowrap">${fmtFecha(c.fecha_prog_operaciones)}</td>
+      <td>${resultBadge(c.resultado_operaciones)}</td>
+      <td>${resultBadge(c.resultado_rrhh)}</td>
+      <td style="font-size:.78rem;max-width:160px;white-space:normal">${c.concepto_emo||'<span style="color:#ccc">—</span>'}</td>
+      <td>${resultBadge(c.concepto_es)}</td>
+      <td>${statusBadge(c.tipo_status||c.status)}</td>
+      <td style="font-size:.75rem;color:#bbb;white-space:nowrap">${fmtFecha(c.created_at)}</td>
+    `;
+    tr.addEventListener('click',e=>{if(e.target.tagName!=='A')abrirPanel(c.id,c.nombre||c.cedula)});
+    tbody.appendChild(tr);
+  });
+  document.getElementById('pgInfo').textContent=`Mostrando ${data.length} registro${data.length!==1?'s':''}`;
+}
+
+function limpiar(){
+  document.getElementById('fBuscar').value='';
+  document.getElementById('fNegocio').value='';
+  document.getElementById('fReclutador').value='';
+  document.getElementById('fStatus').value='';
+  document.getElementById('fResultadoOps').value='';
+  buscar(0);
+}
+
+function exportarExcel(){
+  const n=document.getElementById('fNegocio').value;
+  const r=document.getElementById('fReclutador').value;
+  const s=document.getElementById('fStatus').value;
+  const params=new URLSearchParams();
+  if(n)params.set('negocio',n);
+  if(r)params.set('reclutador',r);
+  if(s)params.set('status',s);
+  params.set('token',token());
+  window.open('/api/export/excel?'+params.toString(),'_blank');
+  toast('Descargando Excel...','info');
+}
+
+document.getElementById('fBuscar').addEventListener('keydown',e=>{if(e.key==='Enter')buscar(0)});
+
+function abrirPanel(id, nombre){
+  document.getElementById('editPanelTitulo').textContent=nombre||'Editar candidato';
+  document.getElementById('editFrame').src='/captura?id='+id;
+  document.getElementById('editOverlay').classList.add('open');
+  document.getElementById('editPanel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarPanel(){
+  document.getElementById('editOverlay').classList.remove('open');
+  document.getElementById('editPanel').classList.remove('open');
+  document.getElementById('editFrame').src='';
+  document.body.style.overflow='';
+  buscar(page); // refrescar tabla por si se guardó algo
+}
+// Cerrar con Escape
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarPanel()});
+
+if(!localStorage.getItem('token'))location.href='/';
+else init();
+</script>
+</body>
+</html>

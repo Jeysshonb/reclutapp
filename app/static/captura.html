@@ -1,0 +1,1538 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reclutamiento ARA — Formulario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#1A9ECC;--orange-dark:#0D7BA8;--orange-light:#E0F6FF;--orange-mid:#2db5e8;
+    --dark:#1d3557;--text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--bg:#fafaf9;
+    --green:#059669;--blue:#0284c7;--red:#dc2626;--amber:#d97706;--purple:#7c3aed;--cyan:#0891b2;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.10);
+    --r:12px;--r-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  /* NAV */
+  nav{
+    background:linear-gradient(90deg,var(--orange) 0%,var(--orange-dark) 100%);
+    color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:60px;box-shadow:0 2px 12px rgba(26,158,204,.35);
+    position:sticky;top:0;z-index:200
+  }
+  .nav-brand{display:flex;align-items:center;gap:14px}
+  .nav-banner{height:32px;object-fit:contain;filter:brightness(0) invert(1)}
+  .nav-title{font-size:.95rem;font-weight:700;letter-spacing:.3px;opacity:.9}
+  .nav-links{display:flex;align-items:center;gap:4px}
+  .nav-links a{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.85);text-decoration:none;padding:7px 14px;border-radius:8px;font-size:.85rem;font-weight:500;transition:.2s}
+  .nav-links a svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .nav-links a:hover{background:rgba(255,255,255,.15);color:#fff}
+  .nav-user{display:flex;align-items:center;gap:10px;font-size:.85rem}
+  .nav-name{font-weight:600;opacity:.95}
+  .btn-logout{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:5px;transition:.2s}
+  .btn-logout:hover{background:rgba(255,255,255,.25)}
+  .btn-logout svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* PROGRESS */
+  .progress-bar{height:3px;background:#f3f4f6}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange-mid));transition:width .4s ease;border-radius:0 2px 2px 0;width:0%}
+
+  /* LAYOUT */
+  .layout{display:flex;min-height:calc(100vh - 63px)}
+
+  /* SIDEBAR */
+  .sidebar{
+    width:220px;background:#fff;border-right:1px solid var(--border);
+    padding:16px 0;flex-shrink:0;position:sticky;top:63px;
+    height:calc(100vh - 63px);overflow-y:auto
+  }
+  .sidebar-title{font-size:.65rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.9px;padding:0 18px 10px}
+  .step{
+    display:flex;align-items:center;gap:9px;padding:9px 18px;
+    cursor:pointer;transition:.15s;font-size:.8rem;color:#888;font-weight:500;
+    border-left:3px solid transparent
+  }
+  .step:hover{background:var(--orange-light);color:var(--orange)}
+  .step.active{background:var(--orange-light);color:var(--orange);font-weight:700;border-left-color:var(--orange)}
+  .step.done{color:var(--green)}
+  .step.done .snum{background:var(--green);color:#fff}
+  .snum{width:22px;height:22px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:800;flex-shrink:0;transition:.15s}
+  .step.active .snum{background:var(--orange);color:#fff}
+
+  /* MAIN */
+  .main{flex:1;padding:24px 28px 80px;max-width:960px}
+
+  /* SECTION ANIMATIONS */
+  .section{display:none}
+  .section.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .section.active .form-card{animation:fadeUp .35s ease both}
+  .section.active .form-card:nth-child(2){animation-delay:.06s}
+  .section.active .form-card:nth-child(3){animation-delay:.12s}
+
+  /* BANNERS */
+  .readonly-banner{
+    background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-sm);
+    padding:10px 16px;margin-bottom:18px;font-size:.82rem;font-weight:600;color:#78350f;
+    display:flex;align-items:center;gap:8px
+  }
+  .readonly-banner svg{width:15px;height:15px;stroke:#d97706;fill:none;stroke-width:2;flex-shrink:0}
+  .alert-negra{
+    background:var(--dark);color:#fff;border-radius:var(--r);
+    padding:14px 20px;margin-bottom:18px;
+    display:flex;align-items:flex-start;gap:12px
+  }
+  .alert-negra svg{width:20px;height:20px;stroke:var(--orange);fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+  .alert-negra div h4{font-size:.9rem;margin-bottom:3px}
+  .alert-negra div p{font-size:.8rem;opacity:.75}
+  .readonly-mode input,.readonly-mode select,.readonly-mode textarea{background:#f9fafb!important;pointer-events:none;color:#888}
+
+  /* SECTION HEADER */
+  .section-header{margin-bottom:20px;animation:fadeUp .3s ease both}
+  .section-header h2{font-size:1.1rem;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .section-header h2 svg{width:20px;height:20px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .section-header p{font-size:.82rem;color:var(--muted);padding-left:30px}
+
+  /* CARDS */
+  .form-card{
+    background:#fff;border-radius:var(--r);
+    border:1px solid var(--border);border-left:4px solid var(--border);
+    box-shadow:var(--shadow-sm);margin-bottom:14px;overflow:hidden;
+    transition:box-shadow .2s
+  }
+  .form-card:hover{box-shadow:var(--shadow-md)}
+  .card-hdr{
+    padding:14px 20px 12px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid var(--bg)
+  }
+  .card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .card-icon svg{width:17px;height:17px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .card-hdr h3{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;flex:1}
+  .step-tag{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:100px}
+  .card-body{padding:18px 20px}
+
+  /* SECTION COLORS */
+  .sec-orange{border-left-color:var(--orange)!important}
+  .sec-orange .card-hdr h3{color:var(--orange)}
+  .sec-orange .step-tag{color:var(--orange);background:var(--orange-light)}
+  .sec-orange .card-icon{background:var(--orange-light)}
+  .sec-orange .card-icon svg{stroke:var(--orange)}
+
+  .sec-blue{border-left-color:var(--blue)!important}
+  .sec-blue .card-hdr h3{color:var(--blue)}
+  .sec-blue .step-tag{color:var(--blue);background:#e0f4fd}
+  .sec-blue .card-icon{background:#e0f4fd}
+  .sec-blue .card-icon svg{stroke:var(--blue)}
+
+  .sec-amber{border-left-color:var(--amber)!important}
+  .sec-amber .card-hdr h3{color:var(--amber)}
+  .sec-amber .step-tag{color:var(--amber);background:#fef3c7}
+  .sec-amber .card-icon{background:#fef3c7}
+  .sec-amber .card-icon svg{stroke:var(--amber)}
+
+  .sec-green{border-left-color:var(--green)!important}
+  .sec-green .card-hdr h3{color:var(--green)}
+  .sec-green .step-tag{color:var(--green);background:#d1fae5}
+  .sec-green .card-icon{background:#d1fae5}
+  .sec-green .card-icon svg{stroke:var(--green)}
+
+  .sec-purple{border-left-color:var(--purple)!important}
+  .sec-purple .card-hdr h3{color:var(--purple)}
+  .sec-purple .step-tag{color:var(--purple);background:#ede9fe}
+  .sec-purple .card-icon{background:#ede9fe}
+  .sec-purple .card-icon svg{stroke:var(--purple)}
+
+  .sec-cyan{border-left-color:var(--cyan)!important}
+  .sec-cyan .card-hdr h3{color:var(--cyan)}
+  .sec-cyan .step-tag{color:var(--cyan);background:#cffafe}
+  .sec-cyan .card-icon{background:#cffafe}
+  .sec-cyan .card-icon svg{stroke:var(--cyan)}
+
+  .sec-red{border-left-color:var(--red)!important}
+  .sec-red .card-hdr h3{color:var(--red)}
+  .sec-red .step-tag{color:var(--red);background:#fee2e2}
+  .sec-red .card-icon{background:#fee2e2}
+  .sec-red .card-icon svg{stroke:var(--red)}
+
+  /* GRID */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .full{grid-column:1/-1}
+
+  /* FIELDS */
+  .fg{display:flex;flex-direction:column;gap:5px}
+  .fg label{font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.01em}
+  .fg input,.fg select,.fg textarea{
+    border:1.5px solid var(--border);border-radius:var(--r-sm);
+    padding:10px 12px;font-size:.88rem;font-family:inherit;color:var(--text);
+    background:#fff;transition:border-color .2s,box-shadow .2s;
+    appearance:none;-webkit-appearance:none;width:100%
+  }
+  .fg select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:30px
+  }
+  .fg input:focus,.fg select:focus,.fg textarea:focus{
+    outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(26,158,204,.1);background:#fffaf8
+  }
+  .fg textarea{resize:vertical;min-height:80px;line-height:1.6}
+  .fg .hint{font-size:.7rem;color:#bbb;margin-top:2px}
+  .required::after{content:' *';color:var(--orange)}
+
+  /* BUTTONS */
+  .btn{padding:10px 20px;border:none;border-radius:var(--r-sm);cursor:pointer;font-size:.86rem;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
+  .btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .btn-primary{background:var(--orange);color:#fff;box-shadow:0 2px 8px rgba(26,158,204,.25)}.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px)}
+  .btn-outline{background:#fff;color:var(--orange);border:1.5px solid var(--orange)}.btn-outline:hover{background:var(--orange-light)}
+  .btn-success{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(5,150,105,.2)}.btn-success:hover{background:#047857;transform:translateY(-1px)}
+  .btn-gray{background:#f3f4f6;color:#555;border:1px solid var(--border)}.btn-gray:hover{background:#e5e7eb}
+  .btn-save{padding:13px 32px;font-size:.93rem;font-weight:700;box-shadow:0 4px 14px rgba(5,150,105,.3)}
+  .btn-wa{background:#25d366;color:#fff;box-shadow:0 2px 8px rgba(37,211,102,.25)}.btn-wa:hover{background:#22c35e}
+  .nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+
+  /* EXPERIENCIA */
+  .exp-card{
+    background:#fafaf9;border:1px solid var(--border);border-radius:var(--r);
+    padding:18px;margin-bottom:14px;border-left:3px solid var(--orange)
+  }
+  .exp-card-title{font-size:.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+  .exp-card-title svg{width:14px;height:14px;stroke:var(--orange);fill:none;stroke-width:2}
+
+  /* PIPELINE */
+  .pipe-card{
+    background:#fff;border-radius:var(--r);border:1px solid var(--border);
+    box-shadow:var(--shadow-sm);margin-bottom:14px;overflow:hidden
+  }
+  .pipe-hdr{padding:14px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;transition:.15s}
+  .pipe-hdr:hover{filter:brightness(.97)}
+  .pipe-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .pipe-hdr h4{font-size:.85rem;font-weight:700;flex:1}
+  .pipe-toggle{margin-left:auto;font-size:1.1rem;transition:transform .25s;color:#888}
+  .pipe-card.collapsed .pipe-toggle{transform:rotate(-90deg)}
+  .pipe-body{padding:16px 18px;border-top:1px solid var(--border)}
+  .pipe-card.collapsed .pipe-body{display:none}
+  .pipe-ops .pipe-dot{background:var(--orange)}
+  .pipe-ops .pipe-hdr{background:var(--orange-light);border-left:4px solid var(--orange)}
+  .pipe-ops .pipe-hdr h4{color:var(--orange-dark)}
+  .pipe-rrhh .pipe-dot{background:var(--blue)}
+  .pipe-rrhh .pipe-hdr{background:#eff6ff;border-left:4px solid var(--blue)}
+  .pipe-rrhh .pipe-hdr h4{color:#1e40af}
+  .pipe-emo .pipe-dot{background:var(--green)}
+  .pipe-emo .pipe-hdr{background:#f0fdf4;border-left:4px solid var(--green)}
+  .pipe-emo .pipe-hdr h4{color:#065f46}
+  .pipe-es .pipe-dot{background:var(--purple)}
+  .pipe-es .pipe-hdr{background:#faf5ff;border-left:4px solid var(--purple)}
+  .pipe-es .pipe-hdr h4{color:#5b21b6}
+  .pipe-resultado-badge{padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+  .pipe-uploader{margin-top:14px;border-top:1px dashed var(--border);padding-top:12px}
+  .pipe-uploader-title{font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .pipe-files-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .pipe-file-chip{display:flex;align-items:center;gap:5px;background:#f3f4f6;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.75rem;max-width:220px}
+  .pipe-file-chip a{color:var(--dark);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .pipe-file-chip a:hover{color:var(--orange);text-decoration:underline}
+  .pipe-file-chip button{background:none;border:none;cursor:pointer;color:#dc2626;font-size:.85rem;line-height:1;flex-shrink:0}
+  .pipe-upload-btn{display:inline-flex;align-items:center;gap:5px;background:var(--orange-light);color:var(--orange-dark);border:1.5px dashed var(--orange);border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s}
+  .pipe-upload-btn:hover{background:var(--orange);color:#fff}
+
+  /* IMC */
+  .imc-result{display:inline-block;padding:5px 14px;border-radius:20px;font-size:.82rem;font-weight:600;margin-top:6px}
+  .imc-sano{background:#d1fae5;color:#065f46}
+  .imc-sobrepeso{background:#fef3c7;color:#78350f}
+  .imc-riesgo{background:#fee2e2;color:#991b1b}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.73rem;font-weight:600}
+  .badge-green{background:#d1fae5;color:#065f46}
+  .badge-red{background:#fee2e2;color:#991b1b}
+  .badge-gray{background:#f3f4f6;color:#4b5563}
+
+  /* WA BOX */
+  .wa-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r);padding:18px;margin-top:16px}
+  .wa-title{font-weight:700;font-size:.88rem;color:#065f46;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .wa-title svg{width:16px;height:16px;stroke:#059669;fill:none;stroke-width:2}
+  .wa-box textarea{background:#fff;border:1px solid #bbf7d0;border-radius:var(--r-sm);width:100%;padding:10px 12px;font-size:.85rem;min-height:110px;font-family:inherit;resize:vertical;outline:none;transition:.2s;color:var(--text)}
+  .wa-box textarea:focus{border-color:var(--green)}
+  .wa-hint{font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5}
+
+  /* UPLOAD */
+  .upload-section{margin-top:16px}
+  .drop-zone{
+    border:2px dashed var(--border);border-radius:var(--r);
+    padding:28px 20px;text-align:center;cursor:pointer;
+    transition:.2s;background:var(--bg)
+  }
+  .drop-zone:hover,.drop-zone.drag{border-color:var(--orange);background:var(--orange-light)}
+  .drop-icon{width:42px;height:42px;border-radius:12px;background:var(--border);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  .drop-zone:hover .drop-icon,.drop-zone.drag .drop-icon{background:rgba(26,158,204,.15)}
+  .drop-icon svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.6;transition:stroke .2s}
+  .drop-zone:hover .drop-icon svg,.drop-zone.drag .drop-icon svg{stroke:var(--orange)}
+  .drop-zone p{font-size:.83rem;color:var(--muted)}
+  .drop-zone strong{color:var(--orange)}
+  .file-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .file-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 13px;font-size:.82rem;animation:fadeUp .2s ease}
+  .file-item svg{stroke:var(--orange);fill:none;stroke-width:2;width:14px;height:14px;flex-shrink:0}
+  .fname{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .fsize{color:var(--muted);font-size:.72rem;flex-shrink:0}
+  .frm{background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;color:var(--red);transition:.15s;font-size:.78rem;font-family:inherit}
+  .frm:hover{background:#fee2e2}
+  .file-saved{display:flex;align-items:center;gap:8px;padding:8px 13px;background:#d1fae5;border:1px solid #a7f3d0;border-radius:var(--r-sm);font-size:.82rem;color:#065f46;font-weight:500}
+  .file-saved svg{width:14px;height:14px;stroke:#059669;fill:none;stroke-width:2}
+
+  /* INFO BOX */
+  .info-box{display:flex;gap:10px;align-items:flex-start;padding:10px 13px;border-radius:var(--r-sm);background:#fffbeb;border:1px solid #fde68a;font-size:.8rem;color:#78350f;margin-top:10px;line-height:1.5}
+  .info-box svg{flex-shrink:0;margin-top:1px;stroke:#d97706;fill:none;stroke-width:2;width:14px;height:14px}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-box{background:#fff;border-radius:18px;padding:28px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:scaleUp .25s ease}
+  @keyframes scaleUp{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+  .modal-head-text h3{font-size:1rem;font-weight:800;color:var(--dark);margin-bottom:3px}
+  .modal-head-text p{font-size:.8rem;color:var(--muted)}
+  .modal-close{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:#aaa;transition:.15s}
+  .modal-close:hover{background:#f3f4f6;color:var(--dark)}
+  .modal-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+  .hist-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:8px;font-size:.84rem}
+  .hist-name{font-weight:700;margin-bottom:5px;color:var(--dark)}
+  .hist-row{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.78rem}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:var(--r);font-size:.87rem;font-weight:600;color:#fff;z-index:9999;transform:translateY(16px);opacity:0;transition:.3s;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.22);font-family:'Inter',sans-serif}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast-success{background:var(--green)}
+  .toast-error{background:var(--red)}
+  .toast-info{background:var(--orange)}
+
+  @media(max-width:768px){
+    .layout{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:static;display:flex;overflow-x:auto;padding:8px;gap:4px;border-right:none;border-bottom:1px solid var(--border)}
+    .sidebar-title{display:none}
+    .step{flex-direction:column;text-align:center;min-width:68px;font-size:.68rem;gap:3px;border-left:none;border-bottom:3px solid transparent;padding:8px 6px}
+    .step.active{border-bottom-color:var(--orange);border-left:none}
+    .main{padding:16px 14px 60px}
+    .grid,.grid-3{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <img src="/img/banner%20ARA.png" class="nav-banner" alt="ARA" onerror="this.style.display='none'">
+    <span class="nav-title">Reclutamiento ARA</span>
+  </div>
+  <div class="nav-links">
+    <a href="/seguimiento">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Seguimiento
+    </a>
+    <a href="/captura">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo
+    </a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-name" id="userName"></span>
+    <button class="btn-logout" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Salir
+    </button>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- MODAL HISTORIAL -->
+<div class="modal-overlay" id="modalHist">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-head" style="background:#dc2626;border-radius:var(--r) var(--r) 0 0;padding:18px 20px">
+      <div class="modal-head-text">
+        <h3 style="color:#fff;font-size:1.1rem;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ¡CANDIDATO YA REGISTRADO!
+        </h3>
+        <p style="color:rgba(255,255,255,.85);font-size:.85rem;margin-top:3px">Esta cédula ya tiene procesos registrados en el sistema</p>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()" style="color:#fff;opacity:.8">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="histContent" style="padding:16px 20px;max-height:320px;overflow-y:auto"></div>
+    <div class="modal-foot" style="border-top:2px solid #fee2e2;background:#fff7f7;padding:14px 20px">
+      <button class="btn btn-gray" onclick="cerrarModal()">Limpiar cédula</button>
+      <button class="btn" id="btnEditarExistente" style="background:#059669;color:#fff;display:none" onclick="editarCandidatoExistente()">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar perfil existente
+      </button>
+      <button class="btn btn-primary" onclick="continuarConCedula()">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        Registrar nuevo proceso
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Secciones</div>
+    <div class="step active" onclick="goStep(0)" id="s0"><div class="snum">1</div>Entrevista</div>
+    <div class="step" onclick="goStep(1)" id="s1"><div class="snum">2</div>Personales</div>
+    <div class="step" onclick="goStep(2)" id="s2"><div class="snum">3</div>Medidas</div>
+    <div class="step" onclick="goStep(3)" id="s3"><div class="snum">4</div>Inclusión</div>
+    <div class="step" onclick="goStep(4)" id="s4"><div class="snum">5</div>Familia</div>
+    <div class="step" onclick="goStep(5)" id="s5"><div class="snum">6</div>Educación</div>
+    <div class="step" onclick="goStep(6)" id="s6"><div class="snum">7</div>Sit. Laboral</div>
+    <div class="step" onclick="goStep(7)" id="s7"><div class="snum">8</div>Experiencia</div>
+    <div class="step" onclick="goStep(8)" id="s8"><div class="snum">9</div>Pipeline</div>
+    <div class="step" onclick="goStep(9)" id="s9"><div class="snum">10</div>Resultado</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainForm">
+    <div id="readonlyBanner" class="readonly-banner" style="display:none">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Modo solo lectura — solo administradores y especialistas pueden editar.
+    </div>
+    <div id="negraBanner" style="display:none" class="alert-negra">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><h4>Candidato en Lista Negra</h4><p id="motivoNegra"></p></div>
+    </div>
+
+    <!-- ── S0: ENTREVISTA ── -->
+    <div class="section active" id="sec0">
+      <div class="section-header">
+        <h2 style="color:var(--orange)"><svg viewBox="0 0 24 24" stroke="var(--orange)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Metadata de la Entrevista</h2>
+        <p>Información general del proceso de selección</p>
+      </div>
+      <div class="form-card sec-orange">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h3>Datos del proceso</h3>
+          <span class="step-tag">1 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg">
+              <label style="display:flex;align-items:center;gap:6px">
+                <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--green);fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Fecha y Hora de Registro
+                <span style="font-size:.7rem;background:#dcfce7;color:#166534;padding:1px 7px;border-radius:10px;font-weight:700">AUTO</span>
+              </label>
+              <input type="text" id="fechaHoraRegistro" readonly disabled style="background:#f0fdf4;color:#166534;font-weight:700;font-size:.9rem;border-color:#bbf7d0;cursor:default">
+            </div>
+            <div class="fg"><label class="required">Reclutador</label><select id="reclutador"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label class="required">Negocio</label><select id="negocio"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label class="required">Tipo Formulario</label>
+              <select id="tipo_formulario"><option value="">Seleccionar...</option><option>ODT — Operador de Tienda</option><option>SDT/JDT — Supervisor/Jefe de Tienda</option><option>Part Time</option><option>SENA</option></select>
+            </div>
+            <div class="fg"><label class="required">Cargo</label><select id="cargo"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label>Fuente HV</label><select id="fuente"><option value="">Seleccionar...</option></select></div>
+            <div class="fg">
+              <label>Ciudad a la que aplica</label>
+              <div style="position:relative">
+                <input type="text" id="ciudad_aplica" placeholder="Escribir ciudad..." autocomplete="off" oninput="filtrarCiudades(this.value)" onfocus="filtrarCiudades(this.value)" onblur="setTimeout(()=>ocultarCiudades(),200)">
+                <div id="ciudadDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--orange);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+              </div>
+            </div>
+            <div class="fg"><label>Zona</label><select id="zona"><option value="">Seleccionar...</option><option>Norte</option><option>Centro</option><option>Sur</option><option>Occidente</option><option>Antioquia</option></select></div>
+            <div class="fg"><label>Región</label>
+              <select id="region">
+                <option value="">Seleccionar...</option>
+                <option>R1</option><option>R2</option><option>R3</option><option>R4</option>
+                <option>R6</option><option>R7</option><option>R8</option><option>R9</option>
+                <option>R10</option><option>R11</option>
+              </select>
+            </div>
+            <div class="fg full"><label>Observaciones Analistas SR.</label><textarea id="observaciones_analistas" placeholder="Notas internas del analista..."></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns"><div></div><button class="btn btn-primary" onclick="goStep(1)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+    </div>
+
+    <!-- ── S1: DATOS PERSONALES ── -->
+    <div class="section" id="sec1">
+      <div class="section-header">
+        <h2 style="color:var(--blue)"><svg viewBox="0 0 24 24" stroke="var(--blue)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Datos Personales</h2>
+        <p>Identificación y contacto del candidato</p>
+      </div>
+      <div class="form-card sec-blue">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h3>Identificación y contacto</h3>
+          <span class="step-tag">2 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg">
+              <label class="required">Cédula</label>
+              <input type="text" id="cedula" placeholder="Número de documento" onblur="verificarCedula()">
+              <span class="hint">Al salir se verificará historial previo</span>
+            </div>
+            <div class="fg"><label>Tipo Documento</label>
+              <select id="tipo_documento"><option>Cédula de Ciudadanía</option><option>Cédula de Extranjería</option><option>Pasaporte</option><option>PPT</option><option>PEP</option></select>
+            </div>
+            <div class="fg full"><label class="required">Nombre completo</label><input type="text" id="nombre" placeholder="Nombres y apellidos completos"></div>
+            <div class="fg">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" id="fecha_nacimiento" min="1950-01-01" max="2008-12-31" onchange="calcularEdad()">
+              <span id="edadDisplay" style="display:none;margin-top:4px;font-size:.8rem;font-weight:700;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;display:inline-block"></span>
+            </div>
+            <div class="fg"><label>Género</label><select id="genero"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+            <div class="fg"><label>Correo Electrónico</label><input type="email" id="correo" placeholder="correo@gmail.com"></div>
+            <div class="fg"><label>Teléfonos de contacto (WhatsApp)</label><input type="text" id="telefono_contacto" placeholder="3001234567"></div>
+            <div class="fg full"><label>Dirección de Residencia (incluir barrio)</label><input type="text" id="direccion" placeholder="Calle 5 #10-20, Barrio El Prado"></div>
+            <div class="fg"><label>Departamento</label><select id="departamento"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label>Municipio</label><input type="text" id="municipio" placeholder="Municipio de residencia"></div>
+            <div class="fg"><label>Localidad (solo Bogotá)</label><input type="text" id="localidad" placeholder="Solo si aplica en Bogotá"></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(0)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(2)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S2: MEDIDAS ── -->
+    <div class="section" id="sec2">
+      <div class="section-header">
+        <h2 style="color:var(--amber)"><svg viewBox="0 0 24 24" stroke="var(--amber)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Medidas Antropométricas</h2>
+        <p>Siempre solicitar peso y altura — el IMC se calcula automáticamente</p>
+      </div>
+      <div class="form-card sec-amber">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+          <h3>Tallas e IMC</h3>
+          <span class="step-tag">3 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-3">
+            <div class="fg"><label>Talla Pantalón</label><select id="talla_pantalon"><option value="">-</option><option>28</option><option>30</option><option>32</option><option>34</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option></select></div>
+            <div class="fg"><label>Talla Camiseta</label><select id="talla_camiseta"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option></select></div>
+            <div class="fg"><label>Talla Zapatos</label><select id="talla_zapatos"><option value="">-</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option></select></div>
+            <div class="fg"><label>Peso (kg)</label><input type="number" id="peso" placeholder="Ej: 70" step="0.1" oninput="calcIMC()"></div>
+            <div class="fg"><label>Altura (metros)</label><input type="number" id="altura" placeholder="Ej: 1.70" step="0.01" oninput="calcIMC()"></div>
+            <div class="fg"><label>Resultado IMC</label><div id="imcDisplay" style="margin-top:6px;color:#bbb;font-size:.83rem">Ingresa peso y altura</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S3: INCLUSIÓN ── -->
+    <div class="section" id="sec3">
+      <div class="section-header">
+        <h2 style="color:var(--green)"><svg viewBox="0 0 24 24" stroke="var(--green)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Inclusión Laboral</h2>
+        <p>Preguntar con respeto — política de inclusión Jerónimo Martins</p>
+      </div>
+      <div class="form-card sec-green">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <h3>Diversidad e inclusión</h3>
+          <span class="step-tag">4 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>¿Se identifica como persona con discapacidad?</label>
+              <select id="tiene_discapacidad" onchange="toggleDisc()"><option value="false">No</option><option value="true">Sí</option></select>
+            </div>
+            <div class="fg" id="fDiscTipo" style="display:none"><label>Tipo de discapacidad</label><input type="text" id="tipo_discapacidad" placeholder="Describir tipo"></div>
+            <div class="fg" id="fDiscCert" style="display:none"><label>¿Tiene certificado de pérdida de capacidad laboral?</label>
+              <select id="tiene_certificado_discapacidad"><option value="false">No</option><option value="true">Sí</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(2)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(4)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S4: FAMILIA ── -->
+    <div class="section" id="sec4">
+      <div class="section-header">
+        <h2 style="color:var(--purple)"><svg viewBox="0 0 24 24" stroke="var(--purple)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Familia y Disponibilidad</h2>
+      </div>
+      <div class="form-card sec-purple">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <h3>Hijos y cuidado</h3>
+          <span class="step-tag">5 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>¿Tiene hijos?</label><select id="tiene_hijos" onchange="toggleHijos()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg" id="fNumHijos" style="display:none"><label>¿Cuántos?</label><input type="number" id="num_hijos" min="0" max="20"></div>
+            <div class="fg full" id="fEdadHijos" style="display:none"><label>Edades (separadas por coma)</label><input type="text" id="edades_hijos" placeholder="Ej: 3, 7, 12"></div>
+            <div class="fg full" id="fApoyoCuidado" style="display:none"><label>¿Quién apoya el cuidado?</label><input type="text" id="apoyo_cuidado" placeholder="Mamá, Abuela, Niñera..."></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card sec-purple">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <h3>Familia, transporte y desplazamiento</h3>
+          <span class="step-tag">5 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>¿Tiene familiares en Tiendas Ara?</label><select id="familiar_en_ara" onchange="toggleFamAra()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg" id="fQuienFam" style="display:none"><label>¿Quién?</label><input type="text" id="quien_familiar_ara" placeholder="Parentesco y nombre"></div>
+            <div class="fg"><label>Medio de transporte propio</label><select id="medio_transporte"><option value="">Ninguno</option><option>Moto</option><option>Carro</option><option>Bicicleta</option></select></div>
+            <div class="fg"><label>¿Disponibilidad para desplazarse a otro municipio diariamente?</label><select id="disponibilidad_desplazamiento" onchange="toggleDesplaz()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg" id="fDesplazDest" style="display:none"><label>¿Para dónde?</label><input type="text" id="destino_desplazamiento"></div>
+            <div class="fg"><label>¿Disponibilidad para reubicarse en otro municipio?</label><select id="disponibilidad_reubicacion" onchange="toggleReubic()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg" id="fReubicDest" style="display:none"><label>¿A cuál municipio?</label><input type="text" id="destino_reubicacion"></div>
+            <div class="fg full"><label>Comentarios disponibilidad</label><textarea id="comentarios_disponibilidad"></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(3)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(5)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S5: EDUCACIÓN ── -->
+    <div class="section" id="sec5">
+      <div class="section-header">
+        <h2 style="color:var(--cyan)"><svg viewBox="0 0 24 24" stroke="var(--cyan)"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Educación y Proyección</h2>
+      </div>
+      <div class="form-card sec-cyan">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+          <h3>Formación académica</h3>
+          <span class="step-tag">6 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>Nivel académico culminado</label>
+              <select id="nivel_academico"><option value="">Seleccionar...</option><option>Primaria</option><option>Noveno</option><option>Bachiller</option><option>Técnico</option><option>Tecnólogo</option><option>Profesional</option><option>Especialización</option><option>Maestría</option></select>
+            </div>
+            <div class="fg"><label>Año de graduación</label><input type="text" id="anio_graduacion" placeholder="Ej: 2021"></div>
+            <div class="fg full"><label>Título / Especialización</label><input type="text" id="titulo" placeholder="Nombre del título"></div>
+            <div class="fg"><label>¿Estudia actualmente?</label><select id="estudia_actualmente" onchange="toggleEstudio()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg" id="fModalidad" style="display:none"><label>Modalidad</label><select id="modalidad_estudio"><option value="">Seleccionar...</option><option>Presencial</option><option>Virtual</option><option>Semipresencial</option></select></div>
+            <div class="fg full"><label>Proyectos a corto plazo (1-2 años)</label><textarea id="proyectos_corto_plazo" placeholder="Estabilidad laboral, emprender, estudiar, viajar..."></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(4)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(6)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S6: SITUACIÓN LABORAL ── -->
+    <div class="section" id="sec6">
+      <div class="section-header">
+        <h2 style="color:var(--red)"><svg viewBox="0 0 24 24" stroke="var(--red)"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Situación Laboral Actual</h2>
+      </div>
+      <div class="form-card sec-red">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <h3>Empleo y salario</h3>
+          <span class="step-tag">7 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>Situación laboral</label>
+              <select id="situacion_laboral" onchange="toggleSitLab()"><option value="">Seleccionar...</option><option>Empleado</option><option>Desempleado</option><option>Independiente</option><option>Estudiante</option><option>Contrato Suspendido</option></select>
+            </div>
+            <div class="fg" id="fTipoContrato"><label>Tipo de contrato actual</label>
+              <select id="tipo_contrato"><option value="">Seleccionar...</option><option>Indefinido</option><option>Temporal</option><option>Prestación de servicios</option><option>Contrato Suspendido</option></select>
+            </div>
+            <div class="fg"><label>Salario actual (SMLV)</label><input type="number" id="salario_actual" step="0.1" placeholder="Ej: 1.5"></div>
+            <div class="fg"><label>Aspiración salarial (SMLV)</label><input type="number" id="aspiracion_salarial" step="0.1" placeholder="Ej: 1.0"></div>
+            <div class="fg" id="fMesesDesemp" style="display:none"><label>Meses desempleado</label><input type="number" id="meses_desempleado" min="0"></div>
+            <div class="fg full" id="fJustifIndef" style="display:none">
+              <label class="required">Justificación cambio contrato indefinido</label>
+              <textarea id="justificacion_cambio_indefinido" placeholder="Obligatorio: explicar por qué deja un contrato indefinido..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(5)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(7)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S7: EXPERIENCIA ── -->
+    <div class="section" id="sec7">
+      <div class="section-header">
+        <h2 style="color:var(--orange)"><svg viewBox="0 0 24 24" stroke="var(--orange)"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Experiencia Laboral</h2>
+        <p>Registrar las 3 últimas experiencias certificables</p>
+      </div>
+      <!-- EXP 1 -->
+      <div class="exp-card">
+        <div class="exp-card-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Experiencia 1 <span class="step-tag" style="color:var(--orange);background:var(--orange-light)">8 / 10</span></div>
+        <div class="grid">
+          <div class="fg"><label>Empresa</label><input type="text" id="exp1_empresa"></div>
+          <div class="fg"><label>Cargo</label><input type="text" id="exp1_cargo"></div>
+          <div class="fg full"><label>Actividad de la empresa</label><input type="text" id="exp1_actividad"></div>
+          <div class="fg"><label>Ciudad</label><input type="text" id="exp1_ciudad"></div>
+          <div class="fg"><label>Salario (SMLV)</label><input type="number" id="exp1_salario" step="0.1"></div>
+          <div class="fg"><label>Fecha inicio</label><input type="date" id="exp1_fecha_inicio"></div>
+          <div class="fg"><label>Fecha retiro</label><input type="date" id="exp1_fecha_retiro"></div>
+          <div class="fg full"><label>Funciones generales</label><textarea id="exp1_funciones"></textarea></div>
+          <div class="fg"><label>Motivo de retiro</label><select id="exp1_motivo_retiro"><option value="">Seleccionar...</option></select></div>
+          <div class="fg full"><label>Argumentación motivo de retiro</label><textarea id="exp1_argumentacion_mr"></textarea></div>
+          <div class="fg"><label>¿Tiene certificado laboral?</label><select id="exp1_tiene_certificado"><option value="false">No</option><option value="true">Sí</option></select></div>
+        </div>
+      </div>
+      <!-- EXP 2 -->
+      <div class="exp-card" id="expCard2" style="display:none">
+        <div class="exp-card-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Experiencia 2
+          <button type="button" onclick="quitarExp(2)" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:.8rem;display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#dc2626;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quitar</button>
+        </div>
+        <div class="grid">
+          <div class="fg"><label>Empresa</label><input type="text" id="exp2_empresa"></div>
+          <div class="fg"><label>Cargo</label><input type="text" id="exp2_cargo"></div>
+          <div class="fg full"><label>Actividad de la empresa</label><input type="text" id="exp2_actividad"></div>
+          <div class="fg"><label>Ciudad</label><input type="text" id="exp2_ciudad"></div>
+          <div class="fg"><label>Salario (SMLV)</label><input type="number" id="exp2_salario" step="0.1"></div>
+          <div class="fg"><label>Fecha inicio</label><input type="date" id="exp2_fecha_inicio"></div>
+          <div class="fg"><label>Fecha retiro</label><input type="date" id="exp2_fecha_retiro"></div>
+          <div class="fg full"><label>Funciones generales</label><textarea id="exp2_funciones"></textarea></div>
+          <div class="fg"><label>Motivo de retiro</label><select id="exp2_motivo_retiro"><option value="">Seleccionar...</option></select></div>
+          <div class="fg full"><label>Argumentación</label><textarea id="exp2_argumentacion_mr"></textarea></div>
+          <div class="fg"><label>¿Tiene certificado?</label><select id="exp2_tiene_certificado"><option value="false">No</option><option value="true">Sí</option></select></div>
+        </div>
+      </div>
+      <!-- EXP 3 -->
+      <div class="exp-card" id="expCard3" style="display:none">
+        <div class="exp-card-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Experiencia 3
+          <button type="button" onclick="quitarExp(3)" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:.8rem;display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#dc2626;fill:none;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Quitar</button>
+        </div>
+        <div class="grid">
+          <div class="fg"><label>Empresa</label><input type="text" id="exp3_empresa"></div>
+          <div class="fg"><label>Cargo</label><input type="text" id="exp3_cargo"></div>
+          <div class="fg full"><label>Actividad de la empresa</label><input type="text" id="exp3_actividad"></div>
+          <div class="fg"><label>Ciudad</label><input type="text" id="exp3_ciudad"></div>
+          <div class="fg"><label>Salario (SMLV)</label><input type="number" id="exp3_salario" step="0.1"></div>
+          <div class="fg"><label>Fecha inicio</label><input type="date" id="exp3_fecha_inicio"></div>
+          <div class="fg"><label>Fecha retiro</label><input type="date" id="exp3_fecha_retiro"></div>
+          <div class="fg full"><label>Funciones generales</label><textarea id="exp3_funciones"></textarea></div>
+          <div class="fg"><label>Motivo de retiro</label><select id="exp3_motivo_retiro"><option value="">Seleccionar...</option></select></div>
+          <div class="fg full"><label>Argumentación</label><textarea id="exp3_argumentacion_mr"></textarea></div>
+          <div class="fg"><label>¿Tiene certificado?</label><select id="exp3_tiene_certificado"><option value="false">No</option><option value="true">Sí</option></select></div>
+        </div>
+      </div>
+      <!-- Botón agregar experiencia -->
+      <div id="btnAgregarExp" style="display:flex;gap:10px;margin-bottom:12px">
+        <button type="button" id="btnAddExp2" onclick="agregarExp(2)" class="btn btn-gray" style="font-size:.85rem">
+          <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar Experiencia 2
+        </button>
+        <button type="button" id="btnAddExp3" onclick="agregarExp(3)" class="btn btn-gray" style="font-size:.85rem;display:none">
+          <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar Experiencia 3
+        </button>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(6)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(8)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S8: PIPELINE ── -->
+    <div class="section" id="sec8">
+      <div class="section-header">
+        <h2 style="color:var(--green)"><svg viewBox="0 0 24 24" stroke="var(--green)"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Pipeline del Proceso</h2>
+        <p>Operaciones → RRHH → EMO → ES → Contratación</p>
+      </div>
+      <!-- OPS -->
+      <div class="pipe-card pipe-ops" id="pipeOps">
+        <div class="pipe-hdr" onclick="togglePipe('pipeOps')">
+          <div class="pipe-dot"></div>
+          <h4>Entrevista Operaciones</h4>
+          <span id="badgeOps" class="pipe-resultado-badge" style="display:none"></span>
+          <span class="step-tag" style="color:var(--orange);background:var(--orange-light)">9/10</span>
+          <span class="pipe-toggle">▾</span>
+        </div>
+        <div class="pipe-body">
+          <div class="grid">
+            <div class="fg"><label>Fecha programación</label><input type="date" id="fecha_prog_operaciones"></div>
+            <div class="fg"><label>Hora</label><input type="time" id="hora_operaciones"></div>
+            <div class="fg"><label>Lugar / Modalidad</label><input type="text" id="lugar_operaciones" placeholder="Teams / Presencial / Dirección"></div>
+            <div class="fg"><label>Entrevistador</label><input type="text" id="entrevistador_1"></div>
+            <div class="fg"><label>Fecha retroalimentación</label><input type="date" id="fecha_retro_operaciones"></div>
+            <div class="fg"><label>Resultado</label>
+              <select id="resultado_operaciones" onchange="actualizarBadgePipe('resultado_operaciones','badgeOps')">
+                <option value="">— Pendiente —</option>
+                <option>Apto</option><option>Apto con Restriccion</option><option>No Apto</option><option>No Asiste</option><option>Aplazado</option>
+              </select>
+            </div>
+            <div class="fg full"><label>Comentarios</label><textarea id="comentarios_operaciones" rows="2"></textarea></div>
+          </div>
+          <div class="pipe-uploader" id="uploaderOps">
+            <div class="pipe-uploader-title"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Evidencias Operaciones</div>
+            <div class="pipe-files-list" id="filesOps"></div>
+            <label class="pipe-upload-btn"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Adjuntar archivo<input type="file" multiple style="display:none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="subirArchivoEtapa(this,'operaciones','filesOps')"></label>
+          </div>
+        </div>
+      </div>
+      <!-- RRHH -->
+      <div class="pipe-card pipe-rrhh collapsed" id="pipeRrhh">
+        <div class="pipe-hdr" onclick="togglePipe('pipeRrhh')">
+          <div class="pipe-dot"></div>
+          <h4>Entrevista RRHH</h4>
+          <span id="badgeRrhh" class="pipe-resultado-badge" style="display:none"></span>
+          <span class="pipe-toggle">▾</span>
+        </div>
+        <div class="pipe-body">
+          <div class="grid">
+            <div class="fg"><label>Fecha programación</label><input type="date" id="fecha_prog_rrhh"></div>
+            <div class="fg"><label>Entrevistador</label><input type="text" id="entrevistador_2"></div>
+            <div class="fg"><label>Fecha retroalimentación</label><input type="date" id="fecha_retro_rrhh"></div>
+            <div class="fg"><label>Resultado</label>
+              <select id="resultado_rrhh" onchange="actualizarBadgePipe('resultado_rrhh','badgeRrhh')">
+                <option value="">— Pendiente —</option><option>Apto</option><option>No Apto</option>
+              </select>
+            </div>
+            <div class="fg full"><label>Comentarios</label><textarea id="comentarios_rrhh" rows="2"></textarea></div>
+          </div>
+          <div class="pipe-uploader" id="uploaderRrhh">
+            <div class="pipe-uploader-title"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Evidencias RRHH</div>
+            <div class="pipe-files-list" id="filesRrhh"></div>
+            <label class="pipe-upload-btn"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Adjuntar archivo<input type="file" multiple style="display:none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="subirArchivoEtapa(this,'rrhh','filesRrhh')"></label>
+          </div>
+        </div>
+      </div>
+      <!-- EMO -->
+      <div class="pipe-card pipe-emo collapsed" id="pipeEmo">
+        <div class="pipe-hdr" onclick="togglePipe('pipeEmo')">
+          <div class="pipe-dot"></div>
+          <h4>EMO — Examen Médico</h4>
+          <span id="badgeEmo" class="pipe-resultado-badge" style="display:none"></span>
+          <span class="pipe-toggle">▾</span>
+        </div>
+        <div class="pipe-body">
+          <div class="grid">
+            <div class="fg"><label>Fecha envío proveedor</label><input type="date" id="fecha_envio_emo"></div>
+            <div class="fg"><label>Fecha recibido</label><input type="date" id="fecha_recibido_emo"></div>
+            <div class="fg"><label>Concepto EMO</label>
+              <select id="concepto_emo" onchange="actualizarBadgePipe('concepto_emo','badgeEmo')">
+                <option value="">— Pendiente —</option><option>Apto</option><option>No Apto EMO</option><option>Apto con restricciones</option>
+              </select>
+            </div>
+            <div class="fg"><label>Proveedor</label><select id="proveedor_emo"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label>Facturación</label><input type="text" id="facturacion_emo" placeholder="N° factura"></div>
+            <div class="fg full"><label>Comentarios</label><textarea id="comentarios_emo" rows="2"></textarea></div>
+          </div>
+          <div class="pipe-uploader" id="uploaderEmo">
+            <div class="pipe-uploader-title"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Evidencias EMO</div>
+            <div class="pipe-files-list" id="filesEmo"></div>
+            <label class="pipe-upload-btn"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Adjuntar archivo<input type="file" multiple style="display:none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="subirArchivoEtapa(this,'emo','filesEmo')"></label>
+          </div>
+        </div>
+      </div>
+      <!-- ES -->
+      <div class="pipe-card pipe-es collapsed" id="pipeEs">
+        <div class="pipe-hdr" onclick="togglePipe('pipeEs')">
+          <div class="pipe-dot"></div>
+          <h4>ES — Estudio de Seguridad</h4>
+          <span id="badgeEs" class="pipe-resultado-badge" style="display:none"></span>
+          <span class="pipe-toggle">▾</span>
+        </div>
+        <div class="pipe-body">
+          <div class="grid">
+            <div class="fg"><label>Fecha envío proveedor</label><input type="date" id="fecha_envio_es"></div>
+            <div class="fg"><label>Fecha recibido</label><input type="date" id="fecha_recibido_es"></div>
+            <div class="fg"><label>Concepto ES</label>
+              <select id="concepto_es" onchange="actualizarBadgePipe('concepto_es','badgeEs')">
+                <option value="">— Pendiente —</option><option>Apto</option><option>No Apto ES</option>
+              </select>
+            </div>
+            <div class="fg"><label>Proveedor</label><select id="proveedor_es"><option value="">Seleccionar...</option></select></div>
+            <div class="fg"><label>Facturación</label><input type="text" id="facturacion_es" placeholder="N° factura"></div>
+            <div class="fg full"><label>Comentarios</label><textarea id="comentarios_es" rows="2"></textarea></div>
+          </div>
+          <div class="pipe-uploader" id="uploaderEs">
+            <div class="pipe-uploader-title"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Evidencias ES</div>
+            <div class="pipe-files-list" id="filesEs"></div>
+            <label class="pipe-upload-btn"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Adjuntar archivo<input type="file" multiple style="display:none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="subirArchivoEtapa(this,'es','filesEs')"></label>
+          </div>
+        </div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn btn-gray" onclick="goStep(7)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-primary" onclick="goStep(9)">Siguiente <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ── S9: RESULTADO ── -->
+    <div class="section" id="sec9">
+      <div class="section-header">
+        <h2 style="color:var(--green)"><svg viewBox="0 0 24 24" stroke="var(--green)"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Resultado y Cierre</h2>
+      </div>
+      <div class="form-card sec-green">
+        <div class="card-hdr">
+          <div class="card-icon"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3>Status final del proceso</h3>
+          <span class="step-tag">10 / 10</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="fg"><label>Fecha de contratación</label><input type="date" id="fecha_contratacion"></div>
+            <div class="fg"><label>Status final</label>
+              <select id="status"><option>En Proceso</option><option>Contratado</option><option>No Apto</option><option>No Apto EMO</option><option>No Apto ES</option><option>No Asiste</option><option>Desiste</option></select>
+            </div>
+            <div class="fg full"><label>Tipo Status</label><input type="text" id="tipo_status" placeholder="Especificar motivo si aplica"></div>
+            <div class="fg full"><label>Comentarios del status</label><textarea id="comentarios_status"></textarea></div>
+            <div class="fg"><label>Comunicación con candidato</label><textarea id="comunicacion_candidatos"></textarea></div>
+            <div class="fg"><label>¿Correo de agradecimiento enviado?</label><select id="correo_agradecimiento"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg"><label>¿Gestión Hello?</label><select id="gestion_hello"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg"><label>Lista Negra</label><select id="lista_negra" onchange="toggleNegra()"><option value="false">No</option><option value="true">Sí</option></select></div>
+            <div class="fg full" id="fMotivoNegra" style="display:none"><label>Motivo lista negra</label><textarea id="motivo_lista_negra" placeholder="Explicar motivo..."></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WhatsApp -->
+      <div class="wa-box">
+        <div class="wa-title">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Generador de Mensaje
+        </div>
+        <textarea id="waMsg" placeholder="Haz clic en Generar para crear el mensaje con los datos del candidato..."></textarea>
+        <div class="info-box" style="margin-top:8px">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>El mensaje se genera con los datos del formulario. Cópialo y envíalo por tu app de mensajes.</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-success" onclick="generarWA()">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Generar Mensaje
+          </button>
+          <button class="btn btn-outline" onclick="copiarWA()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copiar mensaje
+          </button>
+          <button class="btn btn-primary" id="btnSms" onclick="enviarSMS()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar SMS
+          </button>
+        </div>
+      </div>
+
+      <!-- Archivos adjuntos -->
+      <div class="upload-section" id="uploadSection">
+        <div class="form-card sec-orange" style="margin-top:16px">
+          <div class="card-hdr">
+            <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <h3>Archivos adjuntos (PDF, imágenes, documentos)</h3>
+            <span class="step-tag">Soporta: PDF · Word · Excel · Imágenes</span>
+          </div>
+          <div class="card-body">
+            <div id="savedFiles" class="file-list"></div>
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+              <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <p>Arrastra archivos aquí o <strong>haz clic para seleccionar</strong></p>
+              <p style="margin-top:4px;font-size:.74rem;color:#bbb">Máx. 50 MB por archivo</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.mp4" style="display:none" onchange="agregarArchivos(this.files)">
+            <div class="file-list" id="pendingFiles"></div>
+            <button class="btn btn-primary" id="btnSubirArchivos" onclick="subirArchivos()" style="display:none;margin-top:10px">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Subir archivos
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns" style="margin-top:20px">
+        <button class="btn btn-gray" onclick="goStep(8)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+        <button class="btn btn-success btn-save" id="btnGuardar" onclick="guardar()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar Candidato
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+const token=()=>localStorage.getItem('token');
+const rol=()=>localStorage.getItem('rol');
+const authH=()=>({'Authorization':'Bearer '+token(),'Content-Type':'application/json'});
+let candidatoId=null;
+let canEdit=false;
+let archivosEnCola=[];
+
+function logout(){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/'}
+
+function toast(msg,type='info'){
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},3500);
+}
+
+// ── Progress ──
+const TOTAL_STEPS=10;
+let currentStep=0;
+function goStep(n){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec'+n).classList.add('active');
+  document.getElementById('s'+n).classList.add('active');
+  currentStep=n;
+  document.getElementById('progressFill').style.width=((n+1)/TOTAL_STEPS*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Toggles ──
+function toggleDisc(){
+  const v=document.getElementById('tiene_discapacidad').value==='true';
+  document.getElementById('fDiscTipo').style.display=v?'block':'none';
+  document.getElementById('fDiscCert').style.display=v?'block':'none';
+}
+function toggleHijos(){
+  const v=document.getElementById('tiene_hijos').value==='true';
+  ['fNumHijos','fEdadHijos','fApoyoCuidado'].forEach(id=>document.getElementById(id).style.display=v?'block':'none');
+}
+function toggleFamAra(){document.getElementById('fQuienFam').style.display=document.getElementById('familiar_en_ara').value==='true'?'block':'none'}
+function toggleDesplaz(){document.getElementById('fDesplazDest').style.display=document.getElementById('disponibilidad_desplazamiento').value==='true'?'block':'none'}
+function toggleReubic(){document.getElementById('fReubicDest').style.display=document.getElementById('disponibilidad_reubicacion').value==='true'?'block':'none'}
+function toggleEstudio(){document.getElementById('fModalidad').style.display=document.getElementById('estudia_actualmente').value==='true'?'block':'none'}
+function toggleSitLab(){
+  const v=document.getElementById('situacion_laboral').value;
+  document.getElementById('fMesesDesemp').style.display=v==='Desempleado'?'block':'none';
+  document.getElementById('fJustifIndef').style.display=document.getElementById('tipo_contrato').value==='Indefinido'?'block':'none';
+}
+function toggleNegra(){document.getElementById('fMotivoNegra').style.display=document.getElementById('lista_negra').value==='true'?'block':'none'}
+
+// ── IMC ──
+function calcIMC(){
+  const p=parseFloat(document.getElementById('peso').value);
+  const h=parseFloat(document.getElementById('altura').value);
+  const el=document.getElementById('imcDisplay');
+  if(!p||!h||h===0){el.innerHTML='<span style="color:#bbb;font-size:.82rem">Ingresa peso y altura</span>';return}
+  const imc=(p/(h*h)).toFixed(2);
+  let cls='',lbl='';
+  if(imc<18.5){cls='imc-riesgo';lbl='Delgado'}
+  else if(imc<25){cls='imc-sano';lbl='Sano'}
+  else if(imc<30){cls='imc-sobrepeso';lbl='Sobrepeso'}
+  else if(imc<35){cls='imc-sobrepeso';lbl='Sobrepeso Elevado'}
+  else{cls='imc-riesgo';lbl='Obesidad'}
+  el.innerHTML=`<span class="imc-result ${cls}">IMC ${imc} — ${lbl}</span>`;
+}
+
+// ── Cédula ──
+let cedulaVerificada=false;
+let _historialIds=[];
+function _fmtFechaHist(s){if(!s)return'-';const p=s.split('T')[0].split(' ')[0].split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s}
+async function verificarCedula(){
+  const c=document.getElementById('cedula').value.trim();
+  if(!c||candidatoId||cedulaVerificada)return;
+  cedulaVerificada=true;
+  try{
+    const r=await fetch(`/api/candidatos/historial/${c}`,{headers:{'Authorization':'Bearer '+token()}});
+    const data=await r.json();
+    if(!data.length)return;
+    _historialIds=data.map(d=>d.id);
+    const hist=document.getElementById('histContent');
+    hist.innerHTML=data.map((d,i)=>`
+      <div class="hist-item" style="${d.lista_negra?'border-color:#dc2626;background:#fff5f5':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:.9rem;font-weight:700;color:var(--dark)">${d.nombre} ${d.lista_negra?'<span class="badge badge-red">&#9888; LISTA NEGRA</span>':''}</span>
+          <span style="font-size:.75rem;color:var(--muted)">ID #${d.id}</span>
+        </div>
+        ${d.lista_negra&&d.motivo_lista_negra?`<div style="margin-top:6px;color:#991b1b;font-weight:600;font-size:.8rem;background:#fee2e2;padding:6px 10px;border-radius:6px">&#9888; ${d.motivo_lista_negra}</div>`:''}
+      </div>
+    `).join('');
+    const btnEdit=document.getElementById('btnEditarExistente');
+    if(_historialIds.length===1){btnEdit.style.display='inline-flex';btnEdit.dataset.id=_historialIds[0]}
+    else if(_historialIds.length>1){btnEdit.style.display='inline-flex';btnEdit.textContent='Ver último proceso';btnEdit.dataset.id=_historialIds[0]}
+    document.getElementById('modalHist').classList.add('open');
+  }catch(e){}
+}
+function cerrarModal(){document.getElementById('modalHist').classList.remove('open');document.getElementById('cedula').value='';cedulaVerificada=false}
+function continuarConCedula(){document.getElementById('modalHist').classList.remove('open')}
+function editarCandidatoExistente(){const id=document.getElementById('btnEditarExistente').dataset.id;if(id)window.location.href='/captura?id='+id}
+
+// ── WhatsApp ──
+function generarWA(){
+  const nombre=document.getElementById('nombre').value||'[Nombre]';
+  const reclutador=document.getElementById('reclutador').value||'[Reclutador]';
+  const cargo=document.getElementById('cargo').value||'[Cargo]';
+  const negocio=document.getElementById('negocio').value||'Ara';
+  const fecha=document.getElementById('fecha_prog_operaciones').value||'[Fecha]';
+  const hora=document.getElementById('hora_operaciones').value||'[Hora]';
+  const lugar=document.getElementById('lugar_operaciones').value||'Teams';
+  const entrev=document.getElementById('entrevistador_1').value||reclutador;
+  document.getElementById('waMsg').value=`Hola ${nombre}, soy ${reclutador} del equipo de Reclutamiento de ${negocio} - Grupo Jerónimo Martins.\n\nTe contacto para informarte que has sido convocado/a a una entrevista para el cargo de ${cargo}.\n\nFecha: ${fecha}\nHora: ${hora}\nLugar/Modalidad: ${lugar}\nEntrevistador: ${entrev}\n\nPor favor confirma tu asistencia. Te esperamos.`;
+}
+function abrirWhatsApp(){
+  const msg=document.getElementById('waMsg').value.trim();
+  if(!msg){toast('Primero genera el mensaje.','error');return}
+  const rawPhone=document.getElementById('telefono_contacto').value.replace(/\D/g,'');
+  const phone=rawPhone?'57'+rawPhone:'';
+  if(!phone){toast('Ingresa el teléfono del candidato en la sección Datos Personales.','error');return}
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function copiarWA(){
+  const msg=document.getElementById('waMsg').value;
+  if(!msg.trim()){toast('Primero genera el mensaje.','error');return}
+  navigator.clipboard.writeText(msg).then(()=>toast('Mensaje copiado al portapapeles.','success')).catch(()=>toast('No se pudo copiar.','error'));
+}
+async function enviarSMS(){
+  const msg=document.getElementById('waMsg').value.trim();
+  if(!msg){toast('Primero genera el mensaje.','error');return}
+  const telefono=document.getElementById('telefono_contacto').value.trim();
+  if(!telefono){toast('El candidato no tiene teléfono registrado.','error');return}
+  const btn=document.getElementById('btnSms');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const r=await fetch('/api/candidatos/enviar-sms',{
+      method:'POST',headers:authH(),
+      body:JSON.stringify({telefono,mensaje:msg})
+    });
+    const d=await r.json();
+    if(!r.ok){toast('Error al enviar SMS: '+(d.detail||r.status),'error');}
+    else{toast('SMS enviado correctamente.','success');}
+  }catch(e){toast('Error de conexión al enviar SMS.','error')}
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar SMS';
+}
+
+// ── Catálogos ──
+async function cargarCatalogos(){
+  try{
+    const [neg,cargo,fuente,motRet,prov,rec,dep]=await Promise.all([
+      fetch('/api/admin/catalogos/negocio',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/cargo',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/fuente_hv',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/motivo_retiro',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/proveedor',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/reclutador',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/departamento',{headers:{'Authorization':'Bearer '+token()}}).then(r=>r.json()),
+    ]);
+    fillSelect('negocio',neg);fillSelect('cargo',cargo);fillSelect('fuente',fuente);
+    fillSelect('proveedor_emo',prov);fillSelect('proveedor_es',prov);
+    fillSelect('reclutador',rec);fillSelect('departamento',dep);
+    ['exp1_motivo_retiro','exp2_motivo_retiro','exp3_motivo_retiro'].forEach(id=>fillSelect(id,motRet));
+    // Auto-fill reclutador con el usuario logueado
+    const nombreUsuario=localStorage.getItem('nombre')||'';
+    const selRec=document.getElementById('reclutador');
+    if(selRec&&nombreUsuario){
+      // Intentar match exacto; si no existe, agregar la opción
+      let found=Array.from(selRec.options).find(o=>o.value===nombreUsuario);
+      if(!found){const o=document.createElement('option');o.value=nombreUsuario;o.textContent=nombreUsuario;selRec.appendChild(o);}
+      selRec.value=nombreUsuario;
+      selRec.disabled=true;  // bloquear cambio manual
+    }
+  }catch(e){console.error('Error catálogos',e)}
+}
+function fillSelect(id,items){
+  const s=document.getElementById(id);if(!s)return;
+  items.filter(i=>i.activo!==false).forEach(i=>{
+    const o=document.createElement('option');o.value=i.nombre;o.textContent=i.nombre;s.appendChild(o);
+  });
+}
+
+// ── Cargar candidato ──
+function parseId(){return new URLSearchParams(location.search).get('id')}
+async function cargarCandidato(id){
+  const r=await fetch(`/api/candidatos/${id}`,{headers:{'Authorization':'Bearer '+token()}});
+  if(!r.ok){toast('Candidato no encontrado.','error');location.href='/seguimiento';return}
+  const d=await r.json();
+  Object.keys(d).forEach(k=>{
+    const el=document.getElementById(k);if(!el)return;
+    if(el.tagName==='SELECT'&&(d[k]===true||d[k]===false)){el.value=String(d[k])}
+    else if(d[k]!==null&&d[k]!==undefined){
+      let val=d[k];
+      if(el.type==='date'&&typeof val==='string'){val=val.split('T')[0].split(' ')[0]}
+      el.value=val;
+    }
+  });
+  if(d.lista_negra){
+    document.getElementById('negraBanner').style.display='flex';
+    document.getElementById('motivoNegra').textContent=d.motivo_lista_negra||'';
+  }
+  toggleDisc();toggleHijos();toggleFamAra();toggleDesplaz();toggleReubic();
+  toggleEstudio();toggleSitLab();toggleNegra();calcularEdad();
+  if(d.exp2_empresa||d.exp2_cargo){agregarExp(2)}
+  if(d.exp3_empresa||d.exp3_cargo){agregarExp(3)}
+  if(d.fecha_prog_rrhh||d.resultado_rrhh){document.getElementById('pipeRrhh').classList.remove('collapsed')}
+  if(d.fecha_envio_emo||d.concepto_emo){document.getElementById('pipeEmo').classList.remove('collapsed')}
+  if(d.fecha_envio_es||d.concepto_es){document.getElementById('pipeEs').classList.remove('collapsed')}
+  if(d.resultado_operaciones) actualizarBadgePipe('resultado_operaciones','badgeOps');
+  if(d.resultado_rrhh) actualizarBadgePipe('resultado_rrhh','badgeRrhh');
+  if(d.concepto_emo) actualizarBadgePipe('concepto_emo','badgeEmo');
+  if(d.concepto_es) actualizarBadgePipe('concepto_es','badgeEs');
+  calcIMC();
+  document.title='Reclutamiento ARA — '+d.nombre;
+  document.getElementById('fechaHoraRegistro').value=_fmtFechaHoraAuto(d.created_at);
+  await cargarArchivosGuardados(id);
+}
+
+// ── Archivos ──
+async function cargarArchivosGuardados(id){
+  try{
+    const r=await fetch(`/api/archivos/${id}`,{headers:{'Authorization':'Bearer '+token()}});
+    if(!r.ok)return;
+    const archivos=await r.json();
+
+    // Limpiar
+    for(const k in _archivosPorEtapa) _archivosPorEtapa[k]=[];
+
+    // Distribuir por etapa
+    archivos.forEach(a=>{
+      const e=a.etapa||'general';
+      if(!_archivosPorEtapa[e]) _archivosPorEtapa[e]=[];
+      _archivosPorEtapa[e].push(a);
+    });
+
+    _renderFilesEtapa('filesOps',   _archivosPorEtapa['operaciones']||[]);
+    _renderFilesEtapa('filesRrhh',  _archivosPorEtapa['rrhh']||[]);
+    _renderFilesEtapa('filesEmo',   _archivosPorEtapa['emo']||[]);
+    _renderFilesEtapa('filesEs',    _archivosPorEtapa['es']||[]);
+
+    // Archivos generales en la sección de documentos
+    const general=[...(_archivosPorEtapa['general']||[]),...(_archivosPorEtapa['contratacion']||[])];
+    const c=document.getElementById('savedFiles');
+    c.innerHTML=general.map(a=>`
+      <div class="file-saved">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="fname"><a href="/api/archivos/view/${a.id}" target="_blank" style="color:#065f46;text-decoration:none;font-weight:600">${a.nombre_original}</a></span>
+        <span class="fsize">${(a.tamanio_bytes/1024).toFixed(0)} KB</span>
+      </div>
+    `).join('');
+  }catch(e){}
+}
+
+// Drag & Drop
+const dz=document.getElementById('dropZone');
+['dragover','dragenter'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('drag')}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,()=>dz.classList.remove('drag')));
+dz.addEventListener('drop',e=>{e.preventDefault();agregarArchivos(e.dataTransfer.files)});
+
+function agregarArchivos(files){
+  for(const f of files) if(!archivosEnCola.find(x=>x.name===f.name&&x.size===f.size)) archivosEnCola.push(f);
+  renderPending();
+}
+function quitarPending(i){archivosEnCola.splice(i,1);renderPending()}
+function renderPending(){
+  const c=document.getElementById('pendingFiles');
+  const btn=document.getElementById('btnSubirArchivos');
+  c.innerHTML=archivosEnCola.map((f,i)=>`
+    <div class="file-item">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="fname">${f.name}</span>
+      <span class="fsize">${(f.size/1024).toFixed(0)} KB</span>
+      <button class="frm" onclick="quitarPending(${i})">Quitar</button>
+    </div>
+  `).join('');
+  btn.style.display=archivosEnCola.length&&candidatoId?'flex':'none';
+}
+
+async function subirArchivos(){
+  if(!candidatoId){toast('Primero guarda el candidato.','error');return}
+  const btn=document.getElementById('btnSubirArchivos');
+  btn.textContent='Subiendo...';btn.disabled=true;
+  let ok=0,fail=0;
+  for(const f of archivosEnCola){
+    const fd=new FormData();fd.append('archivo',f);
+    try{
+      const r=await fetch(`/api/archivos/${candidatoId}`,{method:'POST',headers:{'Authorization':'Bearer '+token()},body:fd});
+      if(r.ok)ok++;else fail++;
+    }catch(e){fail++}
+  }
+  archivosEnCola=[];renderPending();
+  await cargarArchivosGuardados(candidatoId);
+  if(ok)toast(`${ok} archivo${ok>1?'s':''} subido${ok>1?'s':''} correctamente.`,'success');
+  if(fail)toast(`${fail} archivo${fail>1?'s':''} fallaron.`,'error');
+  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir archivos';
+  btn.disabled=false;
+}
+
+// ── Recolectar datos ──
+function recolectar(){
+  const bools=['tiene_discapacidad','tiene_certificado_discapacidad','tiene_hijos',
+    'familiar_en_ara','disponibilidad_desplazamiento','disponibilidad_reubicacion',
+    'estudia_actualmente','lista_negra','correo_agradecimiento','gestion_hello',
+    'exp1_tiene_certificado','exp2_tiene_certificado','exp3_tiene_certificado'];
+  const nums=['num_hijos','meses_desempleado','peso','altura','salario_actual','aspiracion_salarial','exp1_salario','exp2_salario','exp3_salario'];
+  const ids=['reclutador','zona','region','negocio','tipo_formulario','cargo','fuente','ciudad_aplica','observaciones_analistas',
+    'cedula','tipo_documento','nombre','fecha_nacimiento','genero','correo','telefono_contacto','direccion','departamento','municipio','localidad',
+    'talla_pantalon','talla_camiseta','talla_zapatos','tipo_discapacidad',
+    'edades_hijos','apoyo_cuidado','quien_familiar_ara','medio_transporte','destino_desplazamiento','destino_reubicacion','comentarios_disponibilidad',
+    'nivel_academico','anio_graduacion','titulo','modalidad_estudio','proyectos_corto_plazo',
+    'situacion_laboral','tipo_contrato','justificacion_cambio_indefinido',
+    'exp1_empresa','exp1_cargo','exp1_actividad','exp1_ciudad','exp1_fecha_inicio','exp1_fecha_retiro','exp1_funciones','exp1_motivo_retiro','exp1_argumentacion_mr',
+    'exp2_empresa','exp2_cargo','exp2_actividad','exp2_ciudad','exp2_fecha_inicio','exp2_fecha_retiro','exp2_funciones','exp2_motivo_retiro','exp2_argumentacion_mr',
+    'exp3_empresa','exp3_cargo','exp3_actividad','exp3_ciudad','exp3_fecha_inicio','exp3_fecha_retiro','exp3_funciones','exp3_motivo_retiro','exp3_argumentacion_mr',
+    'fecha_prog_operaciones','hora_operaciones','lugar_operaciones','entrevistador_1','fecha_retro_operaciones','resultado_operaciones','comentarios_operaciones',
+    'fecha_prog_rrhh','entrevistador_2','fecha_retro_rrhh','resultado_rrhh','comentarios_rrhh',
+    'fecha_envio_emo','fecha_recibido_emo','concepto_emo','proveedor_emo','facturacion_emo','comentarios_emo',
+    'fecha_envio_es','fecha_recibido_es','concepto_es','proveedor_es','facturacion_es','comentarios_es',
+    'fecha_contratacion','status','tipo_status','comentarios_status','comunicacion_candidatos','motivo_lista_negra'];
+  const data={};
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)data[id]=el.value||null});
+  bools.forEach(id=>{const el=document.getElementById(id);if(el)data[id]=el.value==='true'});
+  nums.forEach(id=>{const el=document.getElementById(id);if(el&&el.value)data[id]=parseFloat(el.value);else data[id]=null});
+  return data;
+}
+
+// ── Guardar ──
+async function guardar(){
+  if(!canEdit){toast('No tienes permisos para guardar.','error');return}
+  const data=recolectar();
+  if(!data.cedula||!data.nombre){toast('Cédula y nombre son obligatorios.','error');goStep(1);return}
+  const btn=document.getElementById('btnGuardar');
+  btn.textContent='Guardando...';btn.disabled=true;
+  try{
+    let r;
+    if(candidatoId){
+      r=await fetch(`/api/candidatos/${candidatoId}`,{method:'PUT',headers:authH(),body:JSON.stringify(data)});
+    }else{
+      r=await fetch('/api/candidatos/',{method:'POST',headers:authH(),body:JSON.stringify(data)});
+    }
+    if(!r.ok){const e=await r.json();toast('Error: '+(e.detail||JSON.stringify(e)),'error');btn.textContent='Guardar Candidato';btn.disabled=false;return}
+    const saved=await r.json();
+    const isNew=!candidatoId;
+    candidatoId=saved.id;
+    history.replaceState({},'','/captura?id='+candidatoId);
+    // Mostrar botón subir archivos si hay en cola
+    if(archivosEnCola.length) document.getElementById('btnSubirArchivos').style.display='flex';
+    toast(isNew?'Candidato guardado correctamente.':'Candidato actualizado correctamente.','success');
+  }catch(e){toast('Error de conexión: '+e.message,'error')}
+  btn.textContent='Guardar Candidato';btn.disabled=false;
+}
+
+// ── Ciudades Colombia ──
+const CIUDADES_CO=[
+  'Abejorral','Abriaquí','Acacías','Acandí','Acevedo','Achí','Agrado','Aguachica','Aguada','Aguazul',
+  'Agustín Codazzi','Aipe','Albán','Albania','Alcalá','Aldana','Alejandría','Algarrobo','Algeciras','Almaguer',
+  'Almeida','Alpujarra','Altamira','Alto Baudó','Altos del Rosario','Alvarado','Amagá','Amalfi','Ambalema','Anaconia',
+  'Ancuya','Anorí','Anserma','Anza','Apartadó','Apía','Arauca','Arauquita','Arcabuco','Arjona',
+  'Armenia','Arjona','Arroyohondo','Astrea','Ataco','Atrato','Ayapel',
+  'Bahía Solano','Baranoa','Baraya','Barbacoas','Barbosa','Barichara','Barrancabermeja','Barrancas','Barranquilla',
+  'Becerril','Belalcázar','Belén','Belén de Bajirá','Belén de Los Andaquíes','Belén de Umbría','Bello','Belmira','Betulia',
+  'Bogotá D.C.','Boavita','Bolívar','Bosconia','Briceño','Bucaramanga','Buenaventura','Buenavista','Buesaco',
+  'Buga','Bugalagrande','Buriticá',
+  'Cáceres','Caicedonia','Caimito','Cajamarca','Cajicá','Calarcá','Cali','Calima','Caloto','Campoalegre',
+  'Campo de la Cruz','Canalete','Cantagallo','Cañasgordas','Carlosama','Carmen de Apicalá','Carmen de Bolívar',
+  'Carmen de Viboral','Cartago','Cartagena','Casabianca','Caucasia','Cauca','Cereté','Chaparral','Chía',
+  'Chigorodó','Chinavita','Chinú','Chipaque','Chipatá','Chiquinquirá','Chiriguaná','Ciénaga','Ciénaga de Oro',
+  'Cisneros','Coello','Colombia','Concepción','Concordia','Condoto','Consacá','Contratación','Copacabana',
+  'Córdoba','Corozal','Coveñas','Cuaspud','Cubará','Cubarral','Cuítiva','Cunday','Curillo','Curití',
+  'Duitama','Dosquebradas','El Banco','El Bagre','El Carmen de Atrato','El Cerrito','El Cocuy','El Colegio',
+  'El Copey','El Doncello','El Dorado','El Guamo','El Molino','El Paso','El Peñol','El Retén','El Roble',
+  'El Rosal','El Santuario','El Socorro','El Tambo','El Zulia','Envigado','Espinal','Facatativá','Falan',
+  'Filadelfia','Filandia','Florencia','Floridablanca','Flandes','Florida','Fonseca','Fortul','Fosca',
+  'Fredonia','Frontino','Funza','Fusa','Fusagasugá',
+  'Gachalá','Gachetá','Girardot','Girardota','Girón','Guacari','Guadalupe','Guamo','Guapi','Guarne',
+  'Guatavita','Guateque','Guática','Guaviare','Guayabal','Guayabetal',
+  'Honda','Ibagué','Inírida','Ipiales','Istmina','Itagüí',
+  'La Ceja','La Cumbre','La Dorada','La Jagua de Ibirico','La Mesa','La Palma','La Paz','La Plata',
+  'La Tebaida','La Unión','La Virginia','Labateca','Landázuri','Lérida','Leticia','Líbano','Linares','Lorica',
+  'Los Córdobas','Los Palmitos','Luruaco',
+  'Madrid','Magangué','Mahates','Maicao','Málaga','Malambo','Manaure','Manizales','Marinilla','Marmato',
+  'Marsella','Medellín','Melgar','Mercedes','Miranda','Mitú','Mogotes','Mompós','Moniquirá',
+  'Montería','Montelíbano','Montenegro','Morales','Mosquera','Muellamués',
+  'Nariño','Natagaima','Neiva','Nemocón','Nilo','Norcasia','Nóvita',
+  'Obando','Ocaña','Ovejas',
+  'Pacora','Páez','Palermo','Palmira','Pamplona','Páramo','Pasto','Paz de Ariporo','Pereira','Piedecuesta',
+  'Piendamó','Pijao','Planeta Rica','Plato','Popayán','Puerto Asís','Puerto Berrío','Puerto Boyacá',
+  'Puerto Caicedo','Puerto Colombia','Puerto Gaitán','Puerto Inírida','Puerto Leguízamo','Puerto López',
+  'Puerto Nare','Puerto Salgar','Puerto Tejada','Puerto Wilches','Purificación',
+  'Quibdó','Quinchía',
+  'Riohacha','Rionegro','Riosucio','Risaralda','Rovira',
+  'Sabaneta','Sahagún','Salamina','Sampués','San Andrés','San Andresito','San Antero','San Benito Abad',
+  'San Carlos','San Gil','San Jacinto','San José del Guaviare','San Juan del Cesar','San Marcos',
+  'San Martín','San Onofre','San Pablo','San Pedro de los Milagros','San Pelayo','San Vicente del Caguán',
+  'Santa Bárbara','Santa Marta','Santa Rosa de Cabal','Santa Rosa de Osos','Santander de Quilichao',
+  'Santiago de Tolú','Saravena','Sevilla','Siguatepeque','Silvania','Simijaca','Sincé','Sincelejo',
+  'Soacha','Sogamoso','Soledad','Sonson','Sopetrán','Sopó','Suaza','Sucre','Suesca',
+  'Támara','Tame','Tibasosa','Tibú','Tierralta','Tinjacá','Toca','Toledo','Tolú Viejo',
+  'Tuluá','Tumaco','Tunja','Turbo','Túquerres',
+  'Ubaté','Ulloa','Umata','Uramita','Uribe','Urrao',
+  'Valledupar','Vélez','Versalles','Victoria','Vigía del Fuerte','Villa del Rosario','Villanueva',
+  'Villavicencio','Villavieja','Villeta','Viotá',
+  'Yalí','Yarumal','Yopal','Yumbo','Zarzal','Zipaquirá',
+];
+
+function filtrarCiudades(val){
+  const dd=document.getElementById('ciudadDropdown');
+  if(!val||val.length<2){dd.style.display='none';return}
+  const q=val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const matches=CIUDADES_CO.filter(c=>
+    c.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q)
+  ).slice(0,12);
+  if(!matches.length){dd.style.display='none';return}
+  dd.innerHTML=matches.map(c=>`<div style="padding:8px 14px;cursor:pointer;font-size:.88rem;border-bottom:1px solid #f3f4f6" onmousedown="seleccionarCiudad('${c}')" onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background=''">${c}</div>`).join('');
+  dd.style.display='block';
+}
+function seleccionarCiudad(ciudad){
+  document.getElementById('ciudad_aplica').value=ciudad;
+  document.getElementById('ciudadDropdown').style.display='none';
+}
+function ocultarCiudades(){
+  document.getElementById('ciudadDropdown').style.display='none';
+}
+
+// ── Edad automática ──
+function calcularEdad(){
+  const val=document.getElementById('fecha_nacimiento').value;
+  const span=document.getElementById('edadDisplay');
+  if(!val){span.style.display='none';return}
+  const hoy=new Date();
+  const nac=new Date(val);
+  let edad=hoy.getFullYear()-nac.getFullYear();
+  const m=hoy.getMonth()-nac.getMonth();
+  if(m<0||(m===0&&hoy.getDate()<nac.getDate())) edad--;
+  if(edad<0||edad>120){span.style.display='none';return}
+  span.textContent=edad+' años';
+  span.style.display='inline-block';
+}
+
+// ── Fecha/hora de registro automática ──
+function _fmtFechaHoraAuto(d){
+  const dt=d?new Date(d):new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}  ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+}
+
+// ── Archivos por etapa ──
+const _archivosPorEtapa = {operaciones:[],rrhh:[],emo:[],es:[],contratacion:[],general:[]};
+
+function _iconoTipo(tipo,nombre){
+  const ext=(nombre||'').split('.').pop().toLowerCase();
+  const s='width:13px;height:13px;fill:none;stroke-width:2;flex-shrink:0;';
+  if(tipo==='pdf'||ext==='pdf') return `<svg viewBox="0 0 24 24" style="${s}stroke:#dc2626"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>`;
+  if(['doc','docx'].includes(ext)) return `<svg viewBox="0 0 24 24" style="${s}stroke:#1e40af"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg>`;
+  if(['xls','xlsx'].includes(ext)) return `<svg viewBox="0 0 24 24" style="${s}stroke:#166534"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="12" width="8" height="6" rx="1"/></svg>`;
+  if(['jpg','jpeg','png','gif'].includes(ext)) return `<svg viewBox="0 0 24 24" style="${s}stroke:#7c3aed"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+  return `<svg viewBox="0 0 24 24" style="${s}stroke:#6b7280"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`;
+}
+
+function _renderFilesEtapa(containerId, archivos){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  if(!archivos.length){c.innerHTML='';return}
+  c.innerHTML=archivos.map(a=>`
+    <div class="pipe-file-chip">
+      <span>${_iconoTipo(a.tipo,a.nombre_original)}</span>
+      <a href="/api/archivos/view/${a.id}" target="_blank" title="${a.nombre_original}">${a.nombre_original}</a>
+      <button onclick="eliminarArchivoEtapa(${a.id},'${containerId}')" title="Eliminar">×</button>
+    </div>
+  `).join('');
+}
+
+async function subirArchivoEtapa(input, etapa, containerId){
+  if(!candidatoId){toast('Guarda el candidato primero antes de adjuntar archivos.','error');input.value='';return}
+  if(!canEdit){toast('Sin permisos para subir archivos.','error');return}
+  const files=Array.from(input.files);
+  if(!files.length)return;
+  for(const file of files){
+    const fd=new FormData();
+    fd.append('archivo',file);
+    fd.append('etapa',etapa);
+    try{
+      const r=await fetch(`/api/archivos/${candidatoId}`,{method:'POST',headers:{'Authorization':'Bearer '+token()},body:fd});
+      if(!r.ok){const e=await r.json();toast(e.detail||'Error al subir','error');continue}
+      const a=await r.json();
+      a.etapa=etapa;
+      _archivosPorEtapa[etapa]=_archivosPorEtapa[etapa]||[];
+      _archivosPorEtapa[etapa].push(a);
+      _renderFilesEtapa(containerId,_archivosPorEtapa[etapa]);
+      toast(`${file.name} adjuntado.`,'success');
+    }catch(e){toast('Error de red al subir archivo.','error')}
+  }
+  input.value='';
+}
+
+async function eliminarArchivoEtapa(archivoId, containerId){
+  if(!confirm('¿Eliminar este archivo?'))return;
+  const r=await fetch(`/api/archivos/${archivoId}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token()}});
+  if(r.ok||r.status===204){
+    for(const etapa in _archivosPorEtapa){
+      _archivosPorEtapa[etapa]=_archivosPorEtapa[etapa].filter(a=>a.id!==archivoId);
+    }
+    _renderFilesEtapa(containerId, Object.values(_archivosPorEtapa).flat().filter(a=>document.getElementById(containerId)&&_archivosPorEtapa[Object.keys(_archivosPorEtapa).find(k=>containerId.toLowerCase().includes(k))||'general']));
+    // Re-render correcto
+    const etapaMap={filesOps:'operaciones',filesRrhh:'rrhh',filesEmo:'emo',filesEs:'es',filesContratacion:'contratacion',savedFiles:'general'};
+    const etapa=etapaMap[containerId];
+    if(etapa) _renderFilesEtapa(containerId,_archivosPorEtapa[etapa]);
+    toast('Archivo eliminado.','success');
+  }
+}
+
+// ── Pipeline toggle ──
+function togglePipe(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
+function actualizarBadgePipe(selectId,badgeId){
+  const val=document.getElementById(selectId).value;
+  const badge=document.getElementById(badgeId);
+  if(!val){badge.style.display='none';return}
+  const esApto=val.toLowerCase().startsWith('apto');
+  const esNoApto=val.toLowerCase().includes('no apto')||val.toLowerCase().includes('no asiste');
+  badge.textContent=val;
+  badge.style.display='inline-block';
+  badge.style.background=esApto?'#dcfce7':esNoApto?'#fee2e2':'#fef9c3';
+  badge.style.color=esApto?'#166534':esNoApto?'#991b1b':'#713f12';
+}
+
+// ── Experiencia dinámica ──
+function agregarExp(n){
+  document.getElementById('expCard'+n).style.display='';
+  document.getElementById('btnAddExp'+n).style.display='none';
+  if(n===2) document.getElementById('btnAddExp3').style.display='';
+  if(n===3) document.getElementById('btnAddExp3').style.display='none';
+}
+function quitarExp(n){
+  const card=document.getElementById('expCard'+n);
+  card.querySelectorAll('input,textarea,select').forEach(el=>{
+    if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
+  });
+  card.style.display='none';
+  document.getElementById('btnAddExp'+n).style.display='';
+  if(n===2){document.getElementById('expCard3').querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT') el.selectedIndex=0;else el.value=''});document.getElementById('expCard3').style.display='none';document.getElementById('btnAddExp3').style.display='none';}
+}
+
+// ── Init ──
+async function init(){
+  if(!token()){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
+  document.getElementById('userName').textContent=localStorage.getItem('nombre')||'';
+  const r=rol();
+  canEdit=(r==='administrador'||r==='especialista');
+  if(!canEdit){
+    document.getElementById('readonlyBanner').style.display='flex';
+    document.getElementById('mainForm').classList.add('readonly-mode');
+    document.getElementById('btnGuardar').style.display='none';
+    document.getElementById('uploadSection').style.display='none';
+  }
+  await cargarCatalogos();
+  const id=parseId();
+  if(id){
+    candidatoId=parseInt(id);
+    await cargarCandidato(id);
+  } else {
+    document.getElementById('fechaHoraRegistro').value=_fmtFechaHoraAuto();
+  }
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# Secretos — nunca al repo
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.Python
+
+# Base de datos local
+*.db
+*.sqlite3
+data/accidentalidad.db
+
+# Archivos grandes — se suben manualmente o por pipeline
+deploy.zip
+*.zip
+MasterData*.xlsx
+*.xlsx
+
+# El masterdata en data/ tampoco va al repo (datos sensibles)
+data/masterdata.xlsx
+
+# Uploads de candidatos (datos sensibles)
+data/uploads/
+
+# Sesión local de IA
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+
+# Logs
+*.log

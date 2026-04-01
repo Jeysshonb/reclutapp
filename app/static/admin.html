@@ -1,0 +1,519 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reclutamiento ARA — Administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--orange:#1A9ECC;--orange-dark:#0D7BA8;--orange-light:#E0F6FF;--dark:#1d3557}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#f2f3f7;color:#333}
+
+  /* NAV */
+  nav{
+    background:linear-gradient(90deg,var(--orange) 0%,var(--orange-dark) 100%);
+    color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:60px;box-shadow:0 2px 12px rgba(26,158,204,.35);
+    position:sticky;top:0;z-index:100
+  }
+  .nav-brand{display:flex;align-items:center;gap:14px}
+  .nav-banner{height:32px;object-fit:contain;filter:brightness(0) invert(1)}
+  .nav-title{font-size:1rem;font-weight:700;letter-spacing:.3px;opacity:.9}
+  .nav-links{display:flex;align-items:center;gap:4px}
+  .nav-links a{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.85);text-decoration:none;padding:7px 14px;border-radius:8px;font-size:.85rem;font-weight:500;transition:.2s}
+  .nav-links a svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .nav-links a:hover{background:rgba(255,255,255,.15);color:#fff}
+  .nav-user{display:flex;align-items:center;gap:10px;font-size:.85rem}
+  .nav-name{font-weight:600;opacity:.95}
+  .btn-logout{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:5px;transition:.2s}
+  .btn-logout:hover{background:rgba(255,255,255,.25)}
+  .btn-logout svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  /* CONTAINER */
+  .container{max-width:1100px;margin:0 auto;padding:28px 24px}
+
+  /* PAGE HEADER */
+  .page-header{margin-bottom:24px}
+  .page-header h1{font-size:1.3rem;font-weight:800;color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  .page-header h1 svg{width:22px;height:22px;stroke:var(--orange);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .page-header p{font-size:.85rem;color:#999}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:24px;background:#fff;padding:6px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);width:fit-content}
+  .tab{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:.875rem;font-weight:500;color:#777;transition:.15s}
+  .tab svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tab.active{background:var(--orange);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(26,158,204,.25)}
+  .tab:hover:not(.active){background:var(--orange-light);color:var(--orange)}
+  .panel{display:none}.panel.active{display:block}
+
+  /* CARDS */
+  .card{background:#fff;border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid #f0f0f0}
+  .card-hdr h3{font-size:.95rem;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:8px}
+  .card-hdr h3 svg{width:17px;height:17px;stroke:var(--orange);fill:none;stroke-width:2}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  thead tr{background:var(--dark)}
+  th{padding:11px 14px;text-align:left;font-size:.7rem;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.6px}
+  td{padding:11px 14px;border-bottom:1px solid #f5f5f5;vertical-align:middle;color:#444}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:#fafafa}
+
+  /* BUTTONS */
+  .btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:.86rem;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+  .btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .btn-primary{background:var(--orange);color:#fff;box-shadow:0 2px 6px rgba(26,158,204,.2)}.btn-primary:hover{background:var(--orange-dark)}
+  .btn-sm{padding:5px 11px;font-size:.78rem}
+  .btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}.btn-danger:hover{background:#fecaca}
+  .btn-gray{background:#f3f4f6;color:#555;border:1px solid #e5e7eb}.btn-gray:hover{background:#e5e7eb}
+  .btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.74rem;font-weight:600}
+  .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .badge-admin{background:#fef9c3;color:#854d0e}.badge-admin::before{background:#d97706}
+  .badge-esp{background:#dbeafe;color:#1d4ed8}.badge-esp::before{background:#2563eb}
+  .badge-consul{background:#f3f4f6;color:#4b5563}.badge-consul::before{background:#9ca3af}
+  .badge-active{background:#dcfce7;color:#15803d}.badge-active::before{background:#16a34a}
+  .badge-inactive{background:#fee2e2;color:#b91c1c}.badge-inactive::before{background:#dc2626}
+
+  /* FORM */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+  .fg{display:flex;flex-direction:column;gap:5px}
+  .fg label{font-size:.72rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px}
+  .fg input,.fg select{padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:.9rem;outline:none;transition:.2s;font-family:inherit;color:var(--dark)}
+  .fg input:focus,.fg select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(26,158,204,.08)}
+
+  /* CATALOGS */
+  .cat-section-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .cat-btn{padding:6px 14px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-size:.82rem;font-weight:500;transition:.2s;color:#666}
+  .cat-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:700}
+  .cat-btn:hover:not(.active){border-color:var(--orange);color:var(--orange)}
+  .cat-input-row{display:flex;gap:10px;margin-bottom:14px}
+  .cat-input-row input{flex:1;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:.9rem;outline:none;transition:.2s;font-family:inherit}
+  .cat-input-row input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(26,158,204,.08)}
+  .cat-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{
+    background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:20px;
+    padding:5px 14px;font-size:.82rem;cursor:pointer;
+    display:flex;align-items:center;gap:7px;transition:.2s;font-weight:500;color:#444
+  }
+  .chip:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-light)}
+  .chip .chip-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;flex-shrink:0}
+  .chip.inactive{opacity:.45;text-decoration:line-through}
+  .chip.inactive .chip-dot{background:#dc2626}
+
+  /* EXPORT */
+  .export-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  .export-btns{display:flex;gap:12px;flex-wrap:wrap}
+
+  /* MODAL */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:30px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .modal-header h3{font-size:1.05rem;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:8px}
+  .modal-header h3 svg{width:18px;height:18px;stroke:var(--orange);fill:none;stroke-width:2}
+  .modal-close{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:#aaa;transition:.15s}
+  .modal-close:hover{background:#f3f4f6;color:var(--dark)}
+  .modal-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+  .modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid #f0f0f0}
+  .alert-success{
+    background:#dcfce7;color:#15803d;padding:10px 16px;border-radius:8px;
+    font-size:.84rem;margin-bottom:14px;display:none;
+    align-items:center;gap:8px;font-weight:600
+  }
+  .alert-success svg{width:15px;height:15px;stroke:#16a34a;fill:none;stroke-width:2;flex-shrink:0}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:10px;font-size:.88rem;font-weight:600;color:#fff;z-index:9999;transform:translateY(16px);opacity:0;transition:.3s;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast-success{background:#16a34a}
+  .toast-error{background:#dc2626}
+  .toast-info{background:var(--orange)}
+
+  @media(max-width:700px){.form-row{grid-template-columns:1fr}.export-grid{grid-template-columns:1fr}.tabs{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <img src="/img/banner%20ARA.png" class="nav-banner" alt="ARA">
+    <span class="nav-title">Reclutamiento ARA</span>
+  </div>
+  <div class="nav-links">
+    <a href="/seguimiento">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Seguimiento
+    </a>
+    <a href="/captura">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo
+    </a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-name" id="userName"></span>
+    <button class="btn-logout" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Salir
+    </button>
+  </div>
+</nav>
+
+<!-- MODAL USUARIO -->
+<div class="modal-bg" id="modalUser">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="modalUserTitle">Nuevo Usuario</span>
+      </h3>
+      <button class="modal-close" onclick="cerrarModalUser()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="alert-success" id="userAlert">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Guardado correctamente.
+    </div>
+    <div class="form-row">
+      <div class="fg" style="grid-column:1/-1"><label>Nombre</label><input type="text" id="uNombre" placeholder="Nombre completo"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Email</label><input type="email" id="uEmail" placeholder="correo@jeronimo-martins.com"></div>
+      <div class="fg"><label>Contraseña</label><input type="password" id="uPass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="fg"><label>Rol</label>
+        <select id="uRol">
+          <option value="consulta">Consulta</option>
+          <option value="especialista">Especialista</option>
+          <option value="administrador">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-gray" onclick="cerrarModalUser()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarUsuario()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="page-header">
+    <h1>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+      Administración
+    </h1>
+    <p>Gestión de usuarios, catálogos y exportación de datos</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="openTab('usuarios',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Usuarios
+    </div>
+    <div class="tab" onclick="openTab('catalogos',this)">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Catálogos
+    </div>
+    <div class="tab" onclick="openTab('exportar',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </div>
+  </div>
+
+  <!-- USUARIOS -->
+  <div class="panel active" id="pUsuarios">
+    <div class="card">
+      <div class="card-hdr">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Gestión de Usuarios
+        </h3>
+        <button class="btn btn-primary" onclick="abrirModalUser()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Usuario
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Correo (usuario)</th>
+              <th>Contraseña por defecto</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyUsers"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOGOS -->
+  <div class="panel" id="pCatalogos">
+    <div class="card">
+      <div class="card-hdr">
+        <h3>
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg>
+          Catálogos del Sistema
+        </h3>
+      </div>
+      <div class="cat-section-btns" id="catBtns"></div>
+      <div class="cat-input-row">
+        <input type="text" id="newCatVal" placeholder="Nuevo valor para agregar...">
+        <button class="btn btn-primary" onclick="agregarCat()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
+        </button>
+      </div>
+      <div id="catChips" class="cat-chips"></div>
+    </div>
+  </div>
+
+  <!-- EXPORTAR -->
+  <div class="panel" id="pExportar">
+    <div class="card">
+      <div class="card-hdr">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar Datos
+        </h3>
+      </div>
+      <div class="export-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="fg"><label>Negocio</label><select id="expNeg"><option value="">Todos</option></select></div>
+        <div class="fg"><label>Reclutador</label><select id="expRec"><option value="">Todos</option></select></div>
+        <div class="fg"><label>Status</label>
+          <select id="expStatus">
+            <option value="">Todos</option>
+            <option>En Proceso</option><option>Contratado</option>
+            <option>No Apto</option><option>No Apto EMO</option><option>No Apto ES</option>
+          </select>
+        </div>
+        <div class="fg"><label>Cargo</label><select id="expCargo"><option value="">Todos</option></select></div>
+        <div class="fg"><label>Zona</label>
+          <select id="expZona">
+            <option value="">Todas</option>
+            <option>Norte</option><option>Centro</option><option>Sur</option><option>Occidente</option><option>Antioquia</option>
+          </select>
+        </div>
+        <div class="fg"><label>Región</label><input type="text" id="expRegion" placeholder="Ej: R2" style="padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:.9rem;outline:none;font-family:inherit"></div>
+        <div class="fg"><label>Fecha desde (entrevista ops)</label><input type="date" id="expFechaDesde" style="padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:.9rem;outline:none;font-family:inherit"></div>
+        <div class="fg"><label>Fecha hasta (entrevista ops)</label><input type="date" id="expFechaHasta" style="padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:.9rem;outline:none;font-family:inherit"></div>
+      </div>
+      <div class="export-btns">
+        <button class="btn btn-success" onclick="expExcel()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Descargar Excel
+        </button>
+        <button class="btn btn-gray" onclick="expCSV()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const token=()=>localStorage.getItem('token');
+const authH=()=>({'Authorization':'Bearer '+token(),'Content-Type':'application/json'});
+function logout(){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/'}
+
+function toast(msg,type='info'){
+  const t=document.createElement('div');
+  t.className='toast toast-'+type;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},3500);
+}
+
+function openTab(t,el){
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(e=>e.classList.remove('active'));
+  document.getElementById('p'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── USUARIOS ──
+let editUserId=null;
+
+async function cargarUsuarios(){
+  const r=await fetch('/api/admin/usuarios',{headers:authH()});
+  const users=await r.json();
+  const tb=document.getElementById('tbodyUsers');
+  tb.innerHTML=users.map((u,i)=>{
+    const prefix=u.email.split('@')[0];
+    const passDefecto=prefix+'@*';
+    return`<tr>
+      <td style="color:#aaa;font-size:.8rem">${i+1}</td>
+      <td><span style="font-weight:700;color:var(--dark)">${u.nombre_display}</span></td>
+      <td style="font-size:.83rem">${u.email}</td>
+      <td><code style="background:#f3f4f6;padding:2px 7px;border-radius:5px;font-size:.8rem;color:#374151">${passDefecto}</code></td>
+      <td><span class="badge ${u.rol==='administrador'?'badge-admin':u.rol==='especialista'?'badge-esp':'badge-consul'}">${u.rol}</span></td>
+      <td><span class="badge ${u.activo?'badge-active':'badge-inactive'}">${u.activo?'Activo':'Inactivo'}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-gray" onclick="editarUsuario(${u.id},'${u.nombre_display.replace(/'/g,"\\'")}','${u.email}','${u.rol}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="toggleUser(${u.id},${u.activo})">${u.activo?'Desactivar':'Activar'}</button>
+      </td>
+    </tr>`}).join('');
+}
+
+function abrirModalUser(id=null){
+  editUserId=id;
+  document.getElementById('modalUserTitle').textContent=id?'Editar Usuario':'Nuevo Usuario';
+  document.getElementById('uNombre').value='';
+  document.getElementById('uEmail').value='';
+  document.getElementById('uPass').value='';
+  document.getElementById('uRol').value='consulta';
+  document.getElementById('userAlert').style.display='none';
+  document.getElementById('modalUser').classList.add('open');
+}
+function editarUsuario(id,nombre,email,rol){
+  abrirModalUser(id);
+  document.getElementById('uNombre').value=nombre;
+  document.getElementById('uEmail').value=email;
+  document.getElementById('uRol').value=rol;
+}
+function cerrarModalUser(){document.getElementById('modalUser').classList.remove('open')}
+
+async function guardarUsuario(){
+  const nombre=document.getElementById('uNombre').value.trim();
+  const email=document.getElementById('uEmail').value.trim();
+  const pass=document.getElementById('uPass').value;
+  const rol=document.getElementById('uRol').value;
+  if(!nombre||!email){toast('Nombre y email son obligatorios.','error');return}
+  let r;
+  if(editUserId){
+    const body={nombre_display:nombre,email,rol};
+    if(pass)body.password=pass;
+    r=await fetch(`/api/admin/usuarios/${editUserId}`,{method:'PATCH',headers:authH(),body:JSON.stringify(body)});
+  }else{
+    if(!pass){toast('La contraseña es obligatoria para usuarios nuevos.','error');return}
+    r=await fetch('/api/admin/usuarios',{method:'POST',headers:authH(),body:JSON.stringify({email,nombre_display:nombre,password:pass,rol})});
+  }
+  if(r.ok){
+    const al=document.getElementById('userAlert');
+    al.style.display='flex';
+    cargarUsuarios();
+    setTimeout(cerrarModalUser,1200);
+  }else{const e=await r.json();toast('Error: '+(e.detail||JSON.stringify(e)),'error')}
+}
+
+async function toggleUser(id,activo){
+  const r=await fetch(`/api/admin/usuarios/${id}`,{method:'PATCH',headers:authH(),body:JSON.stringify({activo:!activo})});
+  if(r.ok){toast(activo?'Usuario desactivado.':'Usuario activado.','success');cargarUsuarios();}
+  else{const e=await r.json();toast('Error: '+(e.detail||'No se pudo actualizar'),'error')}
+}
+
+// ── CATÁLOGOS ──
+const CATS=[
+  {key:'negocio',label:'Negocios'},
+  {key:'cargo',label:'Cargos'},
+  {key:'fuente_hv',label:'Fuentes HV'},
+  {key:'resultado',label:'Resultados'},
+  {key:'departamento',label:'Departamentos'},
+  {key:'motivo_retiro',label:'Motivos Retiro'},
+  {key:'reclutador',label:'Reclutadores'},
+  {key:'proveedor',label:'Proveedores'},
+];
+let catActual='negocio';
+
+function renderCatBtns(){
+  const c=document.getElementById('catBtns');
+  c.innerHTML=CATS.map(cat=>`<button class="cat-btn ${cat.key===catActual?'active':''}" onclick="selectCat('${cat.key}',this)">${cat.label}</button>`).join('');
+}
+function selectCat(key,el){
+  catActual=key;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  cargarCat();
+}
+async function cargarCat(){
+  const r=await fetch(`/api/admin/catalogos/${catActual}`,{headers:authH()});
+  const items=await r.json();
+  const c=document.getElementById('catChips');
+  c.innerHTML=items.map(i=>`
+    <div class="chip ${i.activo?'':'inactive'}" onclick="toggleCat('${catActual}',${i.id},${i.activo})">
+      <span class="chip-dot"></span>
+      ${i.nombre}
+    </div>
+  `).join('');
+}
+async function agregarCat(){
+  const v=document.getElementById('newCatVal').value.trim();
+  if(!v)return;
+  const r=await fetch(`/api/admin/catalogos/${catActual}`,{method:'POST',headers:authH(),body:JSON.stringify({nombre:v})});
+  if(r.ok){document.getElementById('newCatVal').value='';cargarCat();toast('Valor agregado correctamente.','success')}
+  else{const e=await r.json();toast(e.detail,'error')}
+}
+async function toggleCat(cat,id,activo){
+  await fetch(`/api/admin/catalogos/${cat}/${id}?activo=${!activo}`,{method:'PATCH',headers:authH()});
+  cargarCat();
+}
+
+// ── EXPORTAR ──
+async function cargarExportFiltros(){
+  try{
+    const [neg,rec,cargo]=await Promise.all([
+      fetch('/api/admin/catalogos/negocio',{headers:authH()}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/reclutador',{headers:authH()}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/cargo',{headers:authH()}).then(r=>r.json()),
+    ]);
+    const sn=document.getElementById('expNeg');
+    neg.forEach(n=>{const o=document.createElement('option');o.value=n.nombre;o.textContent=n.nombre;sn.appendChild(o)});
+    const sr=document.getElementById('expRec');
+    rec.forEach(r=>{const o=document.createElement('option');o.value=r.nombre;o.textContent=r.nombre;sr.appendChild(o)});
+    const sc=document.getElementById('expCargo');
+    cargo.forEach(c=>{const o=document.createElement('option');o.value=c.nombre;o.textContent=c.nombre;sc.appendChild(o)});
+  }catch(e){}
+}
+function expParams(){
+  const p=new URLSearchParams();
+  const n=document.getElementById('expNeg').value;
+  const r=document.getElementById('expRec').value;
+  const s=document.getElementById('expStatus').value;
+  const c=document.getElementById('expCargo').value;
+  const z=document.getElementById('expZona').value;
+  const reg=document.getElementById('expRegion').value.trim();
+  const fd=document.getElementById('expFechaDesde').value;
+  const fh=document.getElementById('expFechaHasta').value;
+  if(n)p.set('negocio',n);if(r)p.set('reclutador',r);if(s)p.set('status',s);
+  if(c)p.set('cargo',c);if(z)p.set('zona',z);if(reg)p.set('region',reg);
+  if(fd)p.set('fecha_desde',fd);if(fh)p.set('fecha_hasta',fh);
+  p.set('token',token());
+  return p.toString();
+}
+function expExcel(){window.open('/api/export/excel?'+expParams(),'_blank');toast('Descargando Excel...','info')}
+function expCSV(){window.open('/api/export/csv?'+expParams(),'_blank');toast('Descargando CSV...','info')}
+
+// ── INIT ──
+async function init(){
+  if(!token()){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
+  if(localStorage.getItem('rol')!=='administrador'){
+    toast('Acceso solo para administradores.','error');
+    setTimeout(()=>location.href='/seguimiento',1500);
+    return
+  }
+  document.getElementById('userName').textContent=localStorage.getItem('nombre')||'';
+  renderCatBtns();
+  await Promise.all([cargarUsuarios(),cargarCat(),cargarExportFiltros()]);
+}
+init();
+</script>
+</body>
+</html>
