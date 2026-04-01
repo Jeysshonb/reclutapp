@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 
 from app.config import get_settings
 from app.database import Base, engine
-from app.routers import auth, candidatos, archivos, export, admin
+from app.routers import auth, candidatos, archivos, export, admin, whatsapp
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -40,6 +40,7 @@ app.include_router(candidatos.router, prefix="/api")
 app.include_router(archivos.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(whatsapp.router, prefix="/api")
 
 # ── Archivos estáticos ─────────────────────────────────────────────────────────
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

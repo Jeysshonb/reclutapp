@@ -270,6 +270,17 @@ class ArchivoCandidato(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+# ── Sesión WhatsApp bot ───────────────────────────────────────────────────────
+
+class WaSession(Base):
+    __tablename__ = "wa_sessions"
+    id = Column(Integer, primary_key=True)
+    phone = Column(String(30), nullable=False, unique=True, index=True)
+    step = Column(String(50), nullable=False, default="start")
+    data = Column(Text, default="{}")   # JSON con datos recolectados
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 # ── Auditoría de cambios ───────────────────────────────────────────────────────
 
 class Auditoria(Base):
