@@ -121,6 +121,7 @@ async def startup():
             ("karen.yerarditd.hernandez@jeronimo-martins.com", "Karen Yerarditd Hernandez Bonilla",  "karen.yerarditd.hernandez@*",         "especialista"),
             ("laura.serrano@jeronimo-martins.com",             "Laura Nataly Serrano Perdomo",       "laura.serrano@*",                     "especialista"),
             ("jerly.gomez@jeronimo-martins.com",               "Jerly Carolina Gomez Piraquive",     "jerly.gomez@*",                       "especialista"),
+            ("jenny.orjuela@jeronimo-martins.com",             "Jenny Orjuela",                      "jenny.orjuela@*",                     "especialista"),
         ]
         for email, nombre, clave, rol in usuarios_seed:
             if not db.query(Usuario).filter_by(email=email).first():
