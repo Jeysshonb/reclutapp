@@ -1,7 +1,8 @@
 """
 Endpoints de administración: usuarios, catálogos, auditoría.
 """
-from fastapi import APIRouter, Depends, HTTPException
+import os, shutil
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -176,3 +177,19 @@ def ver_auditoria(
          "usuario": r.usuario, "timestamp": r.timestamp}
         for r in registros
     ]
+
+
+@router.post("/upload-db", status_code=200)
+async def upload_db(
+    file: UploadFile = File(...),
+    _: Usuario = Depends(require_role("administrador")),
+):
+    """Sube la BD SQLite. Solo admin. Endpoint temporal de migración."""
+    dest = "/home/data/reclutapp.db"
+    os.makedirs("/home/data", exist_ok=True)
+    tmp = dest + ".tmp"
+    with open(tmp, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    os.replace(tmp, dest)
+    size_mb = os.path.getsize(dest) / 1024 / 1024
+    return {"ok": True, "size_mb": round(size_mb, 1)}
