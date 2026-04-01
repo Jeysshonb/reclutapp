@@ -192,9 +192,8 @@ async def upload_db(
         data = await request.body()
         if not data:
             raise HTTPException(status_code=400, detail="Body vacío")
-        with open(tmp, "wb") as f:
+        with open(dest, "wb") as f:
             f.write(data)
-        os.replace(tmp, dest)
         size_mb = os.path.getsize(dest) / 1024 / 1024
         return {"ok": True, "size_mb": round(size_mb, 1)}
     except HTTPException:
