@@ -4,7 +4,7 @@ Usa GPT-4o-mini para mantener conversación natural y extraer datos del candidat
 """
 import json
 import logging
-from openai import OpenAI
+from openai import AzureOpenAI
 
 from fastapi import APIRouter, Form, Response
 from sqlalchemy.orm import Session
@@ -68,9 +68,13 @@ FORMATO DE RESPUESTA (CRÍTICO — debes responder SIEMPRE con este JSON exacto,
 
 def _get_ai_client():
     settings = get_settings()
-    if not settings.OPENAI_API_KEY:
+    if not settings.AZURE_OPENAI_ENDPOINT or not settings.AZURE_OPENAI_KEY:
         return None
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
+    return AzureOpenAI(
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        api_key=settings.AZURE_OPENAI_KEY,
+        api_version=settings.AZURE_OPENAI_API_VERSION,
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -126,7 +130,7 @@ def _llamar_ia(history: list, user_msg: str, datos_actuales: dict) -> dict:
 
     try:
         resp = client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
+            model=settings.AZURE_OPENAI_DEPLOYMENT,
             messages=messages,
             temperature=0.4,
             max_tokens=600,
