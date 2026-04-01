@@ -173,6 +173,7 @@ def _llamar_ia(history: list, user_msg: str, datos_actuales: dict) -> dict:
 def _guardar_candidato(datos: dict, phone: str) -> None:
     db = SessionLocal()
     try:
+        # Número limpio ej: +573102143584
         tel = phone.replace("whatsapp:", "")
 
         sal_raw = datos.get("aspiracion_salarial") or "0"
@@ -192,14 +193,16 @@ def _guardar_candidato(datos: dict, phone: str) -> None:
             situacion_laboral=datos.get("situacion_laboral"),
             aspiracion_salarial=salario,
             telefono_contacto=tel,
+            # Trazabilidad: queda claro que vino del bot y desde qué número
             reclutador="Bot WhatsApp",
+            creado_por=f"bot_whatsapp | {tel}",
+            observaciones_analistas=f"[Registrado automáticamente por AraBot vía WhatsApp]\nNúmero WA: {tel}",
             negocio="Tiendas Ara",
-            creado_por="bot_whatsapp",
             status="En Proceso",
         )
         db.add(c)
         db.commit()
-        logger.info(f"[WA-IA] Candidato guardado: {c.nombre} / {c.cedula}")
+        logger.info(f"[WA-IA] Candidato guardado: {c.nombre} / {c.cedula} / WA: {tel}")
     except Exception as e:
         logger.error(f"[WA-IA] Error guardando candidato: {e}", exc_info=True)
         db.rollback()
