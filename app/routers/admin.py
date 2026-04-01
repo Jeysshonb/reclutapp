@@ -185,13 +185,15 @@ async def upload_db(
     _: Usuario = Depends(require_role("administrador")),
 ):
     """Sube la BD SQLite como application/octet-stream. Solo admin."""
+    from app.database import engine
     try:
         dest = "/home/data/reclutapp.db"
         os.makedirs("/home/data", exist_ok=True)
-        tmp = dest + ".tmp"
         data = await request.body()
         if not data:
             raise HTTPException(status_code=400, detail="Body vacío")
+        # Cerrar todas las conexiones antes de sobreescribir el archivo
+        engine.dispose()
         with open(dest, "wb") as f:
             f.write(data)
         size_mb = os.path.getsize(dest) / 1024 / 1024
