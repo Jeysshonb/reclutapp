@@ -1,95 +1,83 @@
 """
-Webhook de Twilio WhatsApp — agente conversacional de reclutamiento.
-Recopila datos básicos del candidato y los guarda en la BD.
+Webhook de Twilio WhatsApp — agente de IA para reclutamiento de Tiendas Ara.
+Usa GPT-4o-mini para mantener conversación natural y extraer datos del candidato.
 """
 import json
 import logging
+from openai import OpenAI
 
-from fastapi import APIRouter, Form, Request, Response
+from fastapi import APIRouter, Form, Response
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models.candidato import Candidato, WaSession
+from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhook", tags=["whatsapp"])
 
+# ── System prompt ─────────────────────────────────────────────────────────────
+SYSTEM_PROMPT = """\
+Eres un asistente virtual de reclutamiento para *Tiendas Ara* (Grupo Jerónimo Martins, Colombia).
+Tu misión es recopilar los datos del candidato de forma amable y natural, sin sonar como un formulario.
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Definición del flujo.
-# Cada tupla: (step_actual, campo_bd_a_guardar, pregunta_a_enviar, step_siguiente)
-#   - campo_bd_a_guardar: nombre del campo de Candidato donde va la respuesta del usuario
-#   - pregunta_a_enviar:  texto que se envía al usuario en ESTE paso
-#   - step_siguiente:     código del siguiente paso (o "done")
-# ─────────────────────────────────────────────────────────────────────────────
-PASOS = [
-    (
-        "start", None,
-        "¡Hola! Soy el asistente virtual de reclutamiento de *Tiendas Ara* 🛒\n\n"
-        "Voy a recopilar tus datos para el proceso de selección.\n\n"
-        "¿Cuál es tu *nombre completo*?",
-        "nombre",
-    ),
-    (
-        "nombre", "nombre",
-        "Gracias 😊. ¿Cuál es tu número de *cédula de ciudadanía*?",
-        "cedula",
-    ),
-    (
-        "cedula", "cedula",
-        "¿Cuál es tu *fecha de nacimiento*? (DD/MM/AAAA)",
-        "fecha_nac",
-    ),
-    (
-        "fecha_nac", "fecha_nacimiento",
-        "¿En qué *ciudad* estás aplicando?",
-        "ciudad",
-    ),
-    (
-        "ciudad", "ciudad_aplica",
-        "¿A qué *cargo* aspiras?\n\n"
-        "Opciones: Operador de Tienda en Formación, Operador de Tienda, "
-        "Operador Part Time, Supervisor Junior de Tienda, Supervisor de Tienda, "
-        "Jefe de Tienda, Aprendiz SENA",
-        "cargo",
-    ),
-    (
-        "cargo", "cargo",
-        "¿Cómo te *enteraste* de esta vacante?\n\n"
-        "Ej: Computrabajo, Magneto, Indeed, Referido, Redes Sociales, SENA, Feria Laboral",
-        "fuente",
-    ),
-    (
-        "fuente", "fuente",
-        "¿Cuál es tu *nivel de estudios*?\n\n"
-        "Opciones: Bachiller, Técnico, Tecnólogo, Universitario, Posgrado",
-        "nivel_ac",
-    ),
-    (
-        "nivel_ac", "nivel_academico",
-        "¿Cuál es tu *situación laboral* actual?\n\n"
-        "Opciones: Empleado, Desempleado",
-        "situacion",
-    ),
-    (
-        "situacion", "situacion_laboral",
-        "¿Cuál es tu *aspiración salarial* en pesos colombianos?\n"
-        "(escribe solo el número, ej: 1500000)",
-        "salario",
-    ),
-    (
-        "salario", "aspiracion_salarial",
-        None,   # no hay pregunta; se envía el mensaje de cierre
-        "done",
-    ),
-]
+DATOS QUE DEBES RECOPILAR (en el orden que sea natural, pero todos son necesarios):
+1. nombre_completo — nombre completo del candidato
+2. cedula — número de cédula (solo dígitos)
+3. fecha_nacimiento — formato DD/MM/AAAA
+4. ciudad_aplica — ciudad donde aplica al cargo
+5. cargo — cargo al que aspira (ej: Operador de Tienda, Supervisor Junior, Aprendiz SENA, etc.)
+6. fuente — cómo se enteró de la vacante (Computrabajo, Magneto, Indeed, Referido, Redes Sociales, SENA, Feria Laboral, Voz a Voz, Base de Datos Interna)
+7. nivel_academico — nivel de estudios (Bachiller, Técnico, Tecnólogo, Universitario, Posgrado)
+8. situacion_laboral — situación actual (Empleado / Desempleado)
+9. aspiracion_salarial — número en pesos colombianos (ej: 1500000)
 
-PASO_MAP = {p[0]: p for p in PASOS}
+INSTRUCCIONES:
+- Saluda al candidato al inicio de forma cálida.
+- Haz las preguntas de manera conversacional, puedes hacer varias preguntas en un mismo mensaje si es natural.
+- Si el candidato da información sin que se la pidas, extráela y no la vuelvas a pedir.
+- Si una respuesta es ambigua, pide aclaración amablemente.
+- Si el cargo que menciona no está en la lista estándar de Ara, escríbelo tal como lo dijo.
+- Usa emojis moderadamente para parecer amigable.
+- Responde SIEMPRE en español colombiano informal pero respetuoso.
+
+FORMATO DE RESPUESTA (CRÍTICO — debes responder SIEMPRE con este JSON exacto, sin markdown, sin explicaciones):
+{
+  "mensaje": "texto que le envías al candidato",
+  "datos": {
+    "nombre_completo": null,
+    "cedula": null,
+    "fecha_nacimiento": null,
+    "ciudad_aplica": null,
+    "cargo": null,
+    "fuente": null,
+    "nivel_academico": null,
+    "situacion_laboral": null,
+    "aspiracion_salarial": null
+  },
+  "completo": false
+}
+
+- En "datos" pon los valores que ya tienes confirmados (null si no los tienes aún).
+- Pon "completo": true SOLO cuando tengas los 9 datos confirmados.
+- El campo "mensaje" es lo que se le envía al candidato por WhatsApp.
+"""
+
+
+# ── OpenAI client ─────────────────────────────────────────────────────────────
+
+def _get_ai_client():
+    settings = get_settings()
+    if not settings.OPENAI_API_KEY:
+        return None
+    return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _twiml(text: str) -> Response:
+    # Escapar caracteres XML básicos
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     body = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         f"<Response><Message>{text}</Message></Response>"
@@ -100,34 +88,99 @@ def _twiml(text: str) -> Response:
 def _get_or_create_session(db: Session, phone: str) -> WaSession:
     s = db.query(WaSession).filter(WaSession.phone == phone).first()
     if not s:
-        s = WaSession(phone=phone, step="start", data="{}")
+        s = WaSession(phone=phone, step="activo", data=json.dumps({"history": [], "datos": {}}))
         db.add(s)
         db.commit()
         db.refresh(s)
     return s
 
 
-def _guardar_candidato(data: dict, phone: str) -> None:
+def _llamar_ia(history: list, user_msg: str, datos_actuales: dict) -> dict:
+    """
+    Llama a GPT-4o-mini con el historial completo.
+    Devuelve dict con {mensaje, datos, completo}.
+    """
+    client = _get_ai_client()
+    if not client:
+        return {
+            "mensaje": "El servicio de IA no está configurado. Contacta al administrador.",
+            "datos": datos_actuales,
+            "completo": False,
+        }
+
+    settings = get_settings()
+
+    # Construir mensajes para la API
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    # Agregar contexto de datos ya recopilados si los hay
+    if any(v is not None for v in datos_actuales.values()):
+        ctx = f"Datos ya confirmados hasta ahora: {json.dumps(datos_actuales, ensure_ascii=False)}"
+        messages.append({"role": "system", "content": ctx})
+
+    # Historial previo
+    messages.extend(history)
+
+    # Mensaje actual del usuario
+    messages.append({"role": "user", "content": user_msg})
+
+    try:
+        resp = client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=messages,
+            temperature=0.4,
+            max_tokens=600,
+            response_format={"type": "json_object"},
+        )
+        raw = resp.choices[0].message.content
+        result = json.loads(raw)
+
+        # Validar estructura mínima
+        if "mensaje" not in result:
+            result["mensaje"] = "Hubo un problema procesando tu respuesta. ¿Puedes repetirla?"
+        if "datos" not in result:
+            result["datos"] = datos_actuales
+        if "completo" not in result:
+            result["completo"] = False
+
+        # Fusionar datos nuevos con existentes (no borrar lo que ya teníamos)
+        merged = {**datos_actuales}
+        for k, v in result["datos"].items():
+            if v is not None:
+                merged[k] = v
+        result["datos"] = merged
+
+        return result
+
+    except Exception as e:
+        logger.error(f"[WA-IA] Error llamando OpenAI: {e}", exc_info=True)
+        return {
+            "mensaje": "Tuve un problema técnico. Por favor envía tu mensaje de nuevo.",
+            "datos": datos_actuales,
+            "completo": False,
+        }
+
+
+def _guardar_candidato(datos: dict, phone: str) -> None:
     db = SessionLocal()
     try:
-        # Extraer número limpio del formato whatsapp:+57XXXXXXXXX
         tel = phone.replace("whatsapp:", "")
 
-        sal_raw = data.get("aspiracion_salarial", "")
+        sal_raw = datos.get("aspiracion_salarial") or "0"
         try:
             salario = float("".join(c for c in str(sal_raw) if c.isdigit() or c == "."))
         except Exception:
             salario = None
 
         c = Candidato(
-            nombre=data.get("nombre", ""),
-            cedula=data.get("cedula", "").strip(),
-            fecha_nacimiento=data.get("fecha_nacimiento"),
-            ciudad_aplica=data.get("ciudad_aplica"),
-            cargo=data.get("cargo"),
-            fuente=data.get("fuente"),
-            nivel_academico=data.get("nivel_academico"),
-            situacion_laboral=data.get("situacion_laboral"),
+            nombre=datos.get("nombre_completo", ""),
+            cedula=(datos.get("cedula") or "").strip(),
+            fecha_nacimiento=datos.get("fecha_nacimiento"),
+            ciudad_aplica=datos.get("ciudad_aplica"),
+            cargo=datos.get("cargo"),
+            fuente=datos.get("fuente"),
+            nivel_academico=datos.get("nivel_academico"),
+            situacion_laboral=datos.get("situacion_laboral"),
             aspiracion_salarial=salario,
             telefono_contacto=tel,
             reclutador="Bot WhatsApp",
@@ -137,9 +190,9 @@ def _guardar_candidato(data: dict, phone: str) -> None:
         )
         db.add(c)
         db.commit()
-        logger.info(f"[WA] Candidato guardado: {c.nombre} / {c.cedula}")
+        logger.info(f"[WA-IA] Candidato guardado: {c.nombre} / {c.cedula}")
     except Exception as e:
-        logger.error(f"[WA] Error guardando candidato: {e}", exc_info=True)
+        logger.error(f"[WA-IA] Error guardando candidato: {e}", exc_info=True)
         db.rollback()
     finally:
         db.close()
@@ -155,57 +208,48 @@ async def whatsapp_webhook(
     phone = From.strip()
     msg = Body.strip()
 
+    if not msg:
+        return _twiml("No recibí tu mensaje. Por favor intenta de nuevo.")
+
     db = SessionLocal()
     try:
         session = _get_or_create_session(db, phone)
+        state = json.loads(session.data or "{}")
+        history = state.get("history", [])
+        datos = state.get("datos", {})
 
-        # Si ya terminó y el usuario escribe algo → reiniciar
+        # Si ya estaba completo y escribe de nuevo → reiniciar
         if session.step == "done":
-            session.step = "start"
-            session.data = "{}"
-            db.commit()
+            history = []
+            datos = {}
+            session.step = "activo"
 
-        step = session.step
-        data = json.loads(session.data or "{}")
+        # Llamar a la IA
+        result = _llamar_ia(history, msg, datos)
+        mensaje_bot = result["mensaje"]
+        datos_nuevos = result["datos"]
+        completo = result.get("completo", False)
 
-        paso = PASO_MAP.get(step)
-        if not paso:
-            # Estado desconocido → reiniciar
-            session.step = "start"
-            session.data = "{}"
-            db.commit()
-            paso = PASO_MAP["start"]
-            step = "start"
-            data = {}
+        # Actualizar historial (guardar los últimos 20 turnos para no inflar el contexto)
+        history.append({"role": "user", "content": msg})
+        history.append({"role": "assistant", "content": mensaje_bot})
+        if len(history) > 40:
+            history = history[-40:]
 
-        _, campo_guardar, pregunta, step_siguiente = paso
+        # Guardar estado
+        if completo:
+            session.step = "done"
+            _guardar_candidato(datos_nuevos, phone)
+        else:
+            session.step = "activo"
 
-        # Guardar respuesta del usuario
-        if campo_guardar and msg:
-            data[campo_guardar] = msg
-
-        # Avanzar estado
-        session.step = step_siguiente
-        session.data = json.dumps(data, ensure_ascii=False)
+        session.data = json.dumps({"history": history, "datos": datos_nuevos}, ensure_ascii=False)
         db.commit()
 
-        # ¿Terminamos?
-        if step_siguiente == "done":
-            _guardar_candidato(data, phone)
-            nombre = data.get("nombre", "")
-            respuesta = (
-                f"✅ ¡Todo listo, {nombre}!\n\n"
-                "Tus datos han sido registrados correctamente. "
-                "Un reclutador de *Tiendas Ara* se pondrá en contacto contigo pronto. ¡Mucho éxito! 🍀\n\n"
-                "_Si deseas iniciar un nuevo registro, escribe cualquier mensaje._"
-            )
-            return _twiml(respuesta)
-
-        # Enviar la pregunta del paso actual
-        return _twiml(pregunta)
+        return _twiml(mensaje_bot)
 
     except Exception as e:
         logger.error(f"[WA] Error en webhook: {e}", exc_info=True)
-        return _twiml("Ocurrió un error. Por favor intenta de nuevo más tarde.")
+        return _twiml("Ocurrió un error. Por favor intenta de nuevo en un momento.")
     finally:
         db.close()
