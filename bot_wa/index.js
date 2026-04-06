@@ -126,11 +126,13 @@ client.on('message', async (message) => {
 
     const phone = message.from.replace('@c.us', '');
     const texto = message.body.trim();
+    const contact = await message.getContact();
+    const nombre = contact.pushname || contact.name || null;
 
-    console.log(`[${phone}]: ${texto}`);
+    console.log(`[${phone}] ${nombre || ''}: ${texto}`);
 
     try {
-        const resp = await axios.post(ENDPOINT, { phone, message: texto }, { timeout: 30000 });
+        const resp = await axios.post(ENDPOINT, { phone, message: texto, nombre }, { timeout: 30000 });
         const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
         console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
         await message.reply(respuesta);

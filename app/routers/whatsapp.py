@@ -134,13 +134,16 @@ def _get_or_create_session(db: Session, phone: str) -> WaSession:
     return s
 
 
-def _llamar_ia(history: list, user_msg: str, datos: dict) -> dict:
+def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | None = None) -> dict:
     client = _get_client()
     if not client:
         return {"mensaje": "Servicio de IA no configurado.", "datos": datos, "completo": False}
 
     s = get_settings()
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    system = SYSTEM_PROMPT
+    if nombre:
+        system += f"\n\nEl candidato se llama '{nombre}' según su perfil de WhatsApp. Salúdalo por su nombre en el primer mensaje."
+    messages = [{"role": "system", "content": system}]
     if any(v is not None for v in datos.values()):
         messages.append({
             "role": "system",
@@ -330,6 +333,7 @@ from pydantic import BaseModel
 class WaMensaje(BaseModel):
     phone: str
     message: str
+    nombre: str | None = None
 
 @router.post("/whatsapp/json")
 async def whatsapp_json(payload: WaMensaje):
@@ -373,7 +377,7 @@ async def whatsapp_json(payload: WaMensaje):
             session.data = json.dumps({"history": [], "datos": {}})
             db.commit()
 
-        result = _llamar_ia(history, msg, datos)
+        result = _llamar_ia(history, msg, datos, nombre=payload.nombre)
         mensaje_bot = result["mensaje"]
         datos_nuevos = result["datos"]
         completo = result.get("completo", False)
