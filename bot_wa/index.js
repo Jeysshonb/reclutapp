@@ -75,7 +75,7 @@ const client = new Client({
     authStrategy: new LocalAuth({ clientId: 'arabot', dataPath: SESSION_DIR }),
     puppeteer: {
         headless: true,
-
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
