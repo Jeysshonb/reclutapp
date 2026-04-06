@@ -320,3 +320,79 @@ async def whatsapp_webhook(
         return _twiml("Ocurrió un error. Por favor intenta de nuevo en un momento.")
     finally:
         db.close()
+
+
+# ── Endpoint JSON para whatsapp-web.js (Node.js) ──────────────────────────────
+
+from fastapi import Body as FBody
+from pydantic import BaseModel
+
+class WaMensaje(BaseModel):
+    phone: str
+    message: str
+
+@router.post("/whatsapp/json")
+async def whatsapp_json(payload: WaMensaje):
+    """Endpoint para el bot Node.js (whatsapp-web.js). Recibe JSON, devuelve JSON."""
+    phone = payload.phone.strip()
+    msg = payload.message.strip()
+
+    if not msg:
+        return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
+
+    db = SessionLocal()
+    try:
+        session = _get_or_create_session(db, phone)
+        state = json.loads(session.data or "{}")
+        history = state.get("history", [])
+        datos = state.get("datos", {})
+
+        ahora = datetime.now(timezone.utc)
+        ultima = session.updated_at
+        if ultima and ultima.tzinfo is None:
+            ultima = ultima.replace(tzinfo=timezone.utc)
+        tiempo_inactivo = (ahora - ultima).total_seconds() / 60 if ultima else 0
+
+        if session.step not in ("done", "activo") and tiempo_inactivo > TIMEOUT_MINUTOS:
+            tiene_datos = any(v is not None for v in datos.values())
+            if tiene_datos:
+                _guardar_candidato(datos, phone, parcial=True)
+            history, datos = [], {}
+            session.step = "activo"
+            session.data = json.dumps({"history": [], "datos": {}})
+            db.commit()
+            return {"response": (
+                "Hola de nuevo! Soy AraBot de Tiendas Ara.\n\n"
+                "Ha pasado un tiempo. Si dejaste un proceso incompleto ya quedo guardado.\n\n"
+                "Para iniciar un nuevo registro, cuentame tu nombre completo."
+            )}
+
+        if session.step == "done":
+            history, datos = [], {}
+            session.step = "activo"
+            session.data = json.dumps({"history": [], "datos": {}})
+            db.commit()
+
+        result = _llamar_ia(history, msg, datos)
+        mensaje_bot = result["mensaje"]
+        datos_nuevos = result["datos"]
+        completo = result.get("completo", False)
+
+        history.append({"role": "user", "content": msg})
+        history.append({"role": "assistant", "content": mensaje_bot})
+        if len(history) > 40:
+            history = history[-40:]
+
+        session.step = "done" if completo else "activo"
+        if completo:
+            _guardar_candidato(datos_nuevos, phone, parcial=False)
+        session.data = json.dumps({"history": history, "datos": datos_nuevos}, ensure_ascii=False)
+        db.commit()
+
+        return {"response": mensaje_bot}
+
+    except Exception as e:
+        logger.error(f"[AraBot-JSON] Error: {e}", exc_info=True)
+        return {"response": "Ocurrio un error. Por favor intenta de nuevo."}
+    finally:
+        db.close()
