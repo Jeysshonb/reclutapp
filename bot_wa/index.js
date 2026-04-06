@@ -11,6 +11,7 @@ const QRCode = require('qrcode');
 const axios = require('axios');
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
 const BACKEND = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdgrckdkeq.westeurope-01.azurewebsites.net';
@@ -147,6 +148,17 @@ client.on('disconnected', (reason) => {
     botEstado = 'desconectado';
     console.log('Desconectado:', reason);
 });
+
+// Eliminar lock file de Chrome si quedó de un proceso anterior
+const lockFile = path.join(SESSION_DIR, '.wwebjs_auth', 'session-arabot', 'SingletonLock');
+try {
+    if (fs.existsSync(lockFile)) {
+        fs.unlinkSync(lockFile);
+        console.log('Lock file de Chrome eliminado');
+    }
+} catch (e) {
+    console.warn('No se pudo eliminar lock file:', e.message);
+}
 
 console.log('Iniciando AraBot...');
 client.initialize();
