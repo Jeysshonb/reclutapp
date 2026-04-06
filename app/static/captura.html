@@ -1406,11 +1406,16 @@ function calcularEdad(){
   span.style.display='inline-block';
 }
 
-// ── Fecha/hora de registro automática ──
+// ── Fecha/hora de registro automática (zona Colombia UTC-5) ──
 function _fmtFechaHoraAuto(d){
   const dt=d?new Date(d):new Date();
-  const pad=n=>String(n).padStart(2,'0');
-  return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}  ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  const parts=new Intl.DateTimeFormat('es-CO',{
+    timeZone:'America/Bogota',
+    day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',hour12:false
+  }).formatToParts(dt);
+  const get=t=>parts.find(p=>p.type===t)?.value||'00';
+  return `${get('day')}/${get('month')}/${get('year')}  ${get('hour')}:${get('minute')}`;
 }
 
 // ── Archivos por etapa ──
