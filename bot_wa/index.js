@@ -6,17 +6,24 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
+const puppeteer = require('puppeteer');
+const path = require('path');
+const os = require('os');
 
 // URL del backend Python (local o Azure)
 const BACKEND = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdgrckdkeq.westeurope-01.azurewebsites.net';
 const ENDPOINT = `${BACKEND}/api/webhook/whatsapp/json`;
 
 // ── Cliente WhatsApp ──────────────────────────────────────────────────────────
+// Sesión fuera de OneDrive para evitar bloqueos
+const SESSION_DIR = path.join(os.homedir(), '.arabot_session');
+
 const client = new Client({
-    authStrategy: new LocalAuth({ clientId: 'arabot' }),
+    authStrategy: new LocalAuth({ clientId: 'arabot', dataPath: SESSION_DIR }),
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        executablePath: puppeteer.executablePath(),
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     }
 });
 
