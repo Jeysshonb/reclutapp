@@ -1,89 +1,149 @@
 /**
  * AraBot — WhatsApp Web bot para reclutamiento Tiendas Ara
- * Conecta con whatsapp-web.js (QR) y pasa mensajes al backend Python
+ * Corre en Azure App Service (Node.js 20 Linux)
+ * GET /       → status del bot
+ * GET /qr     → página para escanear el QR con WhatsApp
  */
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const axios = require('axios');
-const puppeteer = require('puppeteer');
+const express = require('express');
 const path = require('path');
-const os = require('os');
 
-// URL del backend Python (local o Azure)
+const PORT = process.env.PORT || 3000;
 const BACKEND = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdgrckdkeq.westeurope-01.azurewebsites.net';
 const ENDPOINT = `${BACKEND}/api/webhook/whatsapp/json`;
+const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
+
+// ── Estado global ─────────────────────────────────────────────────────────────
+let qrImageData = null;   // QR como imagen base64
+let botListo = false;
+let botEstado = 'iniciando';
+
+// ── Express (servidor web) ────────────────────────────────────────────────────
+const app = express();
+
+app.get('/', (req, res) => {
+    res.json({
+        estado: botEstado,
+        listo: botListo,
+        backend: BACKEND,
+        mensaje: botListo ? 'AraBot activo y recibiendo mensajes' : 'Esperando vinculacion — ve a /qr'
+    });
+});
+
+app.get('/qr', async (req, res) => {
+    if (botListo) {
+        return res.send('<h2 style="font-family:sans-serif;color:green">✅ AraBot ya está conectado y activo</h2>');
+    }
+    if (!qrImageData) {
+        return res.send('<h2 style="font-family:sans-serif">⏳ Generando QR... recarga en 5 segundos</h2><meta http-equiv="refresh" content="5">');
+    }
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>AraBot — Vincular WhatsApp</title>
+            <meta http-equiv="refresh" content="30">
+            <style>
+                body { font-family: sans-serif; text-align: center; padding: 40px; background: #f0f0f0; }
+                img { border: 4px solid #25D366; border-radius: 12px; padding: 10px; background: white; }
+                h2 { color: #128C7E; }
+                p { color: #666; }
+            </style>
+        </head>
+        <body>
+            <h2>Escanea este QR con WhatsApp Business</h2>
+            <p>Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo</p>
+            <img src="${qrImageData}" width="300" height="300" /><br><br>
+            <p><small>El QR se renueva cada 30 segundos — esta página se actualiza automáticamente</small></p>
+        </body>
+        </html>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor web en puerto ${PORT}`);
+    console.log(`QR disponible en: http://localhost:${PORT}/qr`);
+});
 
 // ── Cliente WhatsApp ──────────────────────────────────────────────────────────
-// Sesión fuera de OneDrive para evitar bloqueos
-const SESSION_DIR = path.join(os.homedir(), '.arabot_session');
-
 const client = new Client({
     authStrategy: new LocalAuth({ clientId: 'arabot', dataPath: SESSION_DIR }),
     puppeteer: {
         headless: true,
-        executablePath: puppeteer.executablePath(),
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+        ],
     }
 });
 
-// ── QR Code ───────────────────────────────────────────────────────────────────
-client.on('qr', (qr) => {
-    console.log('\n======================================');
-    console.log('  Escanea este QR con WhatsApp:');
-    console.log('======================================\n');
+client.on('qr', async (qr) => {
+    botEstado = 'esperando_qr';
     qrcode.generate(qr, { small: true });
-    console.log('\nAbre WhatsApp > Dispositivos vinculados > Vincular dispositivo\n');
+    try {
+        qrImageData = await QRCode.toDataURL(qr);
+        console.log('QR generado — abre /qr en el navegador para escanearlo');
+    } catch (e) {
+        console.error('Error generando QR imagen:', e.message);
+    }
 });
 
 client.on('authenticated', () => {
-    console.log('✅ Autenticado correctamente');
+    botEstado = 'autenticado';
+    qrImageData = null;
+    console.log('Autenticado correctamente');
 });
 
 client.on('auth_failure', (msg) => {
-    console.error('❌ Error de autenticacion:', msg);
+    botEstado = 'error_auth';
+    console.error('Error de autenticacion:', msg);
 });
 
 client.on('ready', () => {
-    console.log('🚀 AraBot listo y escuchando mensajes...');
-    console.log(`   Backend: ${BACKEND}`);
+    botListo = true;
+    botEstado = 'activo';
+    qrImageData = null;
+    console.log('AraBot listo y escuchando mensajes');
+    console.log(`Backend: ${BACKEND}`);
 });
 
-// ── Procesar mensajes entrantes ───────────────────────────────────────────────
+// ── Procesar mensajes ─────────────────────────────────────────────────────────
 client.on('message', async (message) => {
-    // Ignorar mensajes de grupos, estados y del bot mismo
     if (message.from === 'status@broadcast') return;
     if (message.fromMe) return;
-    if (message.from.includes('@g.us')) return;  // grupos
-    if (message.type !== 'chat') return;          // solo texto
+    if (message.from.includes('@g.us')) return;
+    if (message.type !== 'chat') return;
 
-    const phone = message.from.replace('@c.us', ''); // ej: 573133828176
+    const phone = message.from.replace('@c.us', '');
     const texto = message.body.trim();
 
-    console.log(`📩 [${phone}]: ${texto}`);
+    console.log(`[${phone}]: ${texto}`);
 
     try {
-        const resp = await axios.post(ENDPOINT, {
-            phone: phone,
-            message: texto,
-        }, { timeout: 30000 });
-
+        const resp = await axios.post(ENDPOINT, { phone, message: texto }, { timeout: 30000 });
         const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
-        console.log(`🤖 AraBot → [${phone}]: ${respuesta.substring(0, 80)}...`);
-
+        console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
         await message.reply(respuesta);
-
     } catch (err) {
-        console.error(`❌ Error llamando al backend: ${err.message}`);
-        await message.reply('Lo siento, tuve un problema técnico. Por favor intenta en un momento.');
+        console.error(`Error llamando backend: ${err.message}`);
+        await message.reply('Lo siento, tuve un problema tecnico. Por favor intenta en un momento.');
     }
 });
 
 client.on('disconnected', (reason) => {
-    console.log('⚠️  Desconectado:', reason);
-    console.log('   Reinicia con: npm start');
+    botListo = false;
+    botEstado = 'desconectado';
+    console.log('Desconectado:', reason);
 });
 
-// ── Iniciar ───────────────────────────────────────────────────────────────────
 console.log('Iniciando AraBot...');
 client.initialize();
