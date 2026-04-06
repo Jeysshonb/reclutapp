@@ -106,8 +106,18 @@ client.on('authenticated', () => {
 });
 
 client.on('auth_failure', (msg) => {
-    botEstado = 'error_auth';
-    console.error('Error de autenticacion:', msg);
+    botEstado = 'esperando_qr';
+    console.error('Error de autenticacion:', msg, '— reiniciando...');
+    setTimeout(() => client.initialize(), 5000);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('Error no manejado:', reason);
+    if (String(reason).includes('auth timeout') || String(reason).includes('auth_timeout')) {
+        botEstado = 'esperando_qr';
+        console.log('Auth timeout — reiniciando cliente en 5s...');
+        setTimeout(() => client.initialize(), 5000);
+    }
 });
 
 client.on('ready', () => {
