@@ -159,15 +159,16 @@ client.on('disconnected', (reason) => {
     console.log('Desconectado:', reason);
 });
 
-// Eliminar lock file de Chrome si quedó de un proceso anterior
-const lockFile = path.join(SESSION_DIR, '.wwebjs_auth', 'session-arabot', 'SingletonLock');
+// Eliminar lock files de Chrome en todo /home (cualquier ruta)
+const { execSync } = require('child_process');
 try {
-    if (fs.existsSync(lockFile)) {
-        fs.unlinkSync(lockFile);
-        console.log('Lock file de Chrome eliminado');
+    const deleted = execSync('find /home -name "SingletonLock" 2>/dev/null').toString().trim();
+    if (deleted) {
+        execSync('find /home -name "SingletonLock" -delete 2>/dev/null');
+        console.log('Lock files eliminados:', deleted);
     }
 } catch (e) {
-    console.warn('No se pudo eliminar lock file:', e.message);
+    // sin lock files o error ignorable
 }
 
 console.log('Iniciando AraBot...');
