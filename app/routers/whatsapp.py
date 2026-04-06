@@ -4,10 +4,11 @@ Webhook de Twilio WhatsApp — AraBot, agente IA de reclutamiento Tiendas Ara.
 - Guarda datos parciales si el candidato abandona > 30 minutos.
 - Retoma la conversación si el candidato vuelve a escribir.
 """
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone, timedelta
-from openai import AzureOpenAI
+from openai import AsyncAzureOpenAI
 
 from fastapi import APIRouter, Form, Response
 from sqlalchemy.orm import Session
@@ -107,7 +108,7 @@ def _get_client():
     s = get_settings()
     if not s.AZURE_OPENAI_ENDPOINT or not s.AZURE_OPENAI_KEY:
         return None
-    return AzureOpenAI(
+    return AsyncAzureOpenAI(
         azure_endpoint=s.AZURE_OPENAI_ENDPOINT,
         api_key=s.AZURE_OPENAI_KEY,
         api_version=s.AZURE_OPENAI_API_VERSION,
@@ -134,7 +135,7 @@ def _get_or_create_session(db: Session, phone: str) -> WaSession:
     return s
 
 
-def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | None = None) -> dict:
+async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | None = None) -> dict:
     client = _get_client()
     if not client:
         return {"mensaje": "Servicio de IA no configurado.", "datos": datos, "completo": False}
@@ -153,7 +154,7 @@ def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | None = N
     messages.append({"role": "user", "content": user_msg})
 
     try:
-        resp = client.chat.completions.create(
+        resp = await client.chat.completions.create(
             model=s.AZURE_OPENAI_DEPLOYMENT,
             messages=messages,
             temperature=0.4,
@@ -269,7 +270,7 @@ async def whatsapp_webhook(
             # Si tenía datos a medias → guardar como parcial
             tiene_datos = any(v is not None for v in datos.values())
             if tiene_datos and session.step != "start":
-                _guardar_candidato(datos, phone, parcial=True)
+                await asyncio.to_thread(_guardar_candidato, datos, phone, True)
                 logger.info(f"[AraBot] Guardado parcial por timeout ({tiempo_inactivo:.0f} min): {phone}")
 
             # Reiniciar sesión
@@ -296,7 +297,7 @@ async def whatsapp_webhook(
             db.commit()
 
         # ── Llamar a la IA ────────────────────────────────────────────────────
-        result = _llamar_ia(history, msg, datos)
+        result = await _llamar_ia(history, msg, datos)
         mensaje_bot = result["mensaje"]
         datos_nuevos = result["datos"]
         completo = result.get("completo", False)
@@ -309,7 +310,7 @@ async def whatsapp_webhook(
 
         if completo:
             session.step = "done"
-            _guardar_candidato(datos_nuevos, phone, parcial=False)
+            await asyncio.to_thread(_guardar_candidato, datos_nuevos, phone, False)
         else:
             session.step = "activo"
 
@@ -360,7 +361,7 @@ async def whatsapp_json(payload: WaMensaje):
         if session.step not in ("done", "activo") and tiempo_inactivo > TIMEOUT_MINUTOS:
             tiene_datos = any(v is not None for v in datos.values())
             if tiene_datos:
-                _guardar_candidato(datos, phone, parcial=True)
+                await asyncio.to_thread(_guardar_candidato, datos, phone, True)
             history, datos = [], {}
             session.step = "activo"
             session.data = json.dumps({"history": [], "datos": {}})
@@ -377,7 +378,7 @@ async def whatsapp_json(payload: WaMensaje):
             session.data = json.dumps({"history": [], "datos": {}})
             db.commit()
 
-        result = _llamar_ia(history, msg, datos, nombre=payload.nombre)
+        result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
         mensaje_bot = result["mensaje"]
         datos_nuevos = result["datos"]
         completo = result.get("completo", False)
@@ -389,7 +390,7 @@ async def whatsapp_json(payload: WaMensaje):
 
         session.step = "done" if completo else "activo"
         if completo:
-            _guardar_candidato(datos_nuevos, phone, parcial=False)
+            await asyncio.to_thread(_guardar_candidato, datos_nuevos, phone, False)
         session.data = json.dumps({"history": history, "datos": datos_nuevos}, ensure_ascii=False)
         db.commit()
 
