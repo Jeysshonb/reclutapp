@@ -24,10 +24,15 @@ class Settings(BaseSettings):
     AZURE_STORAGE_CONNECTION_STRING: str = ""
     AZURE_BLOB_CONTAINER: str = "reclutapp-archivos"
 
-    # Twilio WhatsApp
+    # Twilio WhatsApp (sandbox)
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WHATSAPP_FROM: str = "whatsapp:+14155238886"
+
+    # Meta WhatsApp Cloud API (producción)
+    META_ACCESS_TOKEN: str = ""
+    META_PHONE_NUMBER_ID: str = ""
+    META_VERIFY_TOKEN: str = "arabot_reclutapp_2024"
 
     # Azure OpenAI
     AZURE_OPENAI_ENDPOINT: str = ""       # https://xxx.openai.azure.com/
