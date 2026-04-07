@@ -391,27 +391,29 @@ async def _transcribir_audio(audio_b64: str, mimetype: str) -> str | None:
     """Transcribe un audio de WhatsApp usando Azure OpenAI Whisper."""
     s = get_settings()
     if not s.AZURE_WHISPER_DEPLOYMENT:
+        logger.error("[AraBot] AZURE_WHISPER_DEPLOYMENT no configurado")
         return None
     client = _get_client()
     if not client:
         return None
     import base64, io as _io
     audio_bytes = base64.b64decode(audio_b64)
-    ext = "ogg"
-    if "mp4" in mimetype: ext = "mp4"
-    elif "wav" in mimetype: ext = "wav"
+    # WhatsApp ptt llega como ogg/opus — renombrar a .mp4 mejora compatibilidad con Whisper
+    ext = "mp4"
+    if "wav" in mimetype: ext = "wav"
     elif "mpeg" in mimetype or "mp3" in mimetype: ext = "mp3"
+    elif "webm" in mimetype: ext = "webm"
     audio_file = _io.BytesIO(audio_bytes)
     audio_file.name = f"audio.{ext}"
     try:
         transcript = await client.audio.transcriptions.create(
             model=s.AZURE_WHISPER_DEPLOYMENT,
-            file=audio_file,
+            file=(audio_file.name, audio_bytes, mimetype.split(";")[0].strip()),
         )
         return transcript.text
     except Exception as e:
-        logger.error(f"[AraBot] Error transcribiendo audio: {e}")
-        return None
+        logger.error(f"[AraBot] Error transcribiendo audio (mime={mimetype}): {e}")
+        return f"__ERROR_AUDIO__: {str(e)[:200]}"
 
 
 async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> str | None:
@@ -641,9 +643,12 @@ async def whatsapp_json(payload: WaMensaje):
         if msg in ("[audio]", "[documento]", "[foto_cedula]") or not msg:
             if payload.audio_base64:
                 texto = await _transcribir_audio(payload.audio_base64, payload.audio_mimetype or "audio/ogg")
-                if texto:
+                if texto and not texto.startswith("__ERROR_AUDIO__"):
                     msg = texto
                     logger.info(f"[AraBot] Audio transcrito {phone}: {texto[:60]}")
+                elif texto and texto.startswith("__ERROR_AUDIO__"):
+                    error_msg = texto.replace("__ERROR_AUDIO__: ", "")
+                    return {"response": f"Error al procesar audio: {error_msg}"}
                 else:
                     return {"response": "No pude procesar el audio 😕 Por favor escribe tu respuesta en texto."}
 
