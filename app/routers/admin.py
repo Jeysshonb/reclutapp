@@ -10,7 +10,7 @@ from app.models.candidato import (
     CatNegocio, CatCargo, CatFuenteHV, CatResultado,
     CatDepartamento, CatMunicipio, CatMotivoRetiro,
     CatReclutador, CatProveedor,
-    Usuario, Auditoria,
+    Usuario, Auditoria, WaSession,
 )
 from app.routers.auth import get_current_user, require_role
 from app.schemas.candidato import CatalogoCreate, UsuarioCreate, UsuarioUpdate
@@ -176,6 +176,24 @@ def ver_auditoria(
         {"id": r.id, "accion": r.accion, "detalle": r.detalle,
          "usuario": r.usuario, "timestamp": r.timestamp}
         for r in registros
+    ]
+
+
+@router.get("/wa-sesiones")
+def listar_wa_sesiones(
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_role("administrador", "especialista")),
+):
+    sesiones = db.query(WaSession).order_by(WaSession.updated_at.desc()).all()
+    return [
+        {
+            "phone": s.phone,
+            "nombre": s.nombre,
+            "cedula": s.cedula,
+            "step": s.step,
+            "updated_at": s.updated_at,
+        }
+        for s in sesiones
     ]
 
 
