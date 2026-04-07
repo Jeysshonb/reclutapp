@@ -394,6 +394,7 @@
     <div class="step" onclick="goStep(7)" id="s7"><div class="snum">8</div>Experiencia</div>
     <div class="step" onclick="goStep(8)" id="s8"><div class="snum">9</div>Pipeline</div>
     <div class="step" onclick="goStep(9)" id="s9"><div class="snum">10</div>Resultado</div>
+    <div class="step" onclick="goStep(10)" id="s10"><div class="snum">11</div>WhatsApp Bot</div>
   </div>
 
   <!-- MAIN -->
@@ -965,6 +966,43 @@
       </div>
     </div>
 
+    <!-- ── SECCIÓN 11: WhatsApp Bot ───────────────────────────────────── -->
+    <div class="section" id="sec10">
+      <div class="section-header">
+        <h2 style="color:#25D366"><svg viewBox="0 0 24 24" stroke="#25D366"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>WhatsApp Bot</h2>
+      </div>
+
+      <!-- Conversación -->
+      <div class="form-card" style="border-top:3px solid #25D366">
+        <div class="card-hdr">
+          <div class="card-icon" style="background:#e7f9ee"><svg viewBox="0 0 24 24" stroke="#25D366"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3>Conversación del Bot</h3>
+        </div>
+        <div class="card-body">
+          <div id="waChatBox" style="background:#f0f0f0;border-radius:10px;padding:16px;min-height:100px;max-height:500px;overflow-y:auto;font-size:.83rem;color:#333">
+            <p style="color:#999;text-align:center">Cargando conversación...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Archivos subidos -->
+      <div class="form-card" style="margin-top:16px;border-top:3px solid #25D366">
+        <div class="card-hdr">
+          <div class="card-icon" style="background:#e7f9ee"><svg viewBox="0 0 24 24" stroke="#25D366"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h3>Archivos enviados por WhatsApp</h3>
+        </div>
+        <div class="card-body">
+          <div id="waBlobFiles" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px">
+            <p style="color:#999;font-size:.83rem">Cargando archivos...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns" style="margin-top:20px">
+        <button class="btn btn-gray" onclick="goStep(9)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Anterior</button>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /layout -->
 
@@ -986,6 +1024,61 @@ function toast(msg,type='info'){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},3500);
 }
 
+// ── WhatsApp Bot ──
+async function cargarDatosWhatsApp(cedula, phone){
+  // Conversación
+  const chatBox = document.getElementById('waChatBox');
+  const blobBox = document.getElementById('waBlobFiles');
+  try {
+    const params = cedula ? `?cedula=${encodeURIComponent(cedula)}` : (phone ? `?phone=${encodeURIComponent(phone)}` : '');
+    const r = await fetch(`/api/admin/wa-sesiones${params}`, {headers: authH()});
+    const sesiones = await r.json();
+    const sesion = sesiones[0];
+    if(sesion){
+      let html = `<div style="margin-bottom:8px;font-size:.75rem;color:#666">📱 <b>${sesion.phone}</b> | Estado: <b>${sesion.step}</b> | Última actividad: ${sesion.updated_at||''}</div>`;
+      // Mostrar historial de mensajes si existe
+      try {
+        const data = JSON.parse(sesion.data||'{}');
+        const history = data.history || [];
+        if(history.length){
+          history.forEach(m=>{
+            const isBot = m.role==='assistant';
+            html += `<div style="display:flex;justify-content:${isBot?'flex-start':'flex-end'};margin:4px 0">
+              <div style="max-width:75%;padding:8px 12px;border-radius:${isBot?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${isBot?'#fff':'#dcf8c6'};box-shadow:0 1px 2px rgba(0,0,0,.1);font-size:.8rem;white-space:pre-wrap">${m.content}</div>
+            </div>`;
+          });
+        } else {
+          html += '<p style="color:#999;text-align:center;font-size:.8rem">Sin historial de mensajes</p>';
+        }
+      } catch(e){ html += '<p style="color:#999">No se pudo cargar el historial</p>'; }
+      chatBox.innerHTML = html;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } else {
+      chatBox.innerHTML = '<p style="color:#999;text-align:center">Este candidato no tiene conversación por WhatsApp Bot</p>';
+    }
+  } catch(e){ chatBox.innerHTML = '<p style="color:#e00">Error cargando conversación</p>'; }
+
+  // Archivos blob
+  try {
+    const params = cedula ? `?cedula=${encodeURIComponent(cedula)}` : (phone ? `?phone=${encodeURIComponent(phone)}` : '');
+    const r2 = await fetch(`/api/admin/wa-archivos${params}`, {headers: authH()});
+    const archivos = await r2.json();
+    if(archivos.length){
+      blobBox.innerHTML = archivos.map(a=>{
+        const esImagen = a.tipo==='imagen';
+        const icono = esImagen ? '🖼️' : (a.tipo==='pdf'?'📄':'📎');
+        return `<a href="${a.blob_url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;background:#f9f9f9;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#333;min-width:100px;max-width:140px">
+          <span style="font-size:2rem">${icono}</span>
+          <span style="font-size:.7rem;text-align:center;word-break:break-all">${a.nombre||a.tipo}</span>
+          <span style="font-size:.65rem;color:#999">${(a.created_at||'').substring(0,10)}</span>
+        </a>`;
+      }).join('');
+    } else {
+      blobBox.innerHTML = '<p style="color:#999;font-size:.83rem">No hay archivos enviados por WhatsApp</p>';
+    }
+  } catch(e){ blobBox.innerHTML = '<p style="color:#e00">Error cargando archivos</p>'; }
+}
+
 // ── Progress ──
 const TOTAL_STEPS=10;
 let currentStep=0;
@@ -995,6 +1088,7 @@ function goStep(n){
   document.getElementById('sec'+n).classList.add('active');
   document.getElementById('s'+n).classList.add('active');
   currentStep=n;
+  if(n===10){ const cedula=document.getElementById('cedula')?.value; cargarDatosWhatsApp(cedula, null); }
   document.getElementById('progressFill').style.width=((n+1)/TOTAL_STEPS*100)+'%';
   window.scrollTo({top:0,behavior:'smooth'});
 }
