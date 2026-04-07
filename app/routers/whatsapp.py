@@ -558,7 +558,7 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
         client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
         container = client.get_container_client("whatsapp-docs")
         container.upload_blob(blob_name, data, overwrite=True)
-        url = f"https://reclutappdocs.blob.core.windows.net/whatsapp-docs/{blob_name}"
+        url = f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}"
         archivo = WaArchivo(phone=phone, cedula=cedula, tipo=tipo, nombre=nombre, blob_url=url)
         db.add(archivo)
         db.commit()
