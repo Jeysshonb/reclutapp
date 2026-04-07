@@ -444,6 +444,30 @@
                 <div id="ciudadDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--orange);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
               </div>
             </div>
+            <div class="fg" id="fg_localidad" style="display:none">
+              <label>Localidad (Bogotá)</label>
+              <select id="localidad_bogota" onchange="seleccionarLocalidad(this.value)">
+                <option value="">Seleccionar localidad...</option>
+                <option value="Barrios Unidos">Barrios Unidos</option>
+                <option value="Chapinero">Chapinero</option>
+                <option value="Engativá">Engativá</option>
+                <option value="Fontibón">Fontibón</option>
+                <option value="Suba">Suba</option>
+                <option value="Teusaquillo">Teusaquillo</option>
+                <option value="Usaquén">Usaquén</option>
+                <option value="Santa Fe">Santa Fe</option>
+                <option value="Puente Aranda">Puente Aranda</option>
+                <option value="Tunjuelito">Tunjuelito</option>
+                <option value="Usme">Usme</option>
+                <option value="Ciudad Bolívar">Ciudad Bolívar</option>
+                <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
+                <option value="San Cristóbal">San Cristóbal</option>
+                <option value="Kennedy">Kennedy</option>
+                <option value="Bosa">Bosa</option>
+                <option value="Los Mártires">Los Mártires</option>
+                <option value="Antonio Nariño">Antonio Nariño</option>
+              </select>
+            </div>
             <div class="fg"><label>Zona</label><select id="zona"><option value="">Seleccionar...</option><option>Norte</option><option>Centro</option><option>Sur</option><option>Occidente</option><option>Antioquia</option></select></div>
             <div class="fg"><label>Región</label>
               <select id="region">
@@ -1498,10 +1522,85 @@ function filtrarCiudades(val){
   dd.innerHTML=matches.map(c=>`<div style="padding:8px 14px;cursor:pointer;font-size:.88rem;border-bottom:1px solid #f3f4f6" onmousedown="seleccionarCiudad('${c}')" onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background=''">${c}</div>`).join('');
   dd.style.display='block';
 }
+// Mapa ciudad → zona + región (coincide con ciudades_ara.py)
+const CIUDAD_ZONA={
+  'Pereira':{zona:'OCCIDENTE',reg:'R1'},'Armenia':{zona:'OCCIDENTE',reg:'R1'},
+  'Dosquebradas':{zona:'OCCIDENTE',reg:'R1'},'Manizales':{zona:'OCCIDENTE',reg:'R1'},
+  'Cartago':{zona:'OCCIDENTE',reg:'R1'},'Chinchiná':{zona:'OCCIDENTE',reg:'R1'},
+  'La Virginia':{zona:'OCCIDENTE',reg:'R1'},'Calarcá':{zona:'OCCIDENTE',reg:'R1'},
+  'Santa Rosa de Cabal':{zona:'OCCIDENTE',reg:'R1'},'Zarzal':{zona:'OCCIDENTE',reg:'R1'},
+  'Medellín':{zona:'ANTIOQUIA',reg:'R2'},'Bello':{zona:'ANTIOQUIA',reg:'R2'},
+  'Itagüí':{zona:'ANTIOQUIA',reg:'R2'},'Envigado':{zona:'ANTIOQUIA',reg:'R2'},
+  'Apartadó':{zona:'ANTIOQUIA',reg:'R2'},'Turbo':{zona:'ANTIOQUIA',reg:'R2'},
+  'Rionegro':{zona:'ANTIOQUIA',reg:'R2'},'Sabaneta':{zona:'ANTIOQUIA',reg:'R2'},
+  'Copacabana':{zona:'ANTIOQUIA',reg:'R2'},'Caucasia':{zona:'ANTIOQUIA',reg:'R2'},
+  'Girardot':{zona:'CENTRO',reg:'R3'},'Neiva':{zona:'SUR',reg:'R9'},
+  'Popayán':{zona:'SUR',reg:'R9'},'Pasto':{zona:'SUR',reg:'R9'},
+  'Ibagué':{zona:'CENTRO',reg:'R3'},'Villavicencio':{zona:'CENTRO',reg:'R3'},
+  'Bucaramanga':{zona:'NORTE',reg:'R6'},'Floridablanca':{zona:'NORTE',reg:'R6'},
+  'Barrancabermeja':{zona:'NORTE',reg:'R6'},'Cúcuta':{zona:'NORTE',reg:'R7'},
+  'Barranquilla':{zona:'NORTE',reg:'R8'},'Soledad':{zona:'NORTE',reg:'R8'},
+  'Cartagena':{zona:'NORTE',reg:'R8'},'Montería':{zona:'NORTE',reg:'R8'},
+  'Santa Marta':{zona:'NORTE',reg:'R8'},'Valledupar':{zona:'NORTE',reg:'R8'},
+  'Cali':{zona:'SUR',reg:'R10'},'Palmira':{zona:'SUR',reg:'R10'},
+  'Buenaventura':{zona:'SUR',reg:'R10'},'Tuluá':{zona:'SUR',reg:'R10'},
+  'Buga':{zona:'SUR',reg:'R10'},'Yumbo':{zona:'SUR',reg:'R10'},
+  'Bogotá D.C.':{zona:'CENTRO',reg:'R4'},
+  // Localidades Bogotá R4
+  'Barrios Unidos':{zona:'CENTRO',reg:'R4'},'Chapinero':{zona:'CENTRO',reg:'R4'},
+  'Engativá':{zona:'CENTRO',reg:'R4'},'Fontibón':{zona:'CENTRO',reg:'R4'},
+  'Suba':{zona:'CENTRO',reg:'R4'},'Teusaquillo':{zona:'CENTRO',reg:'R4'},
+  'Usaquén':{zona:'CENTRO',reg:'R4'},
+  // Localidades Bogotá R3
+  'Santa Fe':{zona:'CENTRO',reg:'R3'},'Puente Aranda':{zona:'CENTRO',reg:'R3'},
+  'Tunjuelito':{zona:'CENTRO',reg:'R3'},'Usme':{zona:'CENTRO',reg:'R3'},
+  'Ciudad Bolívar':{zona:'CENTRO',reg:'R3'},'Rafael Uribe Uribe':{zona:'CENTRO',reg:'R3'},
+  'San Cristóbal':{zona:'CENTRO',reg:'R3'},'Kennedy':{zona:'CENTRO',reg:'R3'},
+  'Bosa':{zona:'CENTRO',reg:'R3'},'Los Mártires':{zona:'CENTRO',reg:'R3'},
+  'Antonio Nariño':{zona:'CENTRO',reg:'R3'},
+};
+
+const BOGOTA_KEYS=['bogota','bogotá','bogota d.c.','bogotá d.c.','bogota dc','bogotá dc'];
+
+function _esBogota(ciudad){
+  return BOGOTA_KEYS.includes(ciudad.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/bogot[aá]/,'bogota').trim());
+}
+
+function _autocompletarZonaRegion(ciudad){
+  const match=Object.entries(CIUDAD_ZONA).find(([k])=>
+    k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==
+    ciudad.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  );
+  if(!match) return;
+  const {zona,reg}=match[1];
+  const zSel=document.getElementById('zona');
+  const rSel=document.getElementById('region');
+  for(const opt of zSel.options) if(opt.value.toUpperCase()==zona.toUpperCase()){zSel.value=opt.value;break;}
+  for(const opt of rSel.options) if(opt.value.toUpperCase()==reg.toUpperCase()){rSel.value=opt.value;break;}
+}
+
 function seleccionarCiudad(ciudad){
   document.getElementById('ciudad_aplica').value=ciudad;
   document.getElementById('ciudadDropdown').style.display='none';
+  const esBogota=_esBogota(ciudad)||ciudad==='Bogotá D.C.';
+  const fgLoc=document.getElementById('fg_localidad');
+  if(esBogota){
+    fgLoc.style.display='';
+    document.getElementById('localidad_bogota').value='';
+    // No autocompletar zona/región hasta que elija localidad
+  } else {
+    fgLoc.style.display='none';
+    document.getElementById('localidad_bogota').value='';
+    _autocompletarZonaRegion(ciudad);
+  }
 }
+
+function seleccionarLocalidad(localidad){
+  if(!localidad) return;
+  document.getElementById('ciudad_aplica').value=localidad;
+  _autocompletarZonaRegion(localidad);
+}
+
 function ocultarCiudades(){
   document.getElementById('ciudadDropdown').style.display='none';
 }
