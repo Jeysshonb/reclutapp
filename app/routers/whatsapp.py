@@ -21,7 +21,7 @@ from app.ciudades_ara import buscar_ciudad
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhook", tags=["whatsapp"])
 
-TIMEOUT_MINUTOS = 30
+TIMEOUT_MINUTOS = 5
 
 DOMINIOS_EMAIL = ("gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "icloud.com",
                   "live.com", "hotmail.es", "yahoo.es", "outlook.es")
@@ -683,11 +683,26 @@ async def whatsapp_json(payload: WaMensaje):
             tiene_datos = any(v is not None for v in datos.values())
             if tiene_datos:
                 await asyncio.to_thread(_guardar_candidato, datos, phone, True)
-            history, datos, meta = [], {}, {}
-            session.step = "consent"
-            session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
-            db.commit()
-            return {"response": MENSAJE_CONSENTIMIENTO}
+                session.step = "done"
+                session.data = json.dumps({"history": [], "datos": datos, "meta": meta})
+                db.commit()
+                cedula_guardada = datos.get("cedula")
+                if cedula_guardada:
+                    return {"response": (
+                        f"⏰ Tu conversación quedó guardada por inactividad.\n\n"
+                        f"Puedes retomar tu registro cuando quieras escribiendo tu número de cédula *{cedula_guardada}*."
+                    )}
+                else:
+                    return {"response": (
+                        "⏰ Tu conversación quedó guardada por inactividad.\n\n"
+                        "Puedes retomar tu registro cuando quieras escribiendo tu número de cédula."
+                    )}
+            else:
+                history, datos, meta = [], {}, {}
+                session.step = "consent"
+                session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
+                db.commit()
+                return {"response": MENSAJE_CONSENTIMIENTO}
 
         # ── Llamar IA ──────────────────────────────────────────────────────────
         result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
