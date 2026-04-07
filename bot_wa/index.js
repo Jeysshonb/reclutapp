@@ -8,7 +8,7 @@
  */
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason,
-        downloadMediaMessage, isJidGroup } = require('@whiskeysockets/baileys');
+        downloadMediaMessage, isJidGroup, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const QRCode = require('qrcode');
 const axios  = require('axios');
@@ -80,10 +80,12 @@ app.listen(PORT, () => {
 // ── Conexión WhatsApp (Baileys — sin Chrome) ───────────────────────────────────
 async function conectar() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+    const { version } = await fetchLatestBaileysVersion();
+    console.log(`Usando WhatsApp versión: ${version.join('.')}`);
 
     sock = makeWASocket({
+        version,
         auth: state,
-        printQRInTerminal: true,
         logger: pino({ level: 'silent' }),
         browser: ['AraBot', 'Chrome', '1.0.0'],
         connectTimeoutMs: 60000,
