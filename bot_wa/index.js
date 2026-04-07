@@ -66,16 +66,15 @@ app.get('/qr', async (req, res) => {
 });
 
 app.get('/reset', (req, res) => {
-    console.log('Reset manual solicitado — limpiando sesion y reiniciando...');
-    botListo = false;
-    botEstado = 'reiniciando';
-    qrImageData = null;
-    try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
-    try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
-    setTimeout(() => {
-        client.initialize().catch(e => console.error('Error tras reset:', e.message));
-    }, 3000);
-    res.send('<h2 style="font-family:sans-serif;color:orange">🔄 Reiniciando AraBot... ve a <a href="/qr">/qr</a> en 30 segundos</h2>');
+    console.log('Reset manual — limpiando locks y reiniciando proceso...');
+    res.send('<h2 style="font-family:sans-serif;color:orange">🔄 Reiniciando AraBot... Azure lo reiniciara en segundos. Ve a <a href="/qr">/qr</a> en 30s</h2>');
+    limpiarYSalir('Reset manual', false);
+});
+
+app.get('/reset-full', (req, res) => {
+    console.log('Reset COMPLETO — borrando sesion, se necesitara escanear QR...');
+    res.send('<h2 style="font-family:sans-serif;color:red">⚠️ Reset completo — se borraron credenciales. Ve a <a href="/qr">/qr</a> en 30s para escanear QR</h2>');
+    limpiarYSalir('Reset completo manual', true);
 });
 
 app.listen(PORT, () => {
@@ -125,13 +124,22 @@ client.on('authenticated', () => {
 });
 
 client.on('auth_failure', (msg) => {
-    limpiarYSalir('Auth failure: ' + msg);
+    limpiarYSalir('Auth failure: ' + msg, true); // borrar sesion — credenciales invalidas
 });
 
-function limpiarYSalir(motivo) {
-    console.error(`${motivo} — limpiando y saliendo para que Azure reinicie el contenedor...`);
+function limpiarYSalir(motivo, borrarSesion = false) {
+    console.error(`${motivo} — saliendo para que Azure reinicie limpio...`);
     try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
-    try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
+    // Solo borrar locks de Chrome, NO las credenciales de WhatsApp
+    try { execSync(`find ${SESSION_DIR} -name "SingletonLock" -delete 2>/dev/null`); } catch(e) {}
+    try { execSync(`find ${SESSION_DIR} -name "SingletonCookie" -delete 2>/dev/null`); } catch(e) {}
+    try { execSync(`find ${SESSION_DIR} -name ".org.chromium*" -delete 2>/dev/null`); } catch(e) {}
+    try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
+    // Solo borrar sesion completa si las credenciales son invalidas
+    if (borrarSesion) {
+        console.log('Borrando sesion completa — se necesitara escanear QR de nuevo');
+        try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
+    }
     setTimeout(() => process.exit(1), 2000);
 }
 
