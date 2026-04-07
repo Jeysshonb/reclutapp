@@ -66,6 +66,7 @@ DATOS PERSONALES:
 - nombre_completo: nombre completo
 - fecha_nacimiento: DD/MM/AAAA
 - genero: Masculino / Femenino / Otro
+- telefono: número de celular colombiano (10 dígitos, ej: 3001234567) — pregunta: "¿Cuál es tu número de celular para que podamos contactarte?"
 - correo: correo electrónico (solo acepta dominios comunes: gmail, hotmail, outlook, yahoo, icloud, live)
 - ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente)
 
@@ -96,7 +97,7 @@ REGLAS:
 - Para experiencia, si dice que no tiene, acepta "Sin experiencia" en los 3 campos de exp.
 - NUNCA inventes datos que el candidato no haya dado.
 - Para correo: si el dominio no es gmail/hotmail/outlook/yahoo/icloud/live, pregunta si es correcto.
-- Cuando tengas los 16 datos, despídete indicando que un reclutador lo contactará pronto.
+- Cuando tengas los 17 datos, despídete indicando que un reclutador lo contactará pronto.
 
 FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, sin texto extra):
 {
@@ -106,6 +107,7 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
     "cedula": null,
     "fecha_nacimiento": null,
     "genero": null,
+    "telefono": null,
     "correo": null,
     "ciudad_aplica": null,
     "cargo": null,
@@ -123,7 +125,7 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
 }
 
 - En "datos" pon los valores confirmados (null si aún no los tienes).
-- "completo": true SOLO cuando los 16 campos tengan valor (no null).
+- "completo": true SOLO cuando los 17 campos tengan valor (no null).
 - "mensaje" es exactamente lo que se envía por WhatsApp.
 """
 
@@ -213,7 +215,7 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
                 merged[k] = v
         result["datos"] = merged
         # Forzar completo si los 16 campos tienen valor
-        campos_requeridos = ["nombre_completo","cedula","fecha_nacimiento","genero","correo",
+        campos_requeridos = ["nombre_completo","cedula","fecha_nacimiento","genero","telefono","correo",
                              "ciudad_aplica","cargo","fuente","nivel_academico","situacion_laboral",
                              "aspiracion_salarial","tiene_hijos","disponibilidad_desplazamiento",
                              "exp1_empresa","exp1_cargo","exp1_tiempo"]
@@ -241,7 +243,8 @@ def _enriquecer_con_ciudad(datos: dict) -> dict:
 def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
     db = SessionLocal()
     try:
-        tel = phone.replace("whatsapp:", "")
+        tel_wa = phone.replace("whatsapp:", "")
+        tel = datos.get("telefono") or tel_wa
 
         sal_raw = datos.get("aspiracion_salarial") or "0"
         try:
@@ -256,7 +259,7 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         disponibilidad = str(disp_raw).lower() in ("sí", "si", "s", "true", "1")
 
         status = "Incompleto - Bot WA" if parcial else "En Proceso"
-        obs = f"[{'Registro parcial' if parcial else 'Registro completo'} por AraBot vía WhatsApp]\nNúmero WA: {tel}"
+        obs = f"[{'Registro parcial' if parcial else 'Registro completo'} por AraBot vía WhatsApp]\nNúmero WA: {tel_wa}"
 
         # Tiempo de experiencia va en funciones si no hay campo directo
         exp_funciones = datos.get("exp1_tiempo")
