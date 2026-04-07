@@ -76,7 +76,8 @@ const client = new Client({
     puppeteer: {
         headless: true,
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        timeout: 60000,
+        timeout: 120000,
+        protocolTimeout: 120000,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -110,17 +111,26 @@ client.on('authenticated', () => {
 });
 
 client.on('auth_failure', (msg) => {
-    botEstado = 'esperando_qr';
-    console.error('Error de autenticacion:', msg, '— reiniciando...');
-    setTimeout(() => client.initialize(), 5000);
+    limpiarYReiniciar('Auth failure: ' + msg);
 });
 
+function limpiarYReiniciar(motivo) {
+    botEstado = 'esperando_qr';
+    botListo = false;
+    console.log(`${motivo} — limpiando Chrome y reiniciando en 10s...`);
+    try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
+    try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(e) {}
+    try { execSync('find /home -name "SingletonCookie" -delete 2>/dev/null'); } catch(e) {}
+    setTimeout(() => client.initialize().catch(e => console.error('Reintento fallido:', e.message)), 10000);
+}
+
 process.on('unhandledRejection', (reason) => {
+    const msg = String(reason);
     console.error('Error no manejado:', reason);
-    if (String(reason).includes('auth timeout') || String(reason).includes('auth_timeout')) {
-        botEstado = 'esperando_qr';
-        console.log('Auth timeout — reiniciando cliente en 5s...');
-        setTimeout(() => client.initialize(), 5000);
+    if (msg.includes('auth timeout') || msg.includes('auth_timeout') ||
+        msg.includes('protocolTimeout') || msg.includes('Protocol timeout') ||
+        msg.includes('callFunctionOn timed out') || msg.includes('already running')) {
+        limpiarYReiniciar('Timeout/conflicto Chrome');
     }
 });
 
