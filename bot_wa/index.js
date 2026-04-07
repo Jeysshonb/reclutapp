@@ -22,6 +22,9 @@ const BACKEND     = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdg
 const ENDPOINT    = `${BACKEND}/api/webhook/whatsapp/json`;
 const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
 
+// Mapa LID → número real de teléfono
+const lidToPhone = new Map();
+
 // ── Estado global ──────────────────────────────────────────────────────────────
 let qrImageData = null;
 let botListo    = false;
@@ -94,6 +97,17 @@ async function conectar() {
 
     sock.ev.on('creds.update', saveCreds);
 
+    // Mapear LID → número real cuando llegan contactos
+    sock.ev.on('contacts.upsert', contacts => {
+        for (const c of contacts) {
+            if (c.id && c.lid) {
+                const phone = c.id.replace('@s.whatsapp.net', '');
+                const lid   = c.lid.replace('@lid', '');
+                lidToPhone.set(lid, phone);
+            }
+        }
+    });
+
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
         if (qr) {
             botEstado = 'esperando_qr';
@@ -140,7 +154,14 @@ async function conectar() {
                 if (message.key.fromMe) continue;
                 if (isJidGroup(message.key.remoteJid)) continue;
 
-                const phone    = message.key.remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+                const rawJid   = message.key.remoteJid;
+                let phone;
+                if (rawJid.endsWith('@lid')) {
+                    const lid = rawJid.replace('@lid', '');
+                    phone = lidToPhone.get(lid) || lid;
+                } else {
+                    phone = rawJid.replace('@s.whatsapp.net', '');
+                }
                 const pushName = message.pushName || null;
                 const msgContent = message.message;
                 const msgType    = Object.keys(msgContent)[0];
