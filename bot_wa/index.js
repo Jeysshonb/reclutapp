@@ -8,8 +8,7 @@
  */
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason,
-        downloadMediaMessage, isJidGroup, fetchLatestBaileysVersion,
-        makeInMemoryStore } = require('@whiskeysockets/baileys');
+        downloadMediaMessage, isJidGroup, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const QRCode = require('qrcode');
 const axios  = require('axios');
@@ -23,12 +22,7 @@ const BACKEND     = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdg
 const ENDPOINT    = `${BACKEND}/api/webhook/whatsapp/json`;
 const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
 
-const silentLogger = pino({ level: 'silent' });
-
-// Store en memoria: resuelve LID → número automáticamente
-const store = makeInMemoryStore({ logger: silentLogger });
-
-// Mapa adicional LID → número (para resolución manual rápida)
+// Mapa LID → número real de teléfono
 const lidToPhone = new Map();
 
 // ── Estado global ──────────────────────────────────────────────────────────────
@@ -92,30 +86,7 @@ function resolverPhone(rawJid) {
         return rawJid.replace('@s.whatsapp.net', '');
     }
     const lid = rawJid.replace('@lid', '');
-
-    // 1) Intentar desde el store en memoria
-    const contacto = store.contacts && store.contacts[rawJid];
-    if (contacto?.id) {
-        return contacto.id.replace('@s.whatsapp.net', '');
-    }
-
-    // 2) Intentar desde nuestro mapa manual
-    if (lidToPhone.has(lid)) {
-        return lidToPhone.get(lid);
-    }
-
-    // 3) Buscar en el store por coincidencia de lid
-    if (store.contacts) {
-        for (const [jid, c] of Object.entries(store.contacts)) {
-            if (c.lid && c.lid.replace('@lid', '') === lid && jid.endsWith('@s.whatsapp.net')) {
-                const phone = jid.replace('@s.whatsapp.net', '');
-                lidToPhone.set(lid, phone);
-                return phone;
-            }
-        }
-    }
-
-    return null; // no resuelto aún
+    return lidToPhone.has(lid) ? lidToPhone.get(lid) : null;
 }
 
 // Cuando contacts.upsert resuelve un LID que ya estaba guardado como teléfono en el backend,
@@ -145,9 +116,6 @@ async function conectar() {
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 30000,
     });
-
-    // Vincular el store al socket (resuelve LIDs automáticamente)
-    store.bind(sock.ev);
 
     sock.ev.on('creds.update', saveCreds);
 
