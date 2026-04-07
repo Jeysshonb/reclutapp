@@ -534,10 +534,17 @@ async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
             temperature=0,
             max_tokens=200,
         )
-        return json.loads(resp.choices[0].message.content)
+        raw = resp.choices[0].message.content or ""
+        logger.info(f"[AraBot] Respuesta GPT vision: {raw[:200]}")
+        # Limpiar markdown si viene con ```json ... ```
+        clean = raw.strip()
+        if clean.startswith("```"):
+            clean = clean.split("```")[-2] if "```" in clean[3:] else clean
+            clean = clean.lstrip("`").lstrip("json").strip()
+        return json.loads(clean)
     except Exception as e:
         logger.error(f"[AraBot] Error leyendo cédula: {e}")
-        return {}
+        return {"__error__": str(e)[:100]}
 
 
 def _cargar_datos_candidato(c: Candidato) -> dict:
@@ -666,13 +673,15 @@ async def whatsapp_json(payload: WaMensaje):
 
             elif payload.imagen_base64:
                 extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
+                if "__error__" in extraidos:
+                    return {"response": f"Error al leer imagen: {extraidos['__error__']}"}
                 campos_utiles = {k: v for k, v in extraidos.items() if v is not None}
                 if campos_utiles:
                     datos.update(campos_utiles)
                     logger.info(f"[AraBot] Cédula leída {phone}: {', '.join(campos_utiles)}")
                     msg = f"[imagen de cédula — datos extraídos: {json.dumps(campos_utiles, ensure_ascii=False)}]"
                 else:
-                    return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación."}
+                    return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación o envía la foto más derecha."}
 
             elif not msg:
                 return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
