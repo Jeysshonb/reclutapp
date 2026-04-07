@@ -181,20 +181,35 @@ def ver_auditoria(
 
 @router.get("/wa-sesiones")
 def listar_wa_sesiones(
+    cedula: str | None = None,
+    phone: str | None = None,
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_role("administrador", "especialista")),
 ):
-    sesiones = db.query(WaSession).order_by(WaSession.updated_at.desc()).all()
-    return [
-        {
+    import json as _json
+    q = db.query(WaSession).order_by(WaSession.updated_at.desc())
+    if phone:
+        q = q.filter(WaSession.phone == phone)
+    sesiones = q.all()
+    result = []
+    for s in sesiones:
+        try:
+            data = _json.loads(s.data or '{}')
+        except Exception:
+            data = {}
+        datos = data.get('datos', {})
+        s_cedula = datos.get('cedula')
+        if cedula and s_cedula != cedula:
+            continue
+        result.append({
             "phone": s.phone,
-            "nombre": s.nombre,
-            "cedula": s.cedula,
+            "nombre": datos.get('nombre_completo') or datos.get('nombre'),
+            "cedula": s_cedula,
             "step": s.step,
+            "data": s.data,
             "updated_at": s.updated_at,
-        }
-        for s in sesiones
-    ]
+        })
+    return result
 
 
 @router.get("/wa-archivos")

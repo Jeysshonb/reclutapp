@@ -1026,29 +1026,46 @@ function toast(msg,type='info'){
 
 // ── WhatsApp Bot ──
 async function cargarDatosWhatsApp(cedula, phone){
-  // Conversación
   const chatBox = document.getElementById('waChatBox');
   const blobBox = document.getElementById('waBlobFiles');
+
+  async function fetchSesion(paramStr){
+    const r = await fetch(`/api/admin/wa-sesiones${paramStr}`, {headers: authH()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
   try {
-    const params = cedula ? `?cedula=${encodeURIComponent(cedula)}` : (phone ? `?phone=${encodeURIComponent(phone)}` : '');
-    const r = await fetch(`/api/admin/wa-sesiones${params}`, {headers: authH()});
-    const sesiones = await r.json();
+    let sesiones = [];
+    // 1) buscar por cédula
+    if(cedula) sesiones = await fetchSesion(`?cedula=${encodeURIComponent(cedula)}`);
+    // 2) fallback: buscar por teléfono (strip +/spaces)
+    if(!sesiones.length && phone){
+      const tel = phone.replace(/[^0-9]/g,'');
+      sesiones = await fetchSesion(`?phone=${encodeURIComponent(tel)}`);
+      // también intentar con prefijo 57 y sin él
+      if(!sesiones.length && tel.startsWith('57'))
+        sesiones = await fetchSesion(`?phone=${encodeURIComponent(tel.slice(2))}`);
+      if(!sesiones.length && tel.length===10)
+        sesiones = await fetchSesion(`?phone=${encodeURIComponent('57'+tel)}`);
+    }
+
     const sesion = sesiones[0];
     if(sesion){
-      let html = `<div style="margin-bottom:8px;font-size:.75rem;color:#666">📱 <b>${sesion.phone}</b> | Estado: <b>${sesion.step}</b> | Última actividad: ${sesion.updated_at||''}</div>`;
-      // Mostrar historial de mensajes si existe
+      let html = `<div style="margin-bottom:8px;font-size:.75rem;color:#666">📱 <b>${sesion.phone}</b> | Estado: <b>${sesion.step==='done'?'✅ Completado':'⏳ En proceso'}</b> | Última actividad: ${(sesion.updated_at||'').substring(0,16)}</div>`;
       try {
         const data = JSON.parse(sesion.data||'{}');
         const history = data.history || [];
         if(history.length){
           history.forEach(m=>{
             const isBot = m.role==='assistant';
+            const txt = (m.content||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             html += `<div style="display:flex;justify-content:${isBot?'flex-start':'flex-end'};margin:4px 0">
-              <div style="max-width:75%;padding:8px 12px;border-radius:${isBot?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${isBot?'#fff':'#dcf8c6'};box-shadow:0 1px 2px rgba(0,0,0,.1);font-size:.8rem;white-space:pre-wrap">${m.content}</div>
+              <div style="max-width:75%;padding:8px 12px;border-radius:${isBot?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${isBot?'#fff':'#dcf8c6'};box-shadow:0 1px 2px rgba(0,0,0,.1);font-size:.8rem;white-space:pre-wrap">${txt}</div>
             </div>`;
           });
         } else {
-          html += '<p style="color:#999;text-align:center;font-size:.8rem">Sin historial de mensajes</p>';
+          html += '<p style="color:#999;text-align:center;font-size:.8rem">Sin historial de mensajes guardado</p>';
         }
       } catch(e){ html += '<p style="color:#999">No se pudo cargar el historial</p>'; }
       chatBox.innerHTML = html;
@@ -1056,7 +1073,7 @@ async function cargarDatosWhatsApp(cedula, phone){
     } else {
       chatBox.innerHTML = '<p style="color:#999;text-align:center">Este candidato no tiene conversación por WhatsApp Bot</p>';
     }
-  } catch(e){ chatBox.innerHTML = '<p style="color:#e00">Error cargando conversación</p>'; }
+  } catch(e){ chatBox.innerHTML = `<p style="color:#e00">Error cargando conversación: ${e.message}</p>`; }
 
   // Archivos blob
   try {
@@ -1088,7 +1105,11 @@ function goStep(n){
   document.getElementById('sec'+n).classList.add('active');
   document.getElementById('s'+n).classList.add('active');
   currentStep=n;
-  if(n===10){ const cedula=document.getElementById('cedula')?.value; cargarDatosWhatsApp(cedula, null); }
+  if(n===10){
+    const cedula = document.getElementById('cedula')?.value;
+    const phone  = document.getElementById('telefono_contacto')?.value;
+    cargarDatosWhatsApp(cedula||null, phone||null);
+  }
   document.getElementById('progressFill').style.width=((n+1)/TOTAL_STEPS*100)+'%';
   window.scrollTo({top:0,behavior:'smooth'});
 }
