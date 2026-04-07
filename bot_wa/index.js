@@ -76,6 +76,7 @@ const client = new Client({
     puppeteer: {
         headless: true,
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        timeout: 60000,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -83,7 +84,10 @@ const client = new Client({
             '--disable-gpu',
             '--no-first-run',
             '--no-zygote',
-            '--single-process',
+            '--disable-extensions',
+            '--disable-background-networking',
+            '--disable-default-apps',
+            '--disable-sync',
         ],
     }
 });
@@ -215,6 +219,8 @@ client.on('disconnected', (reason) => {
 
 const { execSync } = require('child_process');
 try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(e) {}
+try { execSync('find /home -name "SingletonCookie" -delete 2>/dev/null'); } catch(e) {}
+try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
 
 console.log('Iniciando AraBot...');
 console.log('Chrome:', process.env.PUPPETEER_EXECUTABLE_PATH || 'auto');
