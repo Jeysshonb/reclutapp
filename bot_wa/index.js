@@ -187,17 +187,8 @@ async function conectar() {
 
                 const rawJid = message.key.remoteJid;
                 let phone = resolverPhone(rawJid);
-
-                // Si el JID es @lid y no resolvió, esperar 3s para que contacts.upsert llegue
                 if (phone === null) {
-                    console.log(`LID no resuelto (${rawJid}) — esperando 3s...`);
-                    await new Promise(r => setTimeout(r, 3000));
-                    phone = resolverPhone(rawJid);
-                    if (phone === null) {
-                        // Último recurso: usar el LID numérico como teléfono
-                        phone = rawJid.replace('@lid', '');
-                        console.warn(`LID no pudo resolverse: ${rawJid} — usando LID como teléfono temporal`);
-                    }
+                    phone = rawJid.replace('@lid', '');
                 }
 
                 const pushName  = message.pushName || null;
