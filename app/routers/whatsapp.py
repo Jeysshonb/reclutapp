@@ -23,6 +23,17 @@ router = APIRouter(prefix="/webhook", tags=["whatsapp"])
 
 TIMEOUT_MINUTOS = 30
 
+DOMINIOS_EMAIL = ("gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "icloud.com",
+                  "live.com", "hotmail.es", "yahoo.es", "outlook.es")
+
+MENSAJE_CONSENTIMIENTO = (
+    "¡Hola! 👋 Soy *AraBot*, el asistente virtual de *Tiendas Ara* — Grupo Jerónimo Martins Colombia.\n\n"
+    "Voy a ayudarte a registrar tu perfil para nuestras vacantes 🛒\n\n"
+    "Al responder *SÍ*, autorizas el tratamiento de tus datos personales para el proceso de selección, "
+    "conforme a la Ley 1581 de 2012 (Habeas Data).\n\n"
+    "¿Aceptas? Responde *SÍ* para continuar 😊"
+)
+
 # ── System prompt ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """\
 Eres *AraBot*, el asistente virtual de reclutamiento de *Tiendas Ara* (Grupo Jerónimo Martins, Colombia).
@@ -32,15 +43,19 @@ Eres cálido, directo, profesional y conoces perfectamente los perfiles que busc
 TU MISIÓN: Entrevistar al candidato por WhatsApp y recopilar sus datos de forma natural y amigable.
 Habla como un reclutador experto de verdad — no como un formulario. Puedes combinar varias preguntas
 en un mensaje cuando sea natural. Si el candidato da información sin que se la pidas, captúrala.
+Si el candidato envía su hoja de vida como documento, extrae todos los datos que puedas de ella.
 
-DATOS QUE DEBES RECOPILAR (en el orden que fluya mejor):
+ORDEN DE RECOLECCIÓN — sigue este orden:
+1. cedula: PRIMERO SIEMPRE — pídela si no la tienes
+2. nombre_completo
+3. Los demás en el orden que fluya mejor
 
 DATOS PERSONALES:
+- cedula: número de cédula (solo dígitos) — PRIMER dato a recopilar
 - nombre_completo: nombre completo
-- cedula: número de cédula (solo dígitos)
 - fecha_nacimiento: DD/MM/AAAA
 - genero: Masculino / Femenino / Otro
-- correo: correo electrónico
+- correo: correo electrónico (solo acepta dominios comunes: gmail, hotmail, outlook, yahoo, icloud, live)
 - ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente)
 
 DATOS LABORALES:
@@ -69,7 +84,8 @@ REGLAS:
 - Si el candidato pregunta algo sobre Ara o el proceso, respóndele brevemente antes de continuar.
 - Para experiencia, si dice que no tiene, acepta "Sin experiencia" en los 3 campos de exp.
 - NUNCA inventes datos que el candidato no haya dado.
-- Cuando tengas los 17 datos, despídete indicando que un reclutador lo contactará pronto.
+- Para correo: si el dominio no es gmail/hotmail/outlook/yahoo/icloud/live, pregunta si es correcto.
+- Cuando tengas los 16 datos, despídete indicando que un reclutador lo contactará pronto.
 
 FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, sin texto extra):
 {
@@ -130,10 +146,10 @@ def _twiml(text: str) -> Response:
     )
 
 
-def _get_or_create_session(db: Session, phone: str) -> WaSession:
+def _get_or_create_session(db: Session, phone: str, initial_step: str = "activo") -> WaSession:
     s = db.query(WaSession).filter(WaSession.phone == phone).first()
     if not s:
-        s = WaSession(phone=phone, step="activo", data=json.dumps({"history": [], "datos": {}}))
+        s = WaSession(phone=phone, step=initial_step, data=json.dumps({"history": [], "datos": {}, "meta": {}}))
         db.add(s)
         db.commit()
         db.refresh(s)
@@ -365,6 +381,122 @@ class WaMensaje(BaseModel):
     nombre: str | None = None
     imagen_base64: str | None = None
     imagen_mimetype: str | None = "image/jpeg"
+    audio_base64: str | None = None
+    audio_mimetype: str | None = None
+    documento_base64: str | None = None
+    documento_mimetype: str | None = None
+    documento_nombre: str | None = None
+
+async def _transcribir_audio(audio_b64: str, mimetype: str) -> str | None:
+    """Transcribe un audio de WhatsApp usando Azure OpenAI Whisper."""
+    s = get_settings()
+    if not s.AZURE_WHISPER_DEPLOYMENT:
+        return None
+    client = _get_client()
+    if not client:
+        return None
+    import base64, io as _io
+    audio_bytes = base64.b64decode(audio_b64)
+    ext = "ogg"
+    if "mp4" in mimetype: ext = "mp4"
+    elif "wav" in mimetype: ext = "wav"
+    elif "mpeg" in mimetype or "mp3" in mimetype: ext = "mp3"
+    audio_file = _io.BytesIO(audio_bytes)
+    audio_file.name = f"audio.{ext}"
+    try:
+        transcript = await client.audio.transcriptions.create(
+            model=s.AZURE_WHISPER_DEPLOYMENT,
+            file=audio_file,
+        )
+        return transcript.text
+    except Exception as e:
+        logger.error(f"[AraBot] Error transcribiendo audio: {e}")
+        return None
+
+
+async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> str | None:
+    """Extrae texto de PDF, Word o Excel enviado como hoja de vida."""
+    import base64, io as _io
+    try:
+        data = base64.b64decode(doc_b64)
+        nombre_lower = nombre.lower()
+        if "pdf" in mimetype or nombre_lower.endswith(".pdf"):
+            from pypdf import PdfReader
+            reader = PdfReader(_io.BytesIO(data))
+            texto = "\n".join(p.extract_text() or "" for p in reader.pages)
+            return texto[:3000].strip() or None
+        elif "word" in mimetype or "docx" in mimetype or nombre_lower.endswith((".docx", ".doc")):
+            from docx import Document
+            doc = Document(_io.BytesIO(data))
+            texto = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+            return texto[:3000].strip() or None
+        elif "sheet" in mimetype or "excel" in mimetype or nombre_lower.endswith((".xlsx", ".xls")):
+            import openpyxl
+            wb = openpyxl.load_workbook(_io.BytesIO(data))
+            lineas = []
+            for ws in wb.worksheets:
+                for row in ws.iter_rows(values_only=True):
+                    fila = " | ".join(str(c) for c in row if c is not None)
+                    if fila.strip():
+                        lineas.append(fila)
+            return "\n".join(lineas)[:3000].strip() or None
+    except Exception as e:
+        logger.error(f"[AraBot] Error extrayendo documento: {e}")
+    return None
+
+
+def _generar_resumen(datos: dict) -> str:
+    campos = [
+        ("nombre_completo", "Nombre"),
+        ("cedula", "Cédula"),
+        ("fecha_nacimiento", "Nacimiento"),
+        ("genero", "Género"),
+        ("correo", "Correo"),
+        ("ciudad_aplica", "Ciudad"),
+        ("departamento", "Departamento"),
+        ("cargo", "Cargo al que aplica"),
+        ("fuente", "Cómo se enteró"),
+        ("nivel_academico", "Educación"),
+        ("situacion_laboral", "Situación laboral"),
+        ("aspiracion_salarial", "Aspiración salarial"),
+        ("tiene_hijos", "Tiene hijos"),
+        ("disponibilidad_desplazamiento", "Disponible para desplazarse"),
+        ("exp1_empresa", "Empresa anterior"),
+        ("exp1_cargo", "Cargo anterior"),
+        ("exp1_tiempo", "Tiempo de experiencia"),
+    ]
+    lineas = ["📋 *Resumen de tu registro:*\n"]
+    for key, label in campos:
+        val = datos.get(key)
+        if val:
+            if key == "aspiracion_salarial":
+                try:
+                    val = f"${int(float(str(val))):,}".replace(",", ".")
+                except Exception:
+                    pass
+            lineas.append(f"• {label}: {val}")
+    lineas.append("\nUn reclutador de Tiendas Ara te contactará pronto. ¡Mucha suerte! 🍀")
+    return "\n".join(lineas)
+
+
+def _resumen_candidato_existente(c: Candidato) -> str:
+    estado_map = {
+        "En Proceso": "tu proceso está activo y en revisión",
+        "Seleccionado": "fuiste seleccionado — un reclutador te contactará",
+        "Descartado": "tu proceso fue finalizado",
+    }
+    estado_txt = estado_map.get(c.status or "", "tienes un registro activo")
+    return (
+        f"Hola {c.nombre or 'candidato'} 👋\n\n"
+        f"Ya tienes un registro en Tiendas Ara — {estado_txt}.\n\n"
+        f"📋 *Tu información registrada:*\n"
+        f"• Cédula: {c.cedula or 'N/A'}\n"
+        f"• Cargo: {c.cargo or 'N/A'}\n"
+        f"• Ciudad: {c.ciudad_aplica or 'N/A'}\n"
+        f"• Estado: {c.status or 'N/A'}\n\n"
+        "Si necesitas actualizar tu información, escribe tu número de cédula o contacta a un reclutador."
+    )
+
 
 async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
     """Usa GPT-4o vision para extraer datos de una foto de cédula colombiana."""
@@ -406,56 +538,58 @@ async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
         return {}
 
 
+def _cargar_datos_candidato(c: Candidato) -> dict:
+    return {k: v for k, v in {
+        "nombre_completo": c.nombre,
+        "cedula": c.cedula,
+        "fecha_nacimiento": c.fecha_nacimiento,
+        "genero": c.genero,
+        "correo": c.correo,
+        "ciudad_aplica": c.ciudad_aplica,
+        "departamento": c.departamento,
+        "cargo": c.cargo,
+        "fuente": c.fuente,
+        "nivel_academico": c.nivel_academico,
+        "situacion_laboral": c.situacion_laboral,
+        "aspiracion_salarial": str(int(c.aspiracion_salarial)) if c.aspiracion_salarial else None,
+        "tiene_hijos": "Sí" if c.tiene_hijos else ("No" if c.tiene_hijos is not None else None),
+        "disponibilidad_desplazamiento": "Sí" if c.disponibilidad_desplazamiento else ("No" if c.disponibilidad_desplazamiento is not None else None),
+        "exp1_empresa": c.exp1_empresa,
+        "exp1_cargo": c.exp1_cargo,
+        "exp1_tiempo": c.exp1_funciones,
+    }.items() if v is not None}
+
+
 @router.post("/whatsapp/json")
 async def whatsapp_json(payload: WaMensaje):
     """Endpoint para el bot Node.js (whatsapp-web.js). Recibe JSON, devuelve JSON."""
     phone = payload.phone.strip()
     msg = payload.message.strip()
 
-    if not msg:
-        return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
-
     db = SessionLocal()
     try:
-        session = _get_or_create_session(db, phone)
+        session = _get_or_create_session(db, phone, initial_step="consent")
         state = json.loads(session.data or "{}")
         history = state.get("history", [])
         datos = state.get("datos", {})
+        meta = state.get("meta", {})
 
-        # ── Procesar imagen de cédula ─────────────────────────────────────
-        if payload.imagen_base64 and msg == "[foto_cedula]":
-            extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
-            campos_utiles = {k: v for k, v in extraidos.items() if v is not None}
-            if campos_utiles:
-                datos.update(campos_utiles)
-                session.data = json.dumps({"history": history, "datos": datos})
+        # ── Consentimiento inicial ─────────────────────────────────────────────
+        if session.step == "consent":
+            msg_lower = msg.lower().strip()
+            afirmativo = any(w in msg_lower for w in ["si", "sí", "yes", "ok", "dale", "claro", "acepto", "listo", "okay", "sure", "1"])
+            if afirmativo:
+                session.step = "activo"
+                session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
                 db.commit()
-                campos_str = ", ".join(campos_utiles.keys())
-                logger.info(f"[AraBot] Cédula leída para {phone}: {campos_str}")
-                msg = f"[imagen de cédula — datos extraídos: {json.dumps(campos_utiles, ensure_ascii=False)}]"
+                return {"response": (
+                    "¡Perfecto! Gracias por aceptar 😊\n\n"
+                    "Para comenzar, necesito tu *número de cédula*. Por favor escríbelo."
+                )}
             else:
-                return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación o envía una foto más nítida de tu cédula."}
+                return {"response": MENSAJE_CONSENTIMIENTO}
 
-        ahora = datetime.now(timezone.utc)
-        ultima = session.updated_at
-        if ultima and ultima.tzinfo is None:
-            ultima = ultima.replace(tzinfo=timezone.utc)
-        tiempo_inactivo = (ahora - ultima).total_seconds() / 60 if ultima else 0
-
-        if session.step not in ("done", "activo") and tiempo_inactivo > TIMEOUT_MINUTOS:
-            tiene_datos = any(v is not None for v in datos.values())
-            if tiene_datos:
-                await asyncio.to_thread(_guardar_candidato, datos, phone, True)
-            history, datos = [], {}
-            session.step = "activo"
-            session.data = json.dumps({"history": [], "datos": {}})
-            db.commit()
-            return {"response": (
-                "Hola de nuevo! Soy AraBot de Tiendas Ara.\n\n"
-                "Ha pasado un tiempo. Si dejaste un proceso incompleto ya quedo guardado.\n\n"
-                "Para iniciar un nuevo registro, cuentame tu nombre completo."
-            )}
-
+        # ── Si ya terminó → bloquear ──────────────────────────────────────────
         if session.step == "done":
             cedula_msg = msg.strip().replace(" ", "")
             cand_tel = db.query(Candidato).filter(
@@ -463,90 +597,154 @@ async def whatsapp_json(payload: WaMensaje):
                 Candidato.deleted_at.is_(None)
             ).order_by(Candidato.created_at.desc()).first()
 
-            # ── Retomar por cédula ──────────────────────────────────────────
             if cedula_msg.isdigit() and 7 <= len(cedula_msg) <= 12:
                 cand_ced = db.query(Candidato).filter(
                     Candidato.cedula == cedula_msg,
                     Candidato.deleted_at.is_(None)
                 ).order_by(Candidato.created_at.desc()).first()
                 if cand_ced:
-                    datos = {k: v for k, v in {
-                        "nombre_completo": cand_ced.nombre,
-                        "cedula": cand_ced.cedula,
-                        "fecha_nacimiento": cand_ced.fecha_nacimiento,
-                        "genero": cand_ced.genero,
-                        "correo": cand_ced.correo,
-                        "ciudad_aplica": cand_ced.ciudad_aplica,
-                        "departamento": cand_ced.departamento,
-                        "cargo": cand_ced.cargo,
-                        "fuente": cand_ced.fuente,
-                        "nivel_academico": cand_ced.nivel_academico,
-                        "situacion_laboral": cand_ced.situacion_laboral,
-                        "aspiracion_salarial": str(int(cand_ced.aspiracion_salarial)) if cand_ced.aspiracion_salarial else None,
-                        "tiene_hijos": "Sí" if cand_ced.tiene_hijos else ("No" if cand_ced.tiene_hijos is not None else None),
-                        "disponibilidad_desplazamiento": "Sí" if cand_ced.disponibilidad_desplazamiento else ("No" if cand_ced.disponibilidad_desplazamiento is not None else None),
-                        "exp1_empresa": cand_ced.exp1_empresa,
-                        "exp1_cargo": cand_ced.exp1_cargo,
-                        "exp1_tiempo": cand_ced.exp1_funciones,
-                    }.items() if v is not None}
+                    datos = _cargar_datos_candidato(cand_ced)
                     history = []
+                    meta = {"cedula_verificada": True}
                     session.step = "activo"
-                    session.data = json.dumps({"history": [], "datos": datos})
+                    session.data = json.dumps({"history": [], "datos": datos, "meta": meta})
                     db.commit()
-                    # IA retoma desde los datos cargados
                 else:
                     return {"response": "No encontre registro con esa cedula. Escribe 0 para iniciar un proceso nuevo."}
 
-            # ── Distinto nombre en WA → posible persona diferente ──────────
             elif payload.nombre and cand_tel:
                 wa_words = set(payload.nombre.lower().split())
                 stored_words = set((cand_tel.nombre or "").lower().split())
                 if not wa_words & stored_words:
-                    # Diferente persona usando el mismo número → dejar pasar
-                    history, datos = [], {}
-                    session.step = "activo"
-                    session.data = json.dumps({"history": [], "datos": {}})
+                    history, datos, meta = [], {}, {}
+                    session.step = "consent"
+                    session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
                     db.commit()
+                    return {"response": MENSAJE_CONSENTIMIENTO}
                 else:
-                    return {"response": (
-                        "Hola! Ya tienes un proceso de seleccion activo con Tiendas Ara. "
-                        "Un reclutador te contactara pronto.\n\n"
-                        "Si quieres retomar tu registro escribe tu numero de cedula, "
-                        "o escribe 0 para iniciar un proceso nuevo."
-                    )}
+                    return {"response": _resumen_candidato_existente(cand_tel)}
 
-            # ── Reset explícito ─────────────────────────────────────────────
             elif msg.strip() == "0":
-                history, datos = [], {}
-                session.step = "activo"
-                session.data = json.dumps({"history": [], "datos": {}})
+                history, datos, meta = [], {}, {}
+                session.step = "consent"
+                session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
                 db.commit()
+                return {"response": MENSAJE_CONSENTIMIENTO}
 
             else:
-                return {"response": (
-                    "Hola! Ya tienes un proceso de seleccion activo con Tiendas Ara. "
-                    "Un reclutador te contactara pronto.\n\n"
-                    "Si quieres retomar tu registro escribe tu numero de cedula, "
-                    "o escribe 0 para iniciar un proceso nuevo."
+                return {"response": _resumen_candidato_existente(cand_tel) if cand_tel else (
+                    "Ya tienes un proceso activo con Tiendas Ara. Un reclutador te contactara pronto.\n\n"
+                    "Escribe tu numero de cedula para retomar, o 0 para nuevo proceso."
                 )}
 
+        # ── Procesar medios ────────────────────────────────────────────────────
+        if msg in ("[audio]", "[documento]", "[foto_cedula]") or not msg:
+            if payload.audio_base64:
+                texto = await _transcribir_audio(payload.audio_base64, payload.audio_mimetype or "audio/ogg")
+                if texto:
+                    msg = texto
+                    logger.info(f"[AraBot] Audio transcrito {phone}: {texto[:60]}")
+                else:
+                    return {"response": "No pude procesar el audio 😕 Por favor escribe tu respuesta en texto."}
+
+            elif payload.documento_base64:
+                texto = await _extraer_texto_documento(
+                    payload.documento_base64,
+                    payload.documento_mimetype or "",
+                    payload.documento_nombre or "documento"
+                )
+                if texto:
+                    msg = f"[Hoja de vida enviada. Información extraída:\n{texto[:2000]}]"
+                    logger.info(f"[AraBot] Documento procesado {phone}: {len(texto)} chars")
+                else:
+                    return {"response": "No pude leer el documento 😕 Por favor envía en formato PDF o Word."}
+
+            elif payload.imagen_base64:
+                extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
+                campos_utiles = {k: v for k, v in extraidos.items() if v is not None}
+                if campos_utiles:
+                    datos.update(campos_utiles)
+                    logger.info(f"[AraBot] Cédula leída {phone}: {', '.join(campos_utiles)}")
+                    msg = f"[imagen de cédula — datos extraídos: {json.dumps(campos_utiles, ensure_ascii=False)}]"
+                else:
+                    return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación."}
+
+            elif not msg:
+                return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
+
+        # ── Timeout ────────────────────────────────────────────────────────────
+        ahora = datetime.now(timezone.utc)
+        ultima = session.updated_at
+        if ultima and ultima.tzinfo is None:
+            ultima = ultima.replace(tzinfo=timezone.utc)
+        tiempo_inactivo = (ahora - ultima).total_seconds() / 60 if ultima else 0
+
+        if session.step == "activo" and tiempo_inactivo > TIMEOUT_MINUTOS:
+            tiene_datos = any(v is not None for v in datos.values())
+            if tiene_datos:
+                await asyncio.to_thread(_guardar_candidato, datos, phone, True)
+            history, datos, meta = [], {}, {}
+            session.step = "consent"
+            session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
+            db.commit()
+            return {"response": MENSAJE_CONSENTIMIENTO}
+
+        # ── Llamar IA ──────────────────────────────────────────────────────────
         result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
         mensaje_bot = result["mensaje"]
         datos_nuevos = _enriquecer_con_ciudad(result["datos"])
         completo = result.get("completo", False)
 
+        # ── Verificar cédula en DB (primera vez que se captura) ────────────────
+        cedula_nueva = datos_nuevos.get("cedula")
+        if cedula_nueva and not meta.get("cedula_verificada"):
+            meta["cedula_verificada"] = True
+            cand_existente = db.query(Candidato).filter(
+                Candidato.cedula == str(cedula_nueva),
+                Candidato.deleted_at.is_(None)
+            ).order_by(Candidato.created_at.desc()).first()
+
+            if cand_existente:
+                if "Incompleto" in (cand_existente.status or ""):
+                    # Cargar datos del registro incompleto y continuar
+                    datos_cargados = _cargar_datos_candidato(cand_existente)
+                    datos_nuevos = {**datos_cargados, **{k: v for k, v in datos_nuevos.items() if v is not None}}
+                    result2 = await _llamar_ia(
+                        [],
+                        f"[retomando proceso incompleto — datos ya registrados: {json.dumps(datos_nuevos, ensure_ascii=False)}]",
+                        datos_nuevos,
+                        nombre=payload.nombre
+                    )
+                    mensaje_bot = result2["mensaje"]
+                    datos_nuevos = _enriquecer_con_ciudad(result2["datos"])
+                    completo = result2.get("completo", False)
+                    history = []
+                else:
+                    # Registro completo/en proceso → mostrar resumen y bloquear
+                    session.step = "done"
+                    session.data = json.dumps({"history": [], "datos": datos_nuevos, "meta": meta}, ensure_ascii=False)
+                    db.commit()
+                    return {"response": _resumen_candidato_existente(cand_existente)}
+
+        # ── Actualizar historial ───────────────────────────────────────────────
         history.append({"role": "user", "content": msg})
         history.append({"role": "assistant", "content": mensaje_bot})
         if len(history) > 20:
             history = history[-20:]
 
-        session.step = "done" if completo else "activo"
         if completo:
+            session.step = "done"
             await asyncio.to_thread(_guardar_candidato, datos_nuevos, phone, False)
-        session.data = json.dumps({"history": history, "datos": datos_nuevos}, ensure_ascii=False)
+            resumen = _generar_resumen(datos_nuevos)
+            mensaje_final = f"{mensaje_bot}\n\n{resumen}"
+        else:
+            session.step = "activo"
+            mensaje_final = mensaje_bot
+
+        session.data = json.dumps({"history": history, "datos": datos_nuevos, "meta": meta}, ensure_ascii=False)
         db.commit()
 
-        return {"response": mensaje_bot}
+        return {"response": mensaje_final}
 
     except Exception as e:
         logger.error(f"[AraBot-JSON] Error: {e}", exc_info=True)

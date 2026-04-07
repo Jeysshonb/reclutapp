@@ -134,9 +134,11 @@ client.on('message', async (message) => {
     if (message.fromMe) return;
     if (message.from.includes('@g.us')) return;
 
-    const esTexto = message.type === 'chat';
-    const esImagen = message.type === 'image';
-    if (!esTexto && !esImagen) return;
+    const esTexto    = message.type === 'chat';
+    const esImagen   = message.type === 'image';
+    const esAudio    = message.type === 'ptt' || message.type === 'audio';
+    const esDocumento = message.type === 'document';
+    if (!esTexto && !esImagen && !esAudio && !esDocumento) return;
 
     const phone = message.from.replace('@c.us', '');
     const contact = await message.getContact();
@@ -152,12 +154,39 @@ client.on('message', async (message) => {
                 payload.imagen_base64 = media.data;
                 payload.imagen_mimetype = media.mimetype || 'image/jpeg';
                 console.log(`[${phone}] ${nombre || ''}: [imagen recibida, ${Math.round(media.data.length * 0.75 / 1024)}KB]`);
-            } else {
-                return;
-            }
+            } else { return; }
         } catch (err) {
             console.error(`Error descargando imagen: ${err.message}`);
             await message.reply('No pude procesar la imagen. Por favor intentalo de nuevo.');
+            return;
+        }
+    } else if (esAudio) {
+        try {
+            const media = await message.downloadMedia();
+            if (media && media.data) {
+                payload.message = '[audio]';
+                payload.audio_base64 = media.data;
+                payload.audio_mimetype = media.mimetype || 'audio/ogg';
+                console.log(`[${phone}] ${nombre || ''}: [audio recibido]`);
+            } else { return; }
+        } catch (err) {
+            console.error(`Error descargando audio: ${err.message}`);
+            await message.reply('No pude procesar el audio. Por favor escribe tu respuesta.');
+            return;
+        }
+    } else if (esDocumento) {
+        try {
+            const media = await message.downloadMedia();
+            if (media && media.data) {
+                payload.message = '[documento]';
+                payload.documento_base64 = media.data;
+                payload.documento_mimetype = media.mimetype || 'application/octet-stream';
+                payload.documento_nombre = message.filename || 'documento';
+                console.log(`[${phone}] ${nombre || ''}: [documento: ${message.filename || 'sin nombre'}]`);
+            } else { return; }
+        } catch (err) {
+            console.error(`Error descargando documento: ${err.message}`);
+            await message.reply('No pude procesar el documento. Por favor intenta de nuevo.');
             return;
         }
     } else {
