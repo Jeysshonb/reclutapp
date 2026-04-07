@@ -22,6 +22,8 @@ const BACKEND     = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdg
 const ENDPOINT    = `${BACKEND}/api/webhook/whatsapp/json`;
 const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
 
+const silentLogger = pino({ level: 'silent' });
+
 // Mapa LID → número real de teléfono
 const lidToPhone = new Map();
 
