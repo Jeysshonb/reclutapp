@@ -86,6 +86,8 @@ app.listen(PORT, () => {
 // ── Cliente WhatsApp ──────────────────────────────────────────────────────────
 const client = new Client({
     authStrategy: new LocalAuth({ clientId: 'arabot', dataPath: SESSION_DIR }),
+    authTimeoutMs: 0,
+    qrMaxRetries: 10,
     puppeteer: {
         headless: true,
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -98,10 +100,6 @@ const client = new Client({
             '--disable-gpu',
             '--no-first-run',
             '--no-zygote',
-            '--disable-extensions',
-            '--disable-background-networking',
-            '--disable-default-apps',
-            '--disable-sync',
         ],
     }
 });
