@@ -195,6 +195,13 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
             if v is not None:
                 merged[k] = v
         result["datos"] = merged
+        # Forzar completo si los 16 campos tienen valor
+        campos_requeridos = ["nombre_completo","cedula","fecha_nacimiento","genero","correo",
+                             "ciudad_aplica","cargo","fuente","nivel_academico","situacion_laboral",
+                             "aspiracion_salarial","tiene_hijos","disponibilidad_desplazamiento",
+                             "exp1_empresa","exp1_cargo","exp1_tiempo"]
+        if all(merged.get(c) for c in campos_requeridos):
+            result["completo"] = True
         return result
     except Exception as e:
         logger.error(f"[AraBot] Error OpenAI: {e}", exc_info=True)
