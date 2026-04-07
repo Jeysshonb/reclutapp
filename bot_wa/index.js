@@ -165,3 +165,4 @@ try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(
 console.log('Iniciando AraBot...');
 console.log('Chrome:', process.env.PUPPETEER_EXECUTABLE_PATH || 'auto');
 client.initialize();
+
