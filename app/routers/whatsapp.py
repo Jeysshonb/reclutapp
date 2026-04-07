@@ -865,6 +865,45 @@ async def whatsapp_json(payload: WaMensaje):
         db.close()
 
 
+class WaFixLid(BaseModel):
+    lid: str
+    phone: str
+
+@router.post("/whatsapp/fix-lid")
+async def fix_lid_phone(body: WaFixLid):
+    """Cuando contacts.upsert resuelve un LID, actualiza sesiones/candidatos en la BD."""
+    db = SessionLocal()
+    try:
+        # Actualizar WaSession
+        session = db.query(WaSession).filter(WaSession.phone == body.lid).first()
+        if session:
+            session.phone = body.phone
+            db.commit()
+            logger.info(f"[fix-lid] WaSession: {body.lid} → {body.phone}")
+
+        # Actualizar WaArchivo
+        db.query(WaArchivo).filter(WaArchivo.phone == body.lid).update({"phone": body.phone})
+        db.commit()
+
+        # Actualizar Candidato.telefono_contacto creado por el bot
+        candidato = db.query(Candidato).filter(
+            Candidato.telefono_contacto == body.lid,
+            Candidato.reclutador == "Bot WhatsApp"
+        ).first()
+        if candidato:
+            candidato.telefono_contacto = body.phone
+            db.commit()
+            logger.info(f"[fix-lid] Candidato: {body.lid} → {body.phone}")
+
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"[fix-lid] Error: {e}")
+        db.rollback()
+        return {"ok": False, "error": str(e)}
+    finally:
+        db.close()
+
+
 @router.delete("/whatsapp/sesion/{phone}")
 def liberar_sesion_bot(
     phone: str,
