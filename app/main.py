@@ -218,3 +218,4 @@ def _seed_catalogos():
         db.rollback()
     finally:
         db.close()
+ 
