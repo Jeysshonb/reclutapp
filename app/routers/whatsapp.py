@@ -568,24 +568,34 @@ def _resumen_candidato_existente(c: Candidato) -> str:
     )
 
 
-async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula: str | None, db) -> str | None:
-    """Sube un archivo a Azure Blob Storage y guarda referencia en BD."""
+async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula: str | None) -> str | None:
+    """Sube un archivo a Azure Blob Storage y guarda referencia en BD (usa su propia sesión DB)."""
     import base64, uuid
     s = get_settings()
     if not s.AZURE_STORAGE_CONNECTION_STRING:
         return None
     try:
         from azure.storage.blob import BlobServiceClient
-        data = base64.b64decode(data_b64)
-        ext = nombre.rsplit(".", 1)[-1].lower() if "." in nombre else tipo
-        blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
-        client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
-        container = client.get_container_client("whatsapp-docs")
-        container.upload_blob(blob_name, data, overwrite=True)
-        url = f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}"
-        archivo = WaArchivo(phone=phone, cedula=cedula, tipo=tipo, nombre=nombre, blob_url=url)
-        db.add(archivo)
-        db.commit()
+
+        def _upload():
+            data = base64.b64decode(data_b64)
+            blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
+            client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
+            container = client.get_container_client("whatsapp-docs")
+            container.upload_blob(blob_name, data, overwrite=True)
+            return f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}"
+
+        url = await asyncio.to_thread(_upload)
+
+        # Guardar referencia con sesión propia (el db del request puede estar cerrado)
+        db2 = SessionLocal()
+        try:
+            archivo = WaArchivo(phone=phone, cedula=cedula, tipo=tipo, nombre=nombre, blob_url=url)
+            db2.add(archivo)
+            db2.commit()
+        finally:
+            db2.close()
+
         logger.info(f"[AraBot] Archivo subido: {url}")
         return url
     except Exception as e:
@@ -680,7 +690,7 @@ async def whatsapp_json(payload: WaMensaje):
                 db.commit()
                 return {"response": (
                     "¡Perfecto! Gracias por aceptar 😊\n\n"
-                    "Para comenzar, necesito tu *número de cédula*. Por favor escríbelo."
+                    "¿Cuál es tu número de cédula? Puedes escribirlo o enviarme una foto de la *parte frontal* de tu cédula 📸"
                 )}
             else:
                 return {"response": MENSAJE_CONSENTIMIENTO}
@@ -751,7 +761,7 @@ async def whatsapp_json(payload: WaMensaje):
             elif payload.documento_base64:
                 cedula_actual = datos.get("cedula")
                 nombre_doc = payload.documento_nombre or "documento"
-                asyncio.create_task(_subir_blob(payload.documento_base64, nombre_doc, "pdf", phone, cedula_actual, db))
+                asyncio.create_task(_subir_blob(payload.documento_base64, nombre_doc, "pdf", phone, cedula_actual))
                 texto = await _extraer_texto_documento(
                     payload.documento_base64,
                     payload.documento_mimetype or "",
@@ -768,7 +778,7 @@ async def whatsapp_json(payload: WaMensaje):
 
             elif payload.imagen_base64:
                 cedula_actual = datos.get("cedula")
-                asyncio.create_task(_subir_blob(payload.imagen_base64, "imagen.jpg", "imagen", phone, cedula_actual, db))
+                asyncio.create_task(_subir_blob(payload.imagen_base64, "imagen.jpg", "imagen", phone, cedula_actual))
                 texto_imagen = await _extraer_datos_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
                 if texto_imagen.startswith("__ERROR__"):
                     return {"response": "No pude leer la imagen 😕 Intenta con mejor iluminación o más cerca."}
