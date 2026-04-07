@@ -101,17 +101,23 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
 """
 
 
-# ── Cliente Azure OpenAI ──────────────────────────────────────────────────────
+# ── Cliente Azure OpenAI (singleton — reutiliza conexión HTTP) ─────────────────
 
-def _get_client():
+_openai_client: AsyncAzureOpenAI | None = None
+
+def _get_client() -> AsyncAzureOpenAI | None:
+    global _openai_client
+    if _openai_client is not None:
+        return _openai_client
     s = get_settings()
     if not s.AZURE_OPENAI_ENDPOINT or not s.AZURE_OPENAI_KEY:
         return None
-    return AsyncAzureOpenAI(
+    _openai_client = AsyncAzureOpenAI(
         azure_endpoint=s.AZURE_OPENAI_ENDPOINT,
         api_key=s.AZURE_OPENAI_KEY,
         api_version=s.AZURE_OPENAI_API_VERSION,
     )
+    return _openai_client
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -156,8 +162,8 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
         resp = await client.chat.completions.create(
             model=s.AZURE_OPENAI_DEPLOYMENT,
             messages=messages,
-            temperature=0.4,
-            max_tokens=700,
+            temperature=0.3,
+            max_tokens=380,
             response_format={"type": "json_object"},
         )
         result = json.loads(resp.choices[0].message.content)
@@ -325,8 +331,8 @@ async def whatsapp_webhook(
         # Actualizar historial (máx 40 turnos)
         history.append({"role": "user", "content": msg})
         history.append({"role": "assistant", "content": mensaje_bot})
-        if len(history) > 40:
-            history = history[-40:]
+        if len(history) > 20:
+            history = history[-20:]
 
         if completo:
             session.step = "done"
@@ -531,8 +537,8 @@ async def whatsapp_json(payload: WaMensaje):
 
         history.append({"role": "user", "content": msg})
         history.append({"role": "assistant", "content": mensaje_bot})
-        if len(history) > 40:
-            history = history[-40:]
+        if len(history) > 20:
+            history = history[-20:]
 
         session.step = "done" if completo else "activo"
         if completo:
