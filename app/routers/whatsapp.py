@@ -288,13 +288,19 @@ async def whatsapp_webhook(
             )
             return _twiml(bienvenida)
 
-        # ── Si ya terminó y vuelve a escribir → reiniciar ────────────────────
+        # ── Si ya terminó → bloquear hasta que reclutador libere ─────────────
         if session.step == "done":
-            history = []
-            datos = {}
-            session.step = "activo"
-            session.data = json.dumps({"history": [], "datos": {}})
-            db.commit()
+            if msg.strip() == "0":
+                history, datos = [], {}
+                session.step = "activo"
+                session.data = json.dumps({"history": [], "datos": {}})
+                db.commit()
+            else:
+                return _twiml(
+                    "Hola 👋 Ya tienes un proceso de selección activo con Tiendas Ara. "
+                    "Un reclutador te contactará pronto.\n\n"
+                    "Si deseas iniciar un nuevo proceso, escribe *0*."
+                )
 
         # ── Llamar a la IA ────────────────────────────────────────────────────
         result = await _llamar_ia(history, msg, datos)
@@ -328,8 +334,10 @@ async def whatsapp_webhook(
 
 # ── Endpoint JSON para whatsapp-web.js (Node.js) ──────────────────────────────
 
-from fastapi import Body as FBody
+from fastapi import Body as FBody, Depends
 from pydantic import BaseModel
+from app.database import get_db
+from app.routers.auth import get_current_user
 
 class WaMensaje(BaseModel):
     phone: str
@@ -373,10 +381,17 @@ async def whatsapp_json(payload: WaMensaje):
             )}
 
         if session.step == "done":
-            history, datos = [], {}
-            session.step = "activo"
-            session.data = json.dumps({"history": [], "datos": {}})
-            db.commit()
+            if msg.strip() == "0":
+                history, datos = [], {}
+                session.step = "activo"
+                session.data = json.dumps({"history": [], "datos": {}})
+                db.commit()
+            else:
+                return {"response": (
+                    "Hola! Ya tienes un proceso de seleccion activo con Tiendas Ara. "
+                    "Un reclutador te contactara pronto.\n\n"
+                    "Si deseas iniciar un nuevo proceso, escribe 0."
+                )}
 
         result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
         mensaje_bot = result["mensaje"]
@@ -401,3 +416,17 @@ async def whatsapp_json(payload: WaMensaje):
         return {"response": "Ocurrio un error. Por favor intenta de nuevo."}
     finally:
         db.close()
+
+
+@router.delete("/whatsapp/sesion/{phone}")
+def liberar_sesion_bot(
+    phone: str,
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """Libera la sesión del bot para un teléfono — el candidato puede iniciar nuevo proceso."""
+    session = db.query(WaSession).filter(WaSession.phone == phone).first()
+    if session:
+        db.delete(session)
+        db.commit()
+    return {"ok": True, "phone": phone}

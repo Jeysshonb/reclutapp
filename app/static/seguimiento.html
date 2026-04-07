@@ -523,7 +523,9 @@ function renderTabla(data){
       <td>${resultBadge(c.concepto_es)}</td>
       <td>${statusBadge(c.tipo_status||c.status)}</td>
       <td style="font-size:.75rem;color:#bbb;white-space:nowrap">${fmtFecha(c.created_at)}</td>
-      <td>${localStorage.getItem('rol')==='administrador'?`<button onclick="event.stopPropagation();eliminarCandidato(${c.id},'${(c.nombre||c.cedula).replace(/'/g,"\\'")}')" style="background:none;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem">Eliminar</button>`:''}
+      <td style="white-space:nowrap">
+        ${c.telefono_contacto?`<button onclick="event.stopPropagation();liberarBot('${c.telefono_contacto.split('/')[0]}','${(c.nombre||c.cedula).replace(/'/g,"\\'")}')" style="background:none;border:1px solid #86efac;color:#16a34a;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem;margin-bottom:3px;display:block">Liberar Bot</button>`:''}
+        ${localStorage.getItem('rol')==='administrador'?`<button onclick="event.stopPropagation();eliminarCandidato(${c.id},'${(c.nombre||c.cedula).replace(/'/g,"\\'")}')" style="background:none;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem">Eliminar</button>`:''}
       </td>
     `;
     tr.addEventListener('click',e=>{if(e.target.tagName!=='A'&&e.target.tagName!=='BUTTON')abrirPanel(c.id,c.nombre||c.cedula)});
@@ -572,6 +574,16 @@ function cerrarPanel(){
 }
 // Cerrar con Escape
 document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarPanel()});
+
+async function liberarBot(phone, nombre){
+  if(!confirm(`¿Liberar el bot para "${nombre}" (${phone})?\n\nEl candidato podrá iniciar un nuevo proceso por WhatsApp.`)) return;
+  const r=await fetch(`/api/webhook/whatsapp/sesion/${encodeURIComponent(phone)}`,{method:'DELETE',headers:auth()});
+  if(r.ok){
+    alert(`Bot liberado para ${nombre}. Ya puede iniciar un nuevo proceso.`);
+  } else {
+    alert('Error al liberar: '+r.status);
+  }
+}
 
 async function eliminarCandidato(id, nombre){
   if(!confirm(`¿Seguro que deseas eliminar a "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
