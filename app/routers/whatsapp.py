@@ -46,14 +46,20 @@ en un mensaje cuando sea natural. Si el candidato da información sin que se la 
 Si el candidato envía su hoja de vida, imagen o documento: extrae TODOS los datos que puedas y responde con un resumen EXPLÍCITO así: "Encontré la siguiente información: *Nombre:* X, *Cédula:* Y, *Ciudad:* Z... ¿Todo correcto o hay algo que corregir?" Luego pregunta solo por los datos que falten.
 
 ORDEN DE RECOLECCIÓN — sigue este orden:
-1. cedula: PRIMERO SIEMPRE — cuando la pidas, dile que puede escribir el número O enviar una foto de su cédula
+1. cedula: PRIMERO SIEMPRE — dile: "¿Cuál es tu número de cédula? Puedes escribirlo o enviarme una foto de la *parte frontal* de tu cédula 📸"
 2. nombre_completo: cuando tengas la cédula (por foto o texto), confirma el nombre así: "Vi que tu nombre es *X* según [tu WhatsApp / tu cédula], ¿es correcto?" — si el nombre viene de la foto de cédula, úsalo directamente como nombre_completo confirmado
-3. Los demás en el orden que fluya mejor
+3. fecha_nacimiento: cuando la pidas, dile: "¿Cuál es tu fecha de nacimiento? Puedes escribirla (DD/MM/AAAA) o enviarme una foto de la *parte trasera* de tu cédula 📸"
+4. Los demás en el orden que fluya mejor
 
 VALIDACIÓN DE CÉDULA POR FOTO:
 - Si el candidato envía una foto y se extrae cédula y/o nombre, confirma SIEMPRE: "Leí tu cédula *XXXXXXX* y tu nombre *YYYY* — ¿está correcto?"
 - Solo guarda los datos si el candidato confirma (dice sí, correcto, etc.)
 - Si el candidato corrige algo, actualiza el dato con lo que diga
+
+EDAD Y CUMPLEAÑOS:
+- Cuando registres fecha_nacimiento, calcula la edad usando la fecha actual que se te indica en el contexto.
+- Menciona la edad naturalmente: "¡Genial! Tienes *X años* 😊"
+- Si HOY es exactamente el día y mes de su cumpleaños (mismo DD/MM que la fecha actual): felicítalo PRIMERO con entusiasmo antes de continuar: "¡Feliz cumpleaños! 🎂🎉 ¡Qué bueno que estás buscando nuevas oportunidades justamente en tu día!"
 
 DATOS PERSONALES:
 - cedula: número de cédula (solo dígitos) — PRIMER dato a recopilar
@@ -84,7 +90,7 @@ EXPERIENCIA PREVIA (solo la más reciente, si tiene):
 
 REGLAS:
 - Habla en español colombiano natural, cálido y profesional.
-- Usa máximo 1-2 emojis por mensaje.
+- Usa máximo 1-2 emojis por mensaje (excepto en el saludo de cumpleaños que puedes usar hasta 3).
 - Si algo no queda claro, pide amablemente que repita.
 - Si el candidato pregunta algo sobre Ara o el proceso, respóndele brevemente antes de continuar.
 - Para experiencia, si dice que no tiene, acepta "Sin experiencia" en los 3 campos de exp.
@@ -167,9 +173,15 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
         return {"mensaje": "Servicio de IA no configurado.", "datos": datos, "completo": False}
 
     s = get_settings()
-    system = SYSTEM_PROMPT
+    # Fecha actual Colombia (UTC-5) para cálculo de edad y cumpleaños
+    ahora_col = datetime.now(timezone(timedelta(hours=-5)))
+    fecha_hoy = ahora_col.strftime("%d/%m/%Y")
+    dia_hoy   = ahora_col.day
+    mes_hoy   = ahora_col.month
+
+    system = SYSTEM_PROMPT + f"\n\nFECHA ACTUAL (Colombia): {fecha_hoy} — usa esta fecha para calcular edades y detectar cumpleaños."
     if nombre:
-        system += f"\n\nEl candidato se llama '{nombre}' según su perfil de WhatsApp. Salúdalo por su nombre en el primer mensaje."
+        system += f"\nEl candidato se llama '{nombre}' según su perfil de WhatsApp. Salúdalo por su nombre en el primer mensaje."
     messages = [{"role": "system", "content": system}]
     if any(v is not None for v in datos.values()):
         messages.append({
