@@ -381,16 +381,77 @@ async def whatsapp_json(payload: WaMensaje):
             )}
 
         if session.step == "done":
-            if msg.strip() == "0":
+            cedula_msg = msg.strip().replace(" ", "")
+            cand_tel = db.query(Candidato).filter(
+                Candidato.telefono_contacto == phone,
+                Candidato.deleted_at.is_(None)
+            ).order_by(Candidato.created_at.desc()).first()
+
+            # ── Retomar por cédula ──────────────────────────────────────────
+            if cedula_msg.isdigit() and 7 <= len(cedula_msg) <= 12:
+                cand_ced = db.query(Candidato).filter(
+                    Candidato.cedula == cedula_msg,
+                    Candidato.deleted_at.is_(None)
+                ).order_by(Candidato.created_at.desc()).first()
+                if cand_ced:
+                    datos = {k: v for k, v in {
+                        "nombre_completo": cand_ced.nombre,
+                        "cedula": cand_ced.cedula,
+                        "fecha_nacimiento": cand_ced.fecha_nacimiento,
+                        "genero": cand_ced.genero,
+                        "correo": cand_ced.correo,
+                        "ciudad_aplica": cand_ced.ciudad_aplica,
+                        "departamento": cand_ced.departamento,
+                        "cargo": cand_ced.cargo,
+                        "fuente": cand_ced.fuente,
+                        "nivel_academico": cand_ced.nivel_academico,
+                        "situacion_laboral": cand_ced.situacion_laboral,
+                        "aspiracion_salarial": str(int(cand_ced.aspiracion_salarial)) if cand_ced.aspiracion_salarial else None,
+                        "tiene_hijos": "Sí" if cand_ced.tiene_hijos else ("No" if cand_ced.tiene_hijos is not None else None),
+                        "disponibilidad_desplazamiento": "Sí" if cand_ced.disponibilidad_desplazamiento else ("No" if cand_ced.disponibilidad_desplazamiento is not None else None),
+                        "exp1_empresa": cand_ced.exp1_empresa,
+                        "exp1_cargo": cand_ced.exp1_cargo,
+                        "exp1_tiempo": cand_ced.exp1_funciones,
+                    }.items() if v is not None}
+                    history = []
+                    session.step = "activo"
+                    session.data = json.dumps({"history": [], "datos": datos})
+                    db.commit()
+                    # IA retoma desde los datos cargados
+                else:
+                    return {"response": "No encontre registro con esa cedula. Escribe 0 para iniciar un proceso nuevo."}
+
+            # ── Distinto nombre en WA → posible persona diferente ──────────
+            elif payload.nombre and cand_tel:
+                wa_words = set(payload.nombre.lower().split())
+                stored_words = set((cand_tel.nombre or "").lower().split())
+                if not wa_words & stored_words:
+                    # Diferente persona usando el mismo número → dejar pasar
+                    history, datos = [], {}
+                    session.step = "activo"
+                    session.data = json.dumps({"history": [], "datos": {}})
+                    db.commit()
+                else:
+                    return {"response": (
+                        "Hola! Ya tienes un proceso de seleccion activo con Tiendas Ara. "
+                        "Un reclutador te contactara pronto.\n\n"
+                        "Si quieres retomar tu registro escribe tu numero de cedula, "
+                        "o escribe 0 para iniciar un proceso nuevo."
+                    )}
+
+            # ── Reset explícito ─────────────────────────────────────────────
+            elif msg.strip() == "0":
                 history, datos = [], {}
                 session.step = "activo"
                 session.data = json.dumps({"history": [], "datos": {}})
                 db.commit()
+
             else:
                 return {"response": (
                     "Hola! Ya tienes un proceso de seleccion activo con Tiendas Ara. "
                     "Un reclutador te contactara pronto.\n\n"
-                    "Si deseas iniciar un nuevo proceso, escribe 0."
+                    "Si quieres retomar tu registro escribe tu numero de cedula, "
+                    "o escribe 0 para iniciar un proceso nuevo."
                 )}
 
         result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
