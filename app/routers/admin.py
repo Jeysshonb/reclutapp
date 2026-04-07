@@ -10,7 +10,7 @@ from app.models.candidato import (
     CatNegocio, CatCargo, CatFuenteHV, CatResultado,
     CatDepartamento, CatMunicipio, CatMotivoRetiro,
     CatReclutador, CatProveedor,
-    Usuario, Auditoria, WaSession,
+    Usuario, Auditoria, WaSession, WaArchivo,
 )
 from app.routers.auth import get_current_user, require_role
 from app.schemas.candidato import CatalogoCreate, UsuarioCreate, UsuarioUpdate
@@ -194,6 +194,25 @@ def listar_wa_sesiones(
             "updated_at": s.updated_at,
         }
         for s in sesiones
+    ]
+
+
+@router.get("/wa-archivos")
+def listar_wa_archivos(
+    cedula: str | None = None,
+    phone: str | None = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_role("administrador", "especialista")),
+):
+    q = db.query(WaArchivo).order_by(WaArchivo.created_at.desc())
+    if cedula:
+        q = q.filter(WaArchivo.cedula == cedula)
+    if phone:
+        q = q.filter(WaArchivo.phone == phone)
+    return [
+        {"id": a.id, "phone": a.phone, "cedula": a.cedula, "tipo": a.tipo,
+         "nombre": a.nombre, "blob_url": a.blob_url, "created_at": a.created_at}
+        for a in q.all()
     ]
 
 

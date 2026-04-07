@@ -14,7 +14,7 @@ from fastapi import APIRouter, Form, Response
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models.candidato import Candidato, WaSession
+from app.models.candidato import Candidato, WaSession, WaArchivo
 from app.config import get_settings
 from app.ciudades_ara import buscar_ciudad
 
@@ -544,6 +544,31 @@ def _resumen_candidato_existente(c: Candidato) -> str:
     )
 
 
+async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula: str | None, db) -> str | None:
+    """Sube un archivo a Azure Blob Storage y guarda referencia en BD."""
+    import base64, uuid
+    s = get_settings()
+    if not s.AZURE_STORAGE_CONNECTION_STRING:
+        return None
+    try:
+        from azure.storage.blob import BlobServiceClient
+        data = base64.b64decode(data_b64)
+        ext = nombre.rsplit(".", 1)[-1].lower() if "." in nombre else tipo
+        blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
+        client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
+        container = client.get_container_client("whatsapp-docs")
+        container.upload_blob(blob_name, data, overwrite=True)
+        url = f"https://reclutappdocs.blob.core.windows.net/whatsapp-docs/{blob_name}"
+        archivo = WaArchivo(phone=phone, cedula=cedula, tipo=tipo, nombre=nombre, blob_url=url)
+        db.add(archivo)
+        db.commit()
+        logger.info(f"[AraBot] Archivo subido: {url}")
+        return url
+    except Exception as e:
+        logger.error(f"[AraBot] Error subiendo blob: {e}")
+        return None
+
+
 async def _extraer_datos_imagen(imagen_b64: str, mimetype: str) -> str:
     """Usa GPT-4o vision para extraer cualquier dato de reclutamiento visible en la imagen."""
     client = _get_client()
@@ -700,10 +725,13 @@ async def whatsapp_json(payload: WaMensaje):
                     return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
 
             elif payload.documento_base64:
+                cedula_actual = datos.get("cedula")
+                nombre_doc = payload.documento_nombre or "documento"
+                asyncio.create_task(_subir_blob(payload.documento_base64, nombre_doc, "pdf", phone, cedula_actual, db))
                 texto = await _extraer_texto_documento(
                     payload.documento_base64,
                     payload.documento_mimetype or "",
-                    payload.documento_nombre or "documento"
+                    nombre_doc
                 )
                 if texto and texto.startswith("__ERROR_DOC__"):
                     logger.error(f"[AraBot] Doc error {phone}: {texto}")
@@ -715,6 +743,8 @@ async def whatsapp_json(payload: WaMensaje):
                     return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (foto), envíalo como imagen directamente. Si es Word o PDF con texto, intenta de nuevo."}
 
             elif payload.imagen_base64:
+                cedula_actual = datos.get("cedula")
+                asyncio.create_task(_subir_blob(payload.imagen_base64, "imagen.jpg", "imagen", phone, cedula_actual, db))
                 texto_imagen = await _extraer_datos_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
                 if texto_imagen.startswith("__ERROR__"):
                     return {"response": "No pude leer la imagen 😕 Intenta con mejor iluminación o más cerca."}

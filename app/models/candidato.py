@@ -281,6 +281,19 @@ class WaSession(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
+# ── Archivos subidos por WhatsApp ─────────────────────────────────────────────
+
+class WaArchivo(Base):
+    __tablename__ = "wa_archivos"
+    id = Column(Integer, primary_key=True)
+    phone = Column(String(30), nullable=False, index=True)
+    cedula = Column(String(30), nullable=True, index=True)
+    tipo = Column(String(20), nullable=False)   # imagen / pdf / doc / excel
+    nombre = Column(String(255), nullable=True)
+    blob_url = Column(Text, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
 # ── Auditoría de cambios ───────────────────────────────────────────────────────
 
 class Auditoria(Base):
