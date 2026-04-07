@@ -65,9 +65,23 @@ app.get('/qr', async (req, res) => {
     `);
 });
 
+app.get('/reset', (req, res) => {
+    console.log('Reset manual solicitado — limpiando sesion y reiniciando...');
+    botListo = false;
+    botEstado = 'reiniciando';
+    qrImageData = null;
+    try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
+    try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
+    setTimeout(() => {
+        client.initialize().catch(e => console.error('Error tras reset:', e.message));
+    }, 3000);
+    res.send('<h2 style="font-family:sans-serif;color:orange">🔄 Reiniciando AraBot... ve a <a href="/qr">/qr</a> en 30 segundos</h2>');
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor web en puerto ${PORT}`);
     console.log(`QR disponible en: http://localhost:${PORT}/qr`);
+    console.log(`Reset disponible en: http://localhost:${PORT}/reset`);
 });
 
 // ── Cliente WhatsApp ──────────────────────────────────────────────────────────
@@ -117,10 +131,11 @@ client.on('auth_failure', (msg) => {
 function limpiarYReiniciar(motivo) {
     botEstado = 'esperando_qr';
     botListo = false;
-    console.log(`${motivo} — limpiando Chrome y reiniciando en 10s...`);
+    qrImageData = null;
+    console.log(`${motivo} — limpiando sesion completa y reiniciando en 10s...`);
     try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
-    try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(e) {}
-    try { execSync('find /home -name "SingletonCookie" -delete 2>/dev/null'); } catch(e) {}
+    try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
+    try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
     setTimeout(() => client.initialize().catch(e => console.error('Reintento fallido:', e.message)), 10000);
 }
 
