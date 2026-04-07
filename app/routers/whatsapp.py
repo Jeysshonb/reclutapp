@@ -444,6 +444,7 @@ async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> 
             return "\n".join(lineas)[:3000].strip() or None
     except Exception as e:
         logger.error(f"[AraBot] Error extrayendo documento: {e}")
+        return f"__ERROR_DOC__: {str(e)[:150]}"
     return None
 
 
@@ -649,15 +650,17 @@ async def whatsapp_json(payload: WaMensaje):
         # ── Procesar medios ────────────────────────────────────────────────────
         if msg in ("[audio]", "[documento]", "[foto_cedula]") or not msg:
             if payload.audio_base64:
+                s_cfg = get_settings()
+                if not s_cfg.AZURE_WHISPER_DEPLOYMENT:
+                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
                 texto = await _transcribir_audio(payload.audio_base64, payload.audio_mimetype or "audio/ogg")
                 if texto and not texto.startswith("__ERROR_AUDIO__"):
                     msg = texto
                     logger.info(f"[AraBot] Audio transcrito {phone}: {texto[:60]}")
                 elif texto and texto.startswith("__ERROR_AUDIO__"):
-                    error_msg = texto.replace("__ERROR_AUDIO__: ", "")
-                    return {"response": f"Error al procesar audio: {error_msg}"}
+                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
                 else:
-                    return {"response": "No pude procesar el audio 😕 Por favor escribe tu respuesta en texto."}
+                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
 
             elif payload.documento_base64:
                 texto = await _extraer_texto_documento(
@@ -665,11 +668,14 @@ async def whatsapp_json(payload: WaMensaje):
                     payload.documento_mimetype or "",
                     payload.documento_nombre or "documento"
                 )
-                if texto:
+                if texto and texto.startswith("__ERROR_DOC__"):
+                    logger.error(f"[AraBot] Doc error {phone}: {texto}")
+                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (imagen), no puedo extraer texto. Por favor envíalo en Word o PDF con texto digital."}
+                elif texto:
                     msg = f"[Hoja de vida enviada. Información extraída:\n{texto[:2000]}]"
                     logger.info(f"[AraBot] Documento procesado {phone}: {len(texto)} chars")
                 else:
-                    return {"response": "No pude leer el documento 😕 Por favor envía en formato PDF o Word."}
+                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (imagen), no puedo extraer texto. Por favor envíalo en Word o PDF con texto digital."}
 
             elif payload.imagen_base64:
                 extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
