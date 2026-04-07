@@ -69,7 +69,13 @@ DATOS PERSONALES:
 - genero: Masculino / Femenino / Otro
 - telefono: número de celular colombiano (10 dígitos, ej: 3001234567) — pregunta: "¿Cuál es tu número de celular para que podamos contactarte?"
 - correo: correo electrónico (solo acepta dominios comunes: gmail, hotmail, outlook, yahoo, icloud, live)
-- ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente)
+- ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente).
+  IMPORTANTE — si el candidato dice "Bogotá" o "Bogotá D.C.", pregunta SIEMPRE su localidad:
+  "¿En qué localidad de Bogotá vives o aplicas? (ej: Kennedy, Suba, Usaquén, Engativá...)"
+  Guarda en ciudad_aplica la LOCALIDAD específica (ej: "Kennedy"), NO "Bogotá".
+  Localidades válidas: Barrios Unidos, Chapinero, Engativá, Fontibón, Suba, Teusaquillo, Usaquén,
+  Santa Fe, Puente Aranda, Tunjuelito, Usme, Ciudad Bolívar, Rafael Uribe Uribe, San Cristóbal,
+  Kennedy, Bosa, Los Mártires, Antonio Nariño.
 
 DATOS LABORALES:
 - cargo: cargo al que aspira (opciones: Operador de Tienda en Formación, Operador de Tienda,
