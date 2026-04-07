@@ -1,29 +1,34 @@
 /**
- * AraBot — WhatsApp Web bot para reclutamiento Tiendas Ara
- * Corre en Azure App Service (Node.js 20 Linux)
- * GET /       → status del bot
- * GET /qr     → página para escanear el QR con WhatsApp
+ * AraBot — WhatsApp bot para reclutamiento Tiendas Ara
+ * Usa @whiskeysockets/baileys (sin Chrome/Puppeteer)
+ * GET /    → status
+ * GET /qr  → escanear QR
+ * GET /reset      → reiniciar proceso (mantiene sesion)
+ * GET /reset-full → borrar sesion completa (necesita nuevo QR)
  */
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason,
+        downloadMediaMessage, isJidGroup } = require('@whiskeysockets/baileys');
+const { Boom } = require('@hapi/boom');
 const QRCode = require('qrcode');
-const axios = require('axios');
+const axios  = require('axios');
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
+const path   = require('path');
+const fs     = require('fs');
+const pino   = require('pino');
 
-const PORT = process.env.PORT || 3000;
-const BACKEND = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdgrckdkeq.westeurope-01.azurewebsites.net';
-const ENDPOINT = `${BACKEND}/api/webhook/whatsapp/json`;
+const PORT        = process.env.PORT || 3000;
+const BACKEND     = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdgrckdkeq.westeurope-01.azurewebsites.net';
+const ENDPOINT    = `${BACKEND}/api/webhook/whatsapp/json`;
 const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
 
-// ── Estado global ─────────────────────────────────────────────────────────────
-let qrImageData = null;   // QR como imagen base64
-let botListo = false;
-let botEstado = 'iniciando';
+// ── Estado global ──────────────────────────────────────────────────────────────
+let qrImageData = null;
+let botListo    = false;
+let botEstado   = 'iniciando';
+let sock        = null;
 
-// ── Express (servidor web) ────────────────────────────────────────────────────
+// ── Express ────────────────────────────────────────────────────────────────────
 const app = express();
 
 app.get('/', (req, res) => {
@@ -35,225 +40,163 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/qr', async (req, res) => {
+app.get('/qr', (req, res) => {
     if (botListo) {
         return res.send('<h2 style="font-family:sans-serif;color:green">✅ AraBot ya está conectado y activo</h2>');
     }
     if (!qrImageData) {
         return res.send('<h2 style="font-family:sans-serif">⏳ Generando QR... recarga en 5 segundos</h2><meta http-equiv="refresh" content="5">');
     }
-    res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>AraBot — Vincular WhatsApp</title>
-            <meta http-equiv="refresh" content="30">
-            <style>
-                body { font-family: sans-serif; text-align: center; padding: 40px; background: #f0f0f0; }
-                img { border: 4px solid #25D366; border-radius: 12px; padding: 10px; background: white; }
-                h2 { color: #128C7E; }
-                p { color: #666; }
-            </style>
-        </head>
-        <body>
-            <h2>Escanea este QR con WhatsApp Business</h2>
-            <p>Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo</p>
-            <img src="${qrImageData}" width="300" height="300" /><br><br>
-            <p><small>El QR se renueva cada 30 segundos — esta página se actualiza automáticamente</small></p>
-        </body>
-        </html>
-    `);
+    res.send(`<!DOCTYPE html><html>
+    <head><title>AraBot — Vincular WhatsApp</title><meta http-equiv="refresh" content="30">
+    <style>body{font-family:sans-serif;text-align:center;padding:40px;background:#f0f0f0}
+    img{border:4px solid #25D366;border-radius:12px;padding:10px;background:white}
+    h2{color:#128C7E}p{color:#666}</style></head>
+    <body><h2>Escanea este QR con WhatsApp Business</h2>
+    <p>Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo</p>
+    <img src="${qrImageData}" width="300" height="300"/><br><br>
+    <p><small>El QR se renueva cada 30 segundos — esta página se actualiza automáticamente</small></p>
+    </body></html>`);
 });
 
 app.get('/reset', (req, res) => {
-    console.log('Reset manual — limpiando locks y reiniciando proceso...');
-    res.send('<h2 style="font-family:sans-serif;color:orange">🔄 Reiniciando AraBot... Azure lo reiniciara en segundos. Ve a <a href="/qr">/qr</a> en 30s</h2>');
-    limpiarYSalir('Reset manual', false);
+    console.log('Reset solicitado — reiniciando proceso...');
+    res.send('<h2 style="font-family:sans-serif;color:orange">🔄 Reiniciando... ve a <a href="/qr">/qr</a> en 10 segundos</h2>');
+    setTimeout(() => process.exit(0), 1000);
 });
 
 app.get('/reset-full', (req, res) => {
-    console.log('Reset COMPLETO — borrando sesion, se necesitara escanear QR...');
-    res.send('<h2 style="font-family:sans-serif;color:red">⚠️ Reset completo — se borraron credenciales. Ve a <a href="/qr">/qr</a> en 30s para escanear QR</h2>');
-    limpiarYSalir('Reset completo manual', true);
+    console.log('Reset COMPLETO — borrando sesion...');
+    res.send('<h2 style="font-family:sans-serif;color:red">⚠️ Sesion borrada — ve a <a href="/qr">/qr</a> en 10s para escanear QR nuevo</h2>');
+    try { fs.rmSync(SESSION_DIR, { recursive: true, force: true }); } catch(e) {}
+    setTimeout(() => process.exit(0), 1000);
 });
 
 app.listen(PORT, () => {
     console.log(`Servidor web en puerto ${PORT}`);
-    console.log(`QR disponible en: http://localhost:${PORT}/qr`);
-    console.log(`Reset disponible en: http://localhost:${PORT}/reset`);
+    console.log(`QR: http://localhost:${PORT}/qr | Reset: http://localhost:${PORT}/reset`);
 });
 
-// ── Cliente WhatsApp ──────────────────────────────────────────────────────────
-const client = new Client({
-    authStrategy: new LocalAuth({ clientId: 'arabot', dataPath: SESSION_DIR }),
-    authTimeoutMs: 0,
-    qrMaxRetries: 10,
-    puppeteer: {
-        headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        timeout: 120000,
-        protocolTimeout: 120000,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--no-zygote',
-        ],
-    }
-});
+// ── Conexión WhatsApp (Baileys — sin Chrome) ───────────────────────────────────
+async function conectar() {
+    const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
 
-client.on('qr', async (qr) => {
-    botEstado = 'esperando_qr';
-    qrcode.generate(qr, { small: true });
-    try {
-        qrImageData = await QRCode.toDataURL(qr);
-        console.log('QR generado — abre /qr en el navegador para escanearlo');
-    } catch (e) {
-        console.error('Error generando QR imagen:', e.message);
-    }
-});
+    sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: true,
+        logger: pino({ level: 'silent' }),
+        browser: ['AraBot', 'Chrome', '1.0.0'],
+        connectTimeoutMs: 60000,
+        keepAliveIntervalMs: 30000,
+    });
 
-client.on('authenticated', () => {
-    botEstado = 'autenticado';
-    qrImageData = null;
-    console.log('Autenticado correctamente');
-});
+    sock.ev.on('creds.update', saveCreds);
 
-client.on('auth_failure', (msg) => {
-    limpiarYSalir('Auth failure: ' + msg, true); // borrar sesion — credenciales invalidas
-});
+    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
+        if (qr) {
+            botEstado = 'esperando_qr';
+            try {
+                qrImageData = await QRCode.toDataURL(qr);
+                console.log('QR generado — abre /qr para escanearlo');
+            } catch(e) { console.error('Error generando QR imagen:', e.message); }
+        }
 
-function limpiarYSalir(motivo, borrarSesion = false) {
-    console.error(`${motivo} — saliendo para que Azure reinicie limpio...`);
-    try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
-    // Solo borrar locks de Chrome, NO las credenciales de WhatsApp
-    try { execSync(`find ${SESSION_DIR} -name "SingletonLock" -delete 2>/dev/null`); } catch(e) {}
-    try { execSync(`find ${SESSION_DIR} -name "SingletonCookie" -delete 2>/dev/null`); } catch(e) {}
-    try { execSync(`find ${SESSION_DIR} -name ".org.chromium*" -delete 2>/dev/null`); } catch(e) {}
-    try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
-    // Solo borrar sesion completa si las credenciales son invalidas
-    if (borrarSesion) {
-        console.log('Borrando sesion completa — se necesitara escanear QR de nuevo');
-        try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
-    }
-    setTimeout(() => process.exit(1), 2000);
+        if (connection === 'open') {
+            botListo    = true;
+            botEstado   = 'activo';
+            qrImageData = null;
+            console.log('AraBot listo y escuchando mensajes');
+            console.log(`Backend: ${BACKEND}`);
+        }
+
+        if (connection === 'close') {
+            botListo  = false;
+            botEstado = 'desconectado';
+            const statusCode = (lastDisconnect?.error instanceof Boom)
+                ? lastDisconnect.error.output.statusCode : 0;
+            console.log(`Desconectado — codigo: ${statusCode}`);
+
+            if (statusCode === DisconnectReason.loggedOut) {
+                console.log('Sesion cerrada por WhatsApp — borrando credenciales...');
+                try { fs.rmSync(SESSION_DIR, { recursive: true, force: true }); } catch(e) {}
+                process.exit(0);
+            } else {
+                console.log('Reconectando en 5s...');
+                botEstado = 'reconectando';
+                setTimeout(conectar, 5000);
+            }
+        }
+    });
+
+    // ── Procesar mensajes ────────────────────────────────────────────────────────
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
+
+        for (const message of messages) {
+            try {
+                if (!message.message) continue;
+                if (message.key.fromMe) continue;
+                if (isJidGroup(message.key.remoteJid)) continue;
+
+                const phone    = message.key.remoteJid.replace('@s.whatsapp.net', '');
+                const pushName = message.pushName || null;
+                const msgContent = message.message;
+                const msgType    = Object.keys(msgContent)[0];
+
+                let payload = { phone, nombre: pushName, message: '' };
+
+                if (msgType === 'conversation' || msgType === 'extendedTextMessage') {
+                    const texto = msgContent.conversation || msgContent.extendedTextMessage?.text || '';
+                    if (!texto.trim()) continue;
+                    payload.message = texto.trim();
+                    console.log(`[${phone}] ${pushName || ''}: ${texto.trim().substring(0, 60)}`);
+
+                } else if (msgType === 'imageMessage') {
+                    const buffer = await downloadMediaMessage(message, 'buffer', {});
+                    payload.message         = '[foto_cedula]';
+                    payload.imagen_base64   = buffer.toString('base64');
+                    payload.imagen_mimetype = msgContent.imageMessage.mimetype || 'image/jpeg';
+                    console.log(`[${phone}] ${pushName || ''}: [imagen ${Math.round(buffer.length/1024)}KB]`);
+
+                } else if (msgType === 'audioMessage' || msgType === 'pttMessage') {
+                    const buffer = await downloadMediaMessage(message, 'buffer', {});
+                    payload.message       = '[audio]';
+                    payload.audio_base64  = buffer.toString('base64');
+                    payload.audio_mimetype = msgContent[msgType]?.mimetype || 'audio/ogg; codecs=opus';
+                    console.log(`[${phone}] ${pushName || ''}: [audio ${Math.round(buffer.length/1024)}KB]`);
+
+                } else if (msgType === 'documentMessage' || msgType === 'documentWithCaptionMessage') {
+                    const doc = msgContent.documentMessage || msgContent.documentWithCaptionMessage?.message?.documentMessage;
+                    if (!doc) continue;
+                    const buffer = await downloadMediaMessage(message, 'buffer', {});
+                    payload.message           = '[documento]';
+                    payload.documento_base64  = buffer.toString('base64');
+                    payload.documento_mimetype = doc.mimetype || 'application/octet-stream';
+                    payload.documento_nombre  = doc.fileName || 'documento';
+                    console.log(`[${phone}] ${pushName || ''}: [doc: ${doc.fileName || 'sin nombre'}]`);
+
+                } else {
+                    continue;
+                }
+
+                const resp = await axios.post(ENDPOINT, payload, { timeout: 45000 });
+                const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
+                console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
+                await sock.sendMessage(message.key.remoteJid, { text: respuesta });
+
+            } catch(err) {
+                console.error(`Error procesando mensaje: ${err.message}`);
+                try {
+                    await sock.sendMessage(message.key.remoteJid,
+                        { text: 'Lo siento, tuve un problema tecnico. Por favor intenta en un momento.' });
+                } catch(e) {}
+            }
+        }
+    });
 }
 
-process.on('unhandledRejection', (reason) => {
-    const msg = String(reason);
-    console.error('Error no manejado:', reason);
-    if (msg.includes('auth timeout') || msg.includes('auth_timeout') ||
-        msg.includes('protocolTimeout') || msg.includes('Protocol timeout') ||
-        msg.includes('callFunctionOn timed out') || msg.includes('already running') ||
-        msg.includes('Target closed')) {
-        limpiarYSalir('Timeout/conflicto Chrome');
-    }
+console.log('Iniciando AraBot (Baileys — sin Chrome)...');
+conectar().catch(e => {
+    console.error('Error fatal al conectar:', e.message);
+    process.exit(1);
 });
-
-client.on('ready', () => {
-    botListo = true;
-    botEstado = 'activo';
-    qrImageData = null;
-    console.log('AraBot listo y escuchando mensajes');
-    console.log(`Backend: ${BACKEND}`);
-});
-
-// ── Procesar mensajes ─────────────────────────────────────────────────────────
-client.on('message', async (message) => {
-    if (message.from === 'status@broadcast') return;
-    if (message.fromMe) return;
-    if (message.from.includes('@g.us')) return;
-
-    const esTexto    = message.type === 'chat';
-    const esImagen   = message.type === 'image';
-    const esAudio    = message.type === 'ptt' || message.type === 'audio';
-    const esDocumento = message.type === 'document';
-    if (!esTexto && !esImagen && !esAudio && !esDocumento) return;
-
-    const phone = message.from.replace('@c.us', '');
-    const contact = await message.getContact();
-    const nombre = contact.pushname || contact.name || null;
-
-    let payload = { phone, nombre };
-
-    if (esImagen) {
-        try {
-            const media = await message.downloadMedia();
-            if (media && media.data) {
-                payload.message = '[foto_cedula]';
-                payload.imagen_base64 = media.data;
-                payload.imagen_mimetype = media.mimetype || 'image/jpeg';
-                console.log(`[${phone}] ${nombre || ''}: [imagen recibida, ${Math.round(media.data.length * 0.75 / 1024)}KB]`);
-            } else { return; }
-        } catch (err) {
-            console.error(`Error descargando imagen: ${err.message}`);
-            await message.reply('No pude procesar la imagen. Por favor intentalo de nuevo.');
-            return;
-        }
-    } else if (esAudio) {
-        try {
-            const media = await message.downloadMedia();
-            if (media && media.data) {
-                payload.message = '[audio]';
-                payload.audio_base64 = media.data;
-                payload.audio_mimetype = media.mimetype || 'audio/ogg';
-                console.log(`[${phone}] ${nombre || ''}: [audio recibido]`);
-            } else { return; }
-        } catch (err) {
-            console.error(`Error descargando audio: ${err.message}`);
-            await message.reply('No pude procesar el audio. Por favor escribe tu respuesta.');
-            return;
-        }
-    } else if (esDocumento) {
-        try {
-            const media = await message.downloadMedia();
-            if (media && media.data) {
-                payload.message = '[documento]';
-                payload.documento_base64 = media.data;
-                payload.documento_mimetype = media.mimetype || 'application/octet-stream';
-                payload.documento_nombre = message.filename || 'documento';
-                console.log(`[${phone}] ${nombre || ''}: [documento: ${message.filename || 'sin nombre'}]`);
-            } else { return; }
-        } catch (err) {
-            console.error(`Error descargando documento: ${err.message}`);
-            await message.reply('No pude procesar el documento. Por favor intenta de nuevo.');
-            return;
-        }
-    } else {
-        const texto = message.body.trim();
-        if (!texto) return;
-        payload.message = texto;
-        console.log(`[${phone}] ${nombre || ''}: ${texto}`);
-    }
-
-    try {
-        const resp = await axios.post(ENDPOINT, payload, { timeout: 45000 });
-        const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
-        console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
-        await message.reply(respuesta);
-    } catch (err) {
-        console.error(`Error llamando backend: ${err.message}`);
-        await message.reply('Lo siento, tuve un problema tecnico. Por favor intenta en un momento.');
-    }
-});
-
-client.on('disconnected', (reason) => {
-    botListo = false;
-    botEstado = 'desconectado';
-    console.log('Desconectado:', reason);
-});
-
-const { execSync } = require('child_process');
-try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(e) {}
-try { execSync('find /home -name "SingletonCookie" -delete 2>/dev/null'); } catch(e) {}
-try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
-
-console.log('Iniciando AraBot...');
-console.log('Chrome:', process.env.PUPPETEER_EXECUTABLE_PATH || 'auto');
-client.initialize().catch((err) => {
-    console.error('Error iniciando cliente WhatsApp:', err.message);
-    limpiarYSalir('Error en initialize inicial');
-});
-
