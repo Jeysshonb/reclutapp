@@ -1,6 +1,8 @@
 FROM node:20-slim
 
 # Sin Chrome — Baileys usa WebSocket directo
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 ENV PORT=8080
 ENV SESSION_DIR=/home/.arabot_session
 
