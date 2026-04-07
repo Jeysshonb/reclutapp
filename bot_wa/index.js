@@ -8,7 +8,8 @@
  */
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason,
-        downloadMediaMessage, isJidGroup, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+        downloadMediaMessage, isJidGroup, fetchLatestBaileysVersion,
+        makeInMemoryStore } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const QRCode = require('qrcode');
 const axios  = require('axios');
@@ -22,7 +23,12 @@ const BACKEND     = process.env.BACKEND_URL || 'https://reclutapp-prod-dkhggmfdg
 const ENDPOINT    = `${BACKEND}/api/webhook/whatsapp/json`;
 const SESSION_DIR = process.env.SESSION_DIR || path.join(require('os').homedir(), '.arabot_session');
 
-// Mapa LID → número real de teléfono
+const silentLogger = pino({ level: 'silent' });
+
+// Store en memoria: resuelve LID → número automáticamente
+const store = makeInMemoryStore({ logger: silentLogger });
+
+// Mapa adicional LID → número (para resolución manual rápida)
 const lidToPhone = new Map();
 
 // ── Estado global ──────────────────────────────────────────────────────────────
@@ -80,6 +86,51 @@ app.listen(PORT, () => {
     console.log(`QR: http://localhost:${PORT}/qr | Reset: http://localhost:${PORT}/reset`);
 });
 
+// ── Resolver LID → número real ─────────────────────────────────────────────────
+function resolverPhone(rawJid) {
+    if (!rawJid.endsWith('@lid')) {
+        return rawJid.replace('@s.whatsapp.net', '');
+    }
+    const lid = rawJid.replace('@lid', '');
+
+    // 1) Intentar desde el store en memoria
+    const contacto = store.contacts && store.contacts[rawJid];
+    if (contacto?.id) {
+        return contacto.id.replace('@s.whatsapp.net', '');
+    }
+
+    // 2) Intentar desde nuestro mapa manual
+    if (lidToPhone.has(lid)) {
+        return lidToPhone.get(lid);
+    }
+
+    // 3) Buscar en el store por coincidencia de lid
+    if (store.contacts) {
+        for (const [jid, c] of Object.entries(store.contacts)) {
+            if (c.lid && c.lid.replace('@lid', '') === lid && jid.endsWith('@s.whatsapp.net')) {
+                const phone = jid.replace('@s.whatsapp.net', '');
+                lidToPhone.set(lid, phone);
+                return phone;
+            }
+        }
+    }
+
+    return null; // no resuelto aún
+}
+
+// Cuando contacts.upsert resuelve un LID que ya estaba guardado como teléfono en el backend,
+// actualizar la sesión en el backend para que las reclutadoras vean el número real.
+async function actualizarPhoneEnBackend(lidNumerico, phoneReal) {
+    try {
+        await axios.post(`${BACKEND}/api/webhook/whatsapp/fix-lid`,
+            { lid: lidNumerico, phone: phoneReal },
+            { timeout: 10000 });
+        console.log(`LID actualizado en backend: ${lidNumerico} → ${phoneReal}`);
+    } catch(e) {
+        // No crítico — el backend puede no tener este endpoint aún
+    }
+}
+
 // ── Conexión WhatsApp (Baileys — sin Chrome) ───────────────────────────────────
 async function conectar() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
@@ -89,24 +140,34 @@ async function conectar() {
     sock = makeWASocket({
         version,
         auth: state,
-        logger: pino({ level: 'silent' }),
+        logger: silentLogger,
         browser: ['AraBot', 'Chrome', '1.0.0'],
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 30000,
     });
 
+    // Vincular el store al socket (resuelve LIDs automáticamente)
+    store.bind(sock.ev);
+
     sock.ev.on('creds.update', saveCreds);
 
     // Mapear LID → número real cuando llegan contactos
-    sock.ev.on('contacts.upsert', contacts => {
+    const procesarContactos = (contacts) => {
         for (const c of contacts) {
             if (c.id && c.lid) {
                 const phone = c.id.replace('@s.whatsapp.net', '');
                 const lid   = c.lid.replace('@lid', '');
-                lidToPhone.set(lid, phone);
+                if (!lidToPhone.has(lid)) {
+                    lidToPhone.set(lid, phone);
+                    // Si este LID ya fue procesado como teléfono, actualizar backend
+                    actualizarPhoneEnBackend(lid, phone);
+                }
             }
         }
-    });
+    };
+
+    sock.ev.on('contacts.upsert', procesarContactos);
+    sock.ev.on('contacts.update', procesarContactos);
 
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
         if (qr) {
@@ -154,15 +215,22 @@ async function conectar() {
                 if (message.key.fromMe) continue;
                 if (isJidGroup(message.key.remoteJid)) continue;
 
-                const rawJid   = message.key.remoteJid;
-                let phone;
-                if (rawJid.endsWith('@lid')) {
-                    const lid = rawJid.replace('@lid', '');
-                    phone = lidToPhone.get(lid) || lid;
-                } else {
-                    phone = rawJid.replace('@s.whatsapp.net', '');
+                const rawJid = message.key.remoteJid;
+                let phone = resolverPhone(rawJid);
+
+                // Si el JID es @lid y no resolvió, esperar 3s para que contacts.upsert llegue
+                if (phone === null) {
+                    console.log(`LID no resuelto (${rawJid}) — esperando 3s...`);
+                    await new Promise(r => setTimeout(r, 3000));
+                    phone = resolverPhone(rawJid);
+                    if (phone === null) {
+                        // Último recurso: usar el LID numérico como teléfono
+                        phone = rawJid.replace('@lid', '');
+                        console.warn(`LID no pudo resolverse: ${rawJid} — usando LID como teléfono temporal`);
+                    }
                 }
-                const pushName = message.pushName || null;
+
+                const pushName  = message.pushName || null;
                 const msgContent = message.message;
                 const msgType    = Object.keys(msgContent)[0];
 
@@ -183,8 +251,8 @@ async function conectar() {
 
                 } else if (msgType === 'audioMessage' || msgType === 'pttMessage') {
                     const buffer = await downloadMediaMessage(message, 'buffer', {});
-                    payload.message       = '[audio]';
-                    payload.audio_base64  = buffer.toString('base64');
+                    payload.message        = '[audio]';
+                    payload.audio_base64   = buffer.toString('base64');
                     payload.audio_mimetype = msgContent[msgType]?.mimetype || 'audio/ogg; codecs=opus';
                     console.log(`[${phone}] ${pushName || ''}: [audio ${Math.round(buffer.length/1024)}KB]`);
 
@@ -192,10 +260,10 @@ async function conectar() {
                     const doc = msgContent.documentMessage || msgContent.documentWithCaptionMessage?.message?.documentMessage;
                     if (!doc) continue;
                     const buffer = await downloadMediaMessage(message, 'buffer', {});
-                    payload.message           = '[documento]';
-                    payload.documento_base64  = buffer.toString('base64');
+                    payload.message            = '[documento]';
+                    payload.documento_base64   = buffer.toString('base64');
                     payload.documento_mimetype = doc.mimetype || 'application/octet-stream';
-                    payload.documento_nombre  = doc.fileName || 'documento';
+                    payload.documento_nombre   = doc.fileName || 'documento';
                     console.log(`[${phone}] ${pushName || ''}: [doc: ${doc.fileName || 'sin nombre'}]`);
 
                 } else {
@@ -205,7 +273,7 @@ async function conectar() {
                 const resp = await axios.post(ENDPOINT, payload, { timeout: 45000 });
                 const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
                 console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
-                await sock.sendMessage(message.key.remoteJid, { text: respuesta });
+                await sock.sendMessage(rawJid, { text: respuesta });
 
             } catch(err) {
                 console.error(`Error procesando mensaje: ${err.message}`);
