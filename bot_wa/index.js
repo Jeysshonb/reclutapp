@@ -159,17 +159,31 @@ client.on('disconnected', (reason) => {
     console.log('Desconectado:', reason);
 });
 
-// Eliminar lock files de Chrome en todo /home (cualquier ruta)
-const { execSync } = require('child_process');
-try {
-    const deleted = execSync('find /home -name "SingletonLock" 2>/dev/null').toString().trim();
-    if (deleted) {
-        execSync('find /home -name "SingletonLock" -delete 2>/dev/null');
-        console.log('Lock files eliminados:', deleted);
-    }
-} catch (e) {
-    // sin lock files o error ignorable
+// Instalar libs de Chrome en background, luego inicializar
+const { spawn, execSync } = require('child_process');
+
+function iniciarBot() {
+    try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(e) {}
+
+    console.log('Instalando dependencias de Chrome...');
+    const apt = spawn('apt-get', [
+        'install', '-y', '-q',
+        'libglib2.0-0', 'libnss3', 'libnspr4', 'libatk1.0-0',
+        'libatk-bridge2.0-0', 'libcups2', 'libdrm2', 'libdbus-1-3',
+        'libxkbcommon0', 'libx11-6', 'libxcb1', 'libxcomposite1',
+        'libxdamage1', 'libxext6', 'libxfixes3', 'libxrandr2',
+        'libgbm1', 'libpango-1.0-0', 'libcairo2', 'libasound2'
+    ], { stdio: 'inherit' });
+
+    apt.on('close', (code) => {
+        console.log(`Dependencias instaladas (${code}). Iniciando AraBot...`);
+        client.initialize();
+    });
+
+    apt.on('error', (err) => {
+        console.error('apt-get error:', err.message, '— iniciando de todas formas...');
+        client.initialize();
+    });
 }
 
-console.log('Iniciando AraBot...');
-client.initialize();
+iniciarBot();
