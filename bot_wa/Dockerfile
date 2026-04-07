@@ -2,8 +2,13 @@ FROM node:20-slim
 
 # Instalar Chromium del sistema + todas sus dependencias de una vez
 # Esto queda en la imagen — no hay apt-get en cada reinicio
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     chromium \
+    fonts-liberation \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libgbm1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Decirle a puppeteer que use el Chromium del sistema

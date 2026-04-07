@@ -164,5 +164,9 @@ try { execSync('find /home -name "SingletonLock" -delete 2>/dev/null'); } catch(
 
 console.log('Iniciando AraBot...');
 console.log('Chrome:', process.env.PUPPETEER_EXECUTABLE_PATH || 'auto');
-client.initialize();
+client.initialize().catch((err) => {
+    console.error('Error iniciando cliente WhatsApp:', err.message);
+    console.log('Reintentando en 10s...');
+    setTimeout(() => client.initialize().catch(e => console.error('Reintento fallido:', e.message)), 10000);
+});
 
