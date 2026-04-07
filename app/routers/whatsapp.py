@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.candidato import Candidato, WaSession
 from app.config import get_settings
+from app.ciudades_ara import buscar_ciudad
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhook", tags=["whatsapp"])
@@ -40,8 +41,7 @@ DATOS PERSONALES:
 - fecha_nacimiento: DD/MM/AAAA
 - genero: Masculino / Femenino / Otro
 - correo: correo electrónico
-- ciudad_aplica: ciudad donde aplica
-- departamento: departamento de Colombia donde vive
+- ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente)
 
 DATOS LABORALES:
 - cargo: cargo al que aspira (opciones: Operador de Tienda en Formación, Operador de Tienda,
@@ -81,7 +81,6 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
     "genero": null,
     "correo": null,
     "ciudad_aplica": null,
-    "departamento": null,
     "cargo": null,
     "fuente": null,
     "nivel_academico": null,
@@ -97,7 +96,7 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
 }
 
 - En "datos" pon los valores confirmados (null si aún no los tienes).
-- "completo": true SOLO cuando los 17 campos tengan valor (no null).
+- "completo": true SOLO cuando los 16 campos tengan valor (no null).
 - "mensaje" es exactamente lo que se envía por WhatsApp.
 """
 
@@ -180,6 +179,19 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
         return {"mensaje": "Tuve un problema técnico. Por favor envía tu mensaje de nuevo.", "datos": datos, "completo": False}
 
 
+def _enriquecer_con_ciudad(datos: dict) -> dict:
+    """Auto-rellena departamento, zona y cod_reg a partir de ciudad_aplica."""
+    ciudad = datos.get("ciudad_aplica")
+    if not ciudad:
+        return datos
+    info = buscar_ciudad(ciudad)
+    if info:
+        datos["departamento"] = info.get("departamento")
+        datos["zona"] = info.get("zona")
+        datos["cod_reg"] = info.get("cod_reg")
+    return datos
+
+
 def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
     db = SessionLocal()
     try:
@@ -222,6 +234,8 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             exp1_cargo=datos.get("exp1_cargo"),
             exp1_funciones=exp_funciones,
             telefono_contacto=tel,
+            zona=datos.get("zona"),
+            region=datos.get("cod_reg"),
             reclutador="Bot WhatsApp",
             creado_por=f"bot_whatsapp | {tel}",
             observaciones_analistas=obs,
@@ -305,7 +319,7 @@ async def whatsapp_webhook(
         # ── Llamar a la IA ────────────────────────────────────────────────────
         result = await _llamar_ia(history, msg, datos)
         mensaje_bot = result["mensaje"]
-        datos_nuevos = result["datos"]
+        datos_nuevos = _enriquecer_con_ciudad(result["datos"])
         completo = result.get("completo", False)
 
         # Actualizar historial (máx 40 turnos)
@@ -512,7 +526,7 @@ async def whatsapp_json(payload: WaMensaje):
 
         result = await _llamar_ia(history, msg, datos, nombre=payload.nombre)
         mensaje_bot = result["mensaje"]
-        datos_nuevos = result["datos"]
+        datos_nuevos = _enriquecer_con_ciudad(result["datos"])
         completo = result.get("completo", False)
 
         history.append({"role": "user", "content": msg})
