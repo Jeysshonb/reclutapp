@@ -697,9 +697,8 @@ async def whatsapp_json(payload: WaMensaje):
                     logger.error(f"[AraBot] Doc error {phone}: {texto}")
                     return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (foto), envíalo como imagen directamente. Si es Word o PDF con texto, intenta de nuevo."}
                 elif texto:
-                    resumen = await _resumir_documento_con_gpt(texto)
                     logger.info(f"[AraBot] Documento procesado {phone}: {len(texto)} chars")
-                    msg = f"[El candidato envió su hoja de vida. Datos encontrados:\n{resumen}]"
+                    msg = f"[El candidato envió su hoja de vida. Extrae todos los datos que encuentres (nombre, cédula, ciudad, correo, educación, experiencia, etc.) y úsalos para completar el formulario sin volver a pedirlos. Texto del documento:\n{texto[:3000]}]"
                 else:
                     return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (foto), envíalo como imagen directamente. Si es Word o PDF con texto, intenta de nuevo."}
 
