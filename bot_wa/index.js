@@ -140,7 +140,7 @@ async function conectar() {
                 if (message.key.fromMe) continue;
                 if (isJidGroup(message.key.remoteJid)) continue;
 
-                const phone    = message.key.remoteJid.replace('@s.whatsapp.net', '');
+                const phone    = message.key.remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '');
                 const pushName = message.pushName || null;
                 const msgContent = message.message;
                 const msgType    = Object.keys(msgContent)[0];
