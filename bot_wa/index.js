@@ -125,18 +125,14 @@ client.on('authenticated', () => {
 });
 
 client.on('auth_failure', (msg) => {
-    limpiarYReiniciar('Auth failure: ' + msg);
+    limpiarYSalir('Auth failure: ' + msg);
 });
 
-function limpiarYReiniciar(motivo) {
-    botEstado = 'esperando_qr';
-    botListo = false;
-    qrImageData = null;
-    console.log(`${motivo} — limpiando sesion completa y reiniciando en 10s...`);
+function limpiarYSalir(motivo) {
+    console.error(`${motivo} — limpiando y saliendo para que Azure reinicie el contenedor...`);
     try { execSync('pkill -f chromium 2>/dev/null'); } catch(e) {}
     try { execSync(`rm -rf ${SESSION_DIR} 2>/dev/null`); } catch(e) {}
-    try { execSync('find /tmp -name ".org.chromium*" -delete 2>/dev/null'); } catch(e) {}
-    setTimeout(() => client.initialize().catch(e => console.error('Reintento fallido:', e.message)), 10000);
+    setTimeout(() => process.exit(1), 2000);
 }
 
 process.on('unhandledRejection', (reason) => {
@@ -144,8 +140,9 @@ process.on('unhandledRejection', (reason) => {
     console.error('Error no manejado:', reason);
     if (msg.includes('auth timeout') || msg.includes('auth_timeout') ||
         msg.includes('protocolTimeout') || msg.includes('Protocol timeout') ||
-        msg.includes('callFunctionOn timed out') || msg.includes('already running')) {
-        limpiarYReiniciar('Timeout/conflicto Chrome');
+        msg.includes('callFunctionOn timed out') || msg.includes('already running') ||
+        msg.includes('Target closed')) {
+        limpiarYSalir('Timeout/conflicto Chrome');
     }
 });
 
@@ -251,7 +248,6 @@ console.log('Iniciando AraBot...');
 console.log('Chrome:', process.env.PUPPETEER_EXECUTABLE_PATH || 'auto');
 client.initialize().catch((err) => {
     console.error('Error iniciando cliente WhatsApp:', err.message);
-    console.log('Reintentando en 10s...');
-    setTimeout(() => client.initialize().catch(e => console.error('Reintento fallido:', e.message)), 10000);
+    limpiarYSalir('Error en initialize inicial');
 });
 
