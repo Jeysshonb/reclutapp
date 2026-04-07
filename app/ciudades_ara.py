@@ -398,11 +398,15 @@ CIUDADES = {
 }
 
 
+def _quitar_tildes(s: str) -> str:
+    import unicodedata
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
 def buscar_ciudad(ciudad_str: str) -> dict | None:
-    """Busca una ciudad en el catálogo (case-insensitive, ignora tildes básicas)."""
+    """Busca una ciudad en el catálogo (case-insensitive, ignora tildes)."""
     if not ciudad_str:
         return None
-    normalizada = ciudad_str.upper().strip()
+    normalizada = _quitar_tildes(ciudad_str.upper().strip())
     # Búsqueda exacta
     if normalizada in CIUDADES:
         return CIUDADES[normalizada]

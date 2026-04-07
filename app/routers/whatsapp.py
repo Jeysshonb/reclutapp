@@ -49,7 +49,8 @@ ORDEN DE RECOLECCIÓN — sigue este orden:
 1. cedula: PRIMERO SIEMPRE — ESCRIBE EXACTAMENTE ESTO (sin cambiar nada): "¿Cuál es tu número de cédula? Puedes escribirlo o enviarme una foto de la *parte frontal* de tu cédula 📸"
 2. nombre_completo: cuando tengas la cédula (por foto o texto), confirma el nombre así: "Vi que tu nombre es *X* según [tu WhatsApp / tu cédula], ¿es correcto?" — si el nombre viene de la foto de cédula, úsalo directamente como nombre_completo confirmado
 3. fecha_nacimiento: ESCRIBE EXACTAMENTE ESTO (sin cambiar nada): "¿Cuál es tu fecha de nacimiento? Puedes escribirla (DD/MM/AAAA) o enviarme una foto de la *parte trasera* de tu cédula 📸"
-4. Los demás en el orden que fluya mejor
+4. genero: pregunta SIEMPRE justo después de fecha_nacimiento: "¿Cuál es tu género? *Masculino*, *Femenino* u *Otro*"
+5. Los demás en el orden que fluya mejor
 
 VALIDACIÓN DE CÉDULA POR FOTO:
 - Si el candidato envía una foto y se extrae cédula y/o nombre, confirma SIEMPRE: "Leí tu cédula *XXXXXXX* y tu nombre *YYYY* — ¿está correcto?"
@@ -264,9 +265,9 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         # Tiempo de experiencia va en funciones si no hay campo directo
         exp_funciones = datos.get("exp1_tiempo")
 
-        c = Candidato(
+        cedula_limpia = (datos.get("cedula") or "").strip()
+        campos = dict(
             nombre=datos.get("nombre_completo", ""),
-            cedula=(datos.get("cedula") or "").strip(),
             fecha_nacimiento=datos.get("fecha_nacimiento"),
             genero=datos.get("genero"),
             correo=datos.get("correo"),
@@ -291,7 +292,15 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             negocio="Tiendas Ara",
             status=status,
         )
-        db.add(c)
+        # Actualizar si ya existe, crear si no
+        c = db.query(Candidato).filter(Candidato.cedula == cedula_limpia).first() if cedula_limpia else None
+        if c:
+            for k, v in campos.items():
+                if v is not None:
+                    setattr(c, k, v)
+        else:
+            c = Candidato(cedula=cedula_limpia, **campos)
+            db.add(c)
         db.commit()
         logger.info(f"[AraBot] Candidato {'parcial' if parcial else 'completo'} guardado: {c.nombre} / {tel}")
     except Exception as e:
