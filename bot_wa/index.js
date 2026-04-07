@@ -133,17 +133,42 @@ client.on('message', async (message) => {
     if (message.from === 'status@broadcast') return;
     if (message.fromMe) return;
     if (message.from.includes('@g.us')) return;
-    if (message.type !== 'chat') return;
+
+    const esTexto = message.type === 'chat';
+    const esImagen = message.type === 'image';
+    if (!esTexto && !esImagen) return;
 
     const phone = message.from.replace('@c.us', '');
-    const texto = message.body.trim();
     const contact = await message.getContact();
     const nombre = contact.pushname || contact.name || null;
 
-    console.log(`[${phone}] ${nombre || ''}: ${texto}`);
+    let payload = { phone, nombre };
+
+    if (esImagen) {
+        try {
+            const media = await message.downloadMedia();
+            if (media && media.data) {
+                payload.message = '[foto_cedula]';
+                payload.imagen_base64 = media.data;
+                payload.imagen_mimetype = media.mimetype || 'image/jpeg';
+                console.log(`[${phone}] ${nombre || ''}: [imagen recibida, ${Math.round(media.data.length * 0.75 / 1024)}KB]`);
+            } else {
+                return;
+            }
+        } catch (err) {
+            console.error(`Error descargando imagen: ${err.message}`);
+            await message.reply('No pude procesar la imagen. Por favor intentalo de nuevo.');
+            return;
+        }
+    } else {
+        const texto = message.body.trim();
+        if (!texto) return;
+        payload.message = texto;
+        console.log(`[${phone}] ${nombre || ''}: ${texto}`);
+    }
 
     try {
-        const resp = await axios.post(ENDPOINT, { phone, message: texto, nombre }, { timeout: 30000 });
+        const resp = await axios.post(ENDPOINT, payload, { timeout: 45000 });
         const respuesta = resp.data?.response || 'Hubo un error. Intenta de nuevo.';
         console.log(`AraBot → [${phone}]: ${respuesta.substring(0, 80)}`);
         await message.reply(respuesta);

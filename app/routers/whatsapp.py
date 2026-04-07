@@ -343,6 +343,48 @@ class WaMensaje(BaseModel):
     phone: str
     message: str
     nombre: str | None = None
+    imagen_base64: str | None = None
+    imagen_mimetype: str | None = "image/jpeg"
+
+async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
+    """Usa GPT-4o vision para extraer datos de una foto de cédula colombiana."""
+    client = _get_client()
+    if not client:
+        return {}
+    s = get_settings()
+    try:
+        resp = await client.chat.completions.create(
+            model=s.AZURE_OPENAI_DEPLOYMENT,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Esta es una foto de una cédula de ciudadanía colombiana. "
+                            "Extrae los datos visibles y devuelve SOLO este JSON sin markdown:\n"
+                            '{"nombre_completo":null,"cedula":null,"fecha_nacimiento":null,"genero":null}\n'
+                            "- nombre_completo: nombre completo como aparece en la cédula\n"
+                            "- cedula: solo dígitos del número de documento\n"
+                            "- fecha_nacimiento: formato DD/MM/AAAA\n"
+                            "- genero: Masculino o Femenino según la cédula\n"
+                            "Si un dato no es legible, deja null."
+                        )
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mimetype};base64,{imagen_b64}", "detail": "high"}
+                    }
+                ]
+            }],
+            temperature=0,
+            max_tokens=200,
+        )
+        return json.loads(resp.choices[0].message.content)
+    except Exception as e:
+        logger.error(f"[AraBot] Error leyendo cédula: {e}")
+        return {}
+
 
 @router.post("/whatsapp/json")
 async def whatsapp_json(payload: WaMensaje):
@@ -359,6 +401,20 @@ async def whatsapp_json(payload: WaMensaje):
         state = json.loads(session.data or "{}")
         history = state.get("history", [])
         datos = state.get("datos", {})
+
+        # ── Procesar imagen de cédula ─────────────────────────────────────
+        if payload.imagen_base64 and msg == "[foto_cedula]":
+            extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
+            campos_utiles = {k: v for k, v in extraidos.items() if v is not None}
+            if campos_utiles:
+                datos.update(campos_utiles)
+                session.data = json.dumps({"history": history, "datos": datos})
+                db.commit()
+                campos_str = ", ".join(campos_utiles.keys())
+                logger.info(f"[AraBot] Cédula leída para {phone}: {campos_str}")
+                msg = f"[imagen de cédula — datos extraídos: {json.dumps(campos_utiles, ensure_ascii=False)}]"
+            else:
+                return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación o envía una foto más nítida de tu cédula."}
 
         ahora = datetime.now(timezone.utc)
         ultima = session.updated_at
