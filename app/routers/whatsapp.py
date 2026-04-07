@@ -417,7 +417,7 @@ async def _transcribir_audio(audio_b64: str, mimetype: str) -> str | None:
 
 
 async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> str | None:
-    """Extrae texto de PDF, Word o Excel enviado como hoja de vida."""
+    """Extrae texto crudo de PDF, Word o Excel."""
     import base64, io as _io
     try:
         data = base64.b64decode(doc_b64)
@@ -426,12 +426,12 @@ async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> 
             from pypdf import PdfReader
             reader = PdfReader(_io.BytesIO(data))
             texto = "\n".join(p.extract_text() or "" for p in reader.pages)
-            return texto[:3000].strip() or None
+            return texto[:4000].strip() or None
         elif "word" in mimetype or "docx" in mimetype or nombre_lower.endswith((".docx", ".doc")):
             from docx import Document
             doc = Document(_io.BytesIO(data))
             texto = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-            return texto[:3000].strip() or None
+            return texto[:4000].strip() or None
         elif "sheet" in mimetype or "excel" in mimetype or nombre_lower.endswith((".xlsx", ".xls")):
             import openpyxl
             wb = openpyxl.load_workbook(_io.BytesIO(data))
@@ -441,11 +441,42 @@ async def _extraer_texto_documento(doc_b64: str, mimetype: str, nombre: str) -> 
                     fila = " | ".join(str(c) for c in row if c is not None)
                     if fila.strip():
                         lineas.append(fila)
-            return "\n".join(lineas)[:3000].strip() or None
+            return "\n".join(lineas)[:4000].strip() or None
     except Exception as e:
         logger.error(f"[AraBot] Error extrayendo documento: {e}")
         return f"__ERROR_DOC__: {str(e)[:150]}"
     return None
+
+
+async def _resumir_documento_con_gpt(texto_crudo: str) -> str:
+    """Usa GPT-4o para extraer y resumir datos de reclutamiento del texto de un documento."""
+    client = _get_client()
+    if not client:
+        return texto_crudo
+    s = get_settings()
+    try:
+        resp = await client.chat.completions.create(
+            model=s.AZURE_OPENAI_DEPLOYMENT,
+            messages=[{
+                "role": "user",
+                "content": (
+                    "Del siguiente texto de una hoja de vida u otro documento, extrae y resume "
+                    "TODA la información relevante para reclutamiento. "
+                    "Formato de respuesta: lista con los datos encontrados así:\n"
+                    "Nombre completo: ...\nCédula: ...\nFecha nacimiento: ...\nCiudad: ...\n"
+                    "Correo: ...\nTeléfono: ...\nNivel educativo: ...\nCargo al que aplica: ...\n"
+                    "Experiencia laboral: (empresa, cargo, tiempo para cada una)\n"
+                    "Si un dato no aparece, omítelo. Solo incluye lo que está en el texto.\n\n"
+                    f"TEXTO DEL DOCUMENTO:\n{texto_crudo}"
+                )
+            }],
+            temperature=0,
+            max_tokens=600,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"[AraBot] Error resumiendo documento con GPT: {e}")
+        return texto_crudo
 
 
 def _generar_resumen(datos: dict) -> str:
@@ -664,12 +695,13 @@ async def whatsapp_json(payload: WaMensaje):
                 )
                 if texto and texto.startswith("__ERROR_DOC__"):
                     logger.error(f"[AraBot] Doc error {phone}: {texto}")
-                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (imagen), no puedo extraer texto. Por favor envíalo en Word o PDF con texto digital."}
+                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (foto), envíalo como imagen directamente. Si es Word o PDF con texto, intenta de nuevo."}
                 elif texto:
-                    msg = f"[Hoja de vida enviada. Información extraída:\n{texto[:2000]}]"
+                    resumen = await _resumir_documento_con_gpt(texto)
                     logger.info(f"[AraBot] Documento procesado {phone}: {len(texto)} chars")
+                    msg = f"[El candidato envió su hoja de vida. Datos encontrados:\n{resumen}]"
                 else:
-                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (imagen), no puedo extraer texto. Por favor envíalo en Word o PDF con texto digital."}
+                    return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (foto), envíalo como imagen directamente. Si es Word o PDF con texto, intenta de nuevo."}
 
             elif payload.imagen_base64:
                 texto_imagen = await _extraer_datos_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
