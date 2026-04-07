@@ -501,11 +501,11 @@ def _resumen_candidato_existente(c: Candidato) -> str:
     )
 
 
-async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
-    """Usa GPT-4o vision para extraer datos de una foto de cédula colombiana."""
+async def _extraer_datos_imagen(imagen_b64: str, mimetype: str) -> str:
+    """Usa GPT-4o vision para extraer cualquier dato de reclutamiento visible en la imagen."""
     client = _get_client()
     if not client:
-        return {}
+        return ""
     s = get_settings()
     try:
         resp = await client.chat.completions.create(
@@ -516,14 +516,13 @@ async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
                     {
                         "type": "text",
                         "text": (
-                            "Esta es una foto de una cédula de ciudadanía colombiana. "
-                            "Extrae los datos visibles y devuelve SOLO este JSON sin markdown:\n"
-                            '{"nombre_completo":null,"cedula":null,"fecha_nacimiento":null,"genero":null}\n'
-                            "- nombre_completo: nombre completo como aparece en la cédula\n"
-                            "- cedula: solo dígitos del número de documento\n"
-                            "- fecha_nacimiento: formato DD/MM/AAAA\n"
-                            "- genero: Masculino o Femenino según la cédula\n"
-                            "Si un dato no es legible, deja null."
+                            "Analiza esta imagen. Puede ser una cédula, hoja de vida, diploma u otro documento. "
+                            "Extrae TODA la información visible que sea relevante para reclutamiento: "
+                            "nombre completo, número de cédula, fecha de nacimiento, género, ciudad, "
+                            "correo, teléfono, nivel educativo, experiencia laboral, cargo, empresa, etc. "
+                            "Devuelve un resumen en texto plano con los datos encontrados, "
+                            "en formato: Campo: Valor (uno por línea). "
+                            "Si no encuentras datos relevantes, di exactamente: SIN_DATOS"
                         )
                     },
                     {
@@ -533,19 +532,14 @@ async def _extraer_cedula_imagen(imagen_b64: str, mimetype: str) -> dict:
                 ]
             }],
             temperature=0,
-            max_tokens=200,
+            max_tokens=500,
         )
         raw = resp.choices[0].message.content or ""
-        logger.info(f"[AraBot] Respuesta GPT vision: {raw[:200]}")
-        # Limpiar markdown si viene con ```json ... ```
-        clean = raw.strip()
-        if clean.startswith("```"):
-            clean = clean.split("```")[-2] if "```" in clean[3:] else clean
-            clean = clean.lstrip("`").lstrip("json").strip()
-        return json.loads(clean)
+        logger.info(f"[AraBot] GPT vision extrajo: {raw[:200]}")
+        return raw.strip()
     except Exception as e:
-        logger.error(f"[AraBot] Error leyendo cédula: {e}")
-        return {"__error__": str(e)[:100]}
+        logger.error(f"[AraBot] Error leyendo imagen: {e}")
+        return f"__ERROR__: {str(e)[:150]}"
 
 
 def _cargar_datos_candidato(c: Candidato) -> dict:
@@ -678,16 +672,14 @@ async def whatsapp_json(payload: WaMensaje):
                     return {"response": "No pude leer el documento 😕 Si es un PDF escaneado (imagen), no puedo extraer texto. Por favor envíalo en Word o PDF con texto digital."}
 
             elif payload.imagen_base64:
-                extraidos = await _extraer_cedula_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
-                if "__error__" in extraidos:
-                    return {"response": f"Error al leer imagen: {extraidos['__error__']}"}
-                campos_utiles = {k: v for k, v in extraidos.items() if v is not None}
-                if campos_utiles:
-                    datos.update(campos_utiles)
-                    logger.info(f"[AraBot] Cédula leída {phone}: {', '.join(campos_utiles)}")
-                    msg = f"[imagen de cédula — datos extraídos: {json.dumps(campos_utiles, ensure_ascii=False)}]"
+                texto_imagen = await _extraer_datos_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
+                if texto_imagen.startswith("__ERROR__"):
+                    return {"response": "No pude leer la imagen 😕 Intenta con mejor iluminación o más cerca."}
+                elif texto_imagen == "SIN_DATOS" or not texto_imagen:
+                    return {"response": "No encontré datos relevantes en la imagen 😕 Asegúrate de que el documento sea legible."}
                 else:
-                    return {"response": "No pude leer los datos de la imagen 😕 Intenta con mejor iluminación o envía la foto más derecha."}
+                    logger.info(f"[AraBot] Imagen procesada {phone}: {len(texto_imagen)} chars")
+                    msg = f"[El candidato envió una imagen con la siguiente información:\n{texto_imagen}]"
 
             elif not msg:
                 return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
