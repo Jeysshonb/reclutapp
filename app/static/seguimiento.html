@@ -302,6 +302,29 @@
         <button class="btn btn-outline" onclick="limpiar()">Limpiar</button>
       </div>
     </div>
+    <div class="filters-row" style="margin-top:8px">
+      <div class="fg" style="min-width:160px">
+        <label>Fecha desde</label>
+        <input type="date" id="fFechaDesde" onchange="buscar(0)">
+      </div>
+      <div class="fg" style="min-width:160px">
+        <label>Fecha hasta</label>
+        <input type="date" id="fFechaHasta" onchange="buscar(0)">
+      </div>
+      <div class="fg" style="min-width:auto;flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-outline" onclick="filtrarHoy()" title="Ver registros de hoy">📅 Hoy</button>
+      </div>
+      <div class="fg">
+        <label>Región</label>
+        <select id="fRegion" onchange="buscar(0)">
+          <option value="">Todas</option>
+          <option>R1</option><option>R2</option><option>R3</option><option>R4</option>
+          <option>R6</option><option>R7</option><option>R8</option><option>R9</option>
+          <option>R10</option><option>R11</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <!-- TABLA -->
@@ -413,17 +436,44 @@ async function init(){
   await Promise.all([cargarKpis(),cargarFiltros(),buscar()]);
 }
 
+function buildFilterParams(){
+  const p=new URLSearchParams();
+  const n=document.getElementById('fNegocio').value;
+  const r=document.getElementById('fReclutador').value;
+  const s=document.getElementById('fStatus').value;
+  const ro=document.getElementById('fResultadoOps').value;
+  const reg=document.getElementById('fRegion').value;
+  const fd=document.getElementById('fFechaDesde').value;
+  const fh=document.getElementById('fFechaHasta').value;
+  if(n)p.set('negocio',n);
+  if(r)p.set('reclutador',r);
+  if(s)p.set('status',s);
+  if(ro)p.set('resultado_operaciones',ro);
+  if(reg)p.set('region',reg);
+  if(fd)p.set('fecha_desde',fd);
+  if(fh)p.set('fecha_hasta',fh);
+  return p;
+}
+
 async function cargarKpis(){
   try{
-    const r=await fetch('/api/candidatos/stats/resumen',{headers:auth()});
+    const p=buildFilterParams();
+    const r=await fetch('/api/candidatos/stats/resumen?'+p.toString(),{headers:auth()});
     const d=await r.json();
-    document.getElementById('kTotal').textContent=d.total;
-    document.getElementById('kContratados').textContent=d.contratados;
-    document.getElementById('kAptosOp').textContent=d.aptos_operaciones;
-    document.getElementById('kEnProceso').textContent=d.en_proceso;
-    document.getElementById('kNoAptos').textContent=d.no_aptos;
-    document.getElementById('kNegra').textContent=d.lista_negra;
+    document.getElementById('kTotal').textContent=d.total.toLocaleString('es-CO');
+    document.getElementById('kContratados').textContent=d.contratados.toLocaleString('es-CO');
+    document.getElementById('kAptosOp').textContent=d.aptos_operaciones.toLocaleString('es-CO');
+    document.getElementById('kEnProceso').textContent=d.en_proceso.toLocaleString('es-CO');
+    document.getElementById('kNoAptos').textContent=d.no_aptos.toLocaleString('es-CO');
+    document.getElementById('kNegra').textContent=d.lista_negra.toLocaleString('es-CO');
   }catch(e){}
+}
+
+function filtrarHoy(){
+  const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('fFechaDesde').value=hoy;
+  document.getElementById('fFechaHasta').value=hoy;
+  buscar(0);
 }
 
 async function cargarFiltros(){
@@ -440,17 +490,9 @@ async function cargarFiltros(){
 }
 
 function buildParams(p=0){
-  const params=new URLSearchParams();
+  const params=buildFilterParams();
   const b=document.getElementById('fBuscar').value.trim();
-  const n=document.getElementById('fNegocio').value;
-  const r=document.getElementById('fReclutador').value;
-  const s=document.getElementById('fStatus').value;
-  const ro=document.getElementById('fResultadoOps').value;
   if(b)params.set('buscar',b);
-  if(n)params.set('negocio',n);
-  if(r)params.set('reclutador',r);
-  if(s)params.set('status',s);
-  if(ro)params.set('resultado_operaciones',ro);
   params.set('skip',p*limit);
   params.set('limit',limit);
   return params.toString();
@@ -458,6 +500,7 @@ function buildParams(p=0){
 
 async function buscar(p=0){
   page=p;
+  cargarKpis();
   try{
     const r=await fetch('/api/candidatos/?'+buildParams(p),{headers:auth()});
     if(r.status===401){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
@@ -540,20 +583,19 @@ function limpiar(){
   document.getElementById('fReclutador').value='';
   document.getElementById('fStatus').value='';
   document.getElementById('fResultadoOps').value='';
+  document.getElementById('fRegion').value='';
+  document.getElementById('fFechaDesde').value='';
+  document.getElementById('fFechaHasta').value='';
   buscar(0);
 }
 
 function exportarExcel(){
-  const n=document.getElementById('fNegocio').value;
-  const r=document.getElementById('fReclutador').value;
-  const s=document.getElementById('fStatus').value;
-  const params=new URLSearchParams();
-  if(n)params.set('negocio',n);
-  if(r)params.set('reclutador',r);
-  if(s)params.set('status',s);
+  const params=buildFilterParams();
+  const b=document.getElementById('fBuscar').value.trim();
+  if(b)params.set('buscar',b);
   params.set('token',token());
   window.open('/api/export/csv?'+params.toString(),'_blank');
-  toast('Descargando CSV...','info');
+  toast('Descargando CSV con filtros aplicados...','info');
 }
 
 document.getElementById('fBuscar').addEventListener('keydown',e=>{if(e.key==='Enter')buscar(0)});

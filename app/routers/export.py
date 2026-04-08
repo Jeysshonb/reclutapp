@@ -83,9 +83,9 @@ def _get_filtered(
     if region:
         q = q.filter(Candidato.region == region)
     if fecha_desde:
-        q = q.filter(Candidato.fecha_prog_operaciones >= fecha_desde)
+        q = q.filter(Candidato.created_at >= fecha_desde)
     if fecha_hasta:
-        q = q.filter(Candidato.fecha_prog_operaciones <= fecha_hasta)
+        q = q.filter(Candidato.created_at <= fecha_hasta + " 23:59:59")
     return q.order_by(Candidato.created_at.desc()).all()
 
 

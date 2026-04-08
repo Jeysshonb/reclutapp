@@ -2,10 +2,11 @@
 CRUD de candidatos — reclutapp.
 """
 from typing import Optional
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 import httpx
 
 from app.database import get_db
@@ -65,31 +66,41 @@ def historial_cedula(
 def resumen_stats(
     negocio: Optional[str] = Query(None),
     reclutador: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
     fecha_desde: Optional[str] = Query(None),
     fecha_hasta: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    q = db.query(Candidato).filter(Candidato.deleted_at.is_(None))
-    if negocio:
-        q = q.filter(Candidato.negocio == negocio)
-    if reclutador:
-        q = q.filter(Candidato.reclutador == reclutador)
+    def _base():
+        q = db.query(Candidato).filter(Candidato.deleted_at.is_(None))
+        if negocio:
+            q = q.filter(Candidato.negocio == negocio)
+        if reclutador:
+            q = q.filter(Candidato.reclutador == reclutador)
+        if region:
+            q = q.filter(Candidato.region == region)
+        if fecha_desde:
+            q = q.filter(Candidato.created_at >= fecha_desde)
+        if fecha_hasta:
+            q = q.filter(Candidato.created_at <= fecha_hasta + " 23:59:59")
+        return q
 
-    todos = q.all()
-    total = len(todos)
-    contratados = sum(1 for c in todos if (
-        (c.tipo_status and c.tipo_status.lower() == "contratado") or
-        c.fecha_contratacion is not None
-    ))
-    aptos_op = sum(1 for c in todos if c.resultado_operaciones and
-                   c.resultado_operaciones.upper() in ("APTO", "APTO CON RESTRICCION"))
-    no_aptos = sum(1 for c in todos if (
-        (c.tipo_status and "no apto" in c.tipo_status.lower()) or
-        (c.resultado_operaciones and "no apto" in c.resultado_operaciones.lower())
-    ))
-    lista_negra = sum(1 for c in todos if c.lista_negra)
-    en_proceso = sum(1 for c in todos if c.status and c.status.lower() == "en proceso")
+    # SQL COUNT — no carga registros en memoria (mucho más rápido con 9000+)
+    total        = _base().count()
+    contratados  = _base().filter(or_(
+        func.lower(Candidato.tipo_status) == "contratado",
+        Candidato.fecha_contratacion.isnot(None)
+    )).count()
+    aptos_op     = _base().filter(
+        Candidato.resultado_operaciones.ilike("apto%")
+    ).count()
+    no_aptos     = _base().filter(or_(
+        Candidato.tipo_status.ilike("%no apto%"),
+        Candidato.resultado_operaciones.ilike("%no apto%")
+    )).count()
+    en_proceso   = _base().filter(func.lower(Candidato.status) == "en proceso").count()
+    lista_negra  = _base().filter(Candidato.lista_negra == True).count()
 
     return {
         "total": total,
@@ -107,10 +118,13 @@ def resumen_stats(
 def listar_candidatos(
     negocio: Optional[str] = Query(None),
     reclutador: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
     cargo: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     resultado_operaciones: Optional[str] = Query(None),
     lista_negra: Optional[bool] = Query(None),
+    fecha_desde: Optional[str] = Query(None),
+    fecha_hasta: Optional[str] = Query(None),
     buscar: Optional[str] = Query(None, description="Busca por nombre o cédula"),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=500),
@@ -123,6 +137,8 @@ def listar_candidatos(
         q = q.filter(Candidato.negocio == negocio)
     if reclutador:
         q = q.filter(Candidato.reclutador == reclutador)
+    if region:
+        q = q.filter(Candidato.region == region)
     if cargo:
         q = q.filter(Candidato.cargo == cargo)
     if status:
@@ -135,6 +151,10 @@ def listar_candidatos(
         q = q.filter(Candidato.resultado_operaciones.ilike(resultado_operaciones))
     if lista_negra is not None:
         q = q.filter(Candidato.lista_negra == lista_negra)
+    if fecha_desde:
+        q = q.filter(Candidato.created_at >= fecha_desde)
+    if fecha_hasta:
+        q = q.filter(Candidato.created_at <= fecha_hasta + " 23:59:59")
     if buscar:
         term = f"%{buscar}%"
         q = q.filter(or_(Candidato.nombre.ilike(term), Candidato.cedula.ilike(term)))
