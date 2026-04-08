@@ -173,6 +173,17 @@ async def startup():
     Base.metadata.create_all(bind=engine)
     _migrar_columnas_faltantes()
 
+    # WAL mode — permite lecturas y escrituras simultáneas sin bloquearse
+    # Crítico para ferias con múltiples reclutadoras + bot escribiendo al mismo tiempo
+    try:
+        with engine.connect() as conn:
+            conn.execute(__import__("sqlalchemy").text("PRAGMA journal_mode=WAL"))
+            conn.execute(__import__("sqlalchemy").text("PRAGMA busy_timeout=5000"))
+            conn.commit()
+        logger.info("SQLite WAL mode activado")
+    except Exception as e:
+        logger.warning(f"No se pudo activar WAL mode: {e}")
+
     def _hash(clave: str) -> str:
         return _bcrypt.hashpw(clave.encode(), _bcrypt.gensalt()).decode()
 
