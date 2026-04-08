@@ -204,11 +204,16 @@ async function conectar() {
                     console.log(`[${phone}] ${pushName || ''}: ${texto.trim().substring(0, 60)}`);
 
                 } else if (msgType === 'imageMessage') {
-                    const buffer = await downloadMediaMessage(message, 'buffer', {});
-                    payload.message         = '[foto_cedula]';
-                    payload.imagen_base64   = buffer.toString('base64');
-                    payload.imagen_mimetype = msgContent.imageMessage.mimetype || 'image/jpeg';
-                    console.log(`[${phone}] ${pushName || ''}: [imagen ${Math.round(buffer.length/1024)}KB]`);
+                    const buffer = await downloadMediaMessage(message, 'buffer', {}, { logger: silentLogger, reuploadRequest: sock.updateMediaMessage });
+                    if (!buffer || buffer.length === 0) {
+                        console.warn(`[${phone}] imagen vacía — descarga fallida`);
+                        payload.message = '[foto_cedula]';
+                    } else {
+                        payload.message         = '[foto_cedula]';
+                        payload.imagen_base64   = buffer.toString('base64');
+                        payload.imagen_mimetype = msgContent.imageMessage.mimetype || 'image/jpeg';
+                        console.log(`[${phone}] ${pushName || ''}: [imagen ${Math.round(buffer.length/1024)}KB]`);
+                    }
 
                 } else if (msgType === 'audioMessage' || msgType === 'pttMessage') {
                     const buffer = await downloadMediaMessage(message, 'buffer', {});

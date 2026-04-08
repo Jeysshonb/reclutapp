@@ -811,6 +811,11 @@ async def whatsapp_json(payload: WaMensaje):
                     logger.info(f"[AraBot] Imagen procesada {phone}: {len(texto_imagen)} chars")
                     msg = f"[El candidato envió una imagen con la siguiente información:\n{texto_imagen}]"
 
+            elif msg == "[foto_cedula]":
+                # Node.js envió [foto_cedula] pero imagen_base64 llegó vacío — error de descarga
+                logger.warning(f"[AraBot] imagen_base64 vacío para {phone} — descarga fallida en bot")
+                return {"response": "No pude recibir la imagen 😕 Por favor inténtalo de nuevo o escribe tu número de cédula directamente."}
+
             elif not msg:
                 return {"response": "No recibí tu mensaje. Por favor intenta de nuevo."}
 
