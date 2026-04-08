@@ -62,49 +62,61 @@ EDAD Y CUMPLEAÑOS:
 - Menciona la edad naturalmente: "¡Genial! Tienes *X años* 😊"
 - Si HOY es exactamente el día y mes de su cumpleaños (mismo DD/MM que la fecha actual): felicítalo PRIMERO con entusiasmo antes de continuar: "¡Feliz cumpleaños! 🎂🎉 ¡Qué bueno que estás buscando nuevas oportunidades justamente en tu día!"
 
-DATOS PERSONALES:
-- cedula: número de cédula (solo dígitos) — PRIMER dato a recopilar
+DATOS PERSONALES (recopilar todos):
+- cedula: número de cédula (solo dígitos) — PRIMER dato
 - nombre_completo: nombre completo
 - fecha_nacimiento: DD/MM/AAAA
 - genero: Masculino / Femenino / Otro
-- telefono: número de celular colombiano (10 dígitos, ej: 3001234567) — pregunta: "¿Cuál es tu número de celular para que podamos contactarte?"
-- correo: correo electrónico (solo acepta dominios comunes: gmail, hotmail, outlook, yahoo, icloud, live)
-- ciudad_aplica: ciudad donde aplica (el departamento se determina automáticamente).
-  IMPORTANTE — si el candidato dice "Bogotá" o "Bogotá D.C.", pregunta SIEMPRE su localidad:
-  "¿En qué localidad de Bogotá vives o aplicas? (ej: Kennedy, Suba, Usaquén, Engativá...)"
-  Guarda en ciudad_aplica la LOCALIDAD específica (ej: "Kennedy"), NO "Bogotá".
+- telefono: celular colombiano (10 dígitos) — pregunta: "¿Cuál es tu número de celular?"
+- correo: correo electrónico (dominios: gmail, hotmail, outlook, yahoo, icloud, live)
+- direccion: dirección de residencia incluyendo barrio — pregunta: "¿Cuál es tu dirección de residencia con el barrio?"
+- ciudad_aplica: ciudad donde aplica.
+  IMPORTANTE — si dice "Bogotá" o "Bogotá D.C.", pregunta su localidad:
+  "¿En qué localidad de Bogotá vives? (ej: Kennedy, Suba, Usaquén, Engativá...)"
+  Guarda la LOCALIDAD (ej: "Kennedy"), NO "Bogotá".
   Localidades válidas: Barrios Unidos, Chapinero, Engativá, Fontibón, Suba, Teusaquillo, Usaquén,
   Santa Fe, Puente Aranda, Tunjuelito, Usme, Ciudad Bolívar, Rafael Uribe Uribe, San Cristóbal,
   Kennedy, Bosa, Los Mártires, Antonio Nariño.
 
-DATOS LABORALES:
-- cargo: cargo al que aspira (opciones: Operador de Tienda en Formación, Operador de Tienda,
+DATOS DEL PROCESO (recopilar todos):
+- cargo: cargo al que aspira — opciones: Operador de Tienda en Formación, Operador de Tienda,
   Operador de Tienda y Montacarga, Operador Part Time, Supervisor Junior de Tienda,
-  Supervisor de Tienda, Jefe de Tienda, Aprendiz SENA)
-- fuente: cómo se enteró (Computrabajo, Magneto, Indeed, SENA, Referido, Redes Sociales,
-  Feria Laboral, Voz a Voz, Base de Datos Interna)
-- nivel_academico: Bachiller / Técnico / Tecnólogo / Universitario / Posgrado
+  Supervisor de Tienda, Jefe de Tienda, Aprendiz SENA
+- fuente: cómo se enteró — Computrabajo, Magneto, Indeed, SENA, Referido, Redes Sociales,
+  Feria Laboral, Voz a Voz, Base de Datos Interna
+
+EDUCACIÓN (recopilar todos):
+- nivel_academico: Primaria / Noveno / Bachiller / Técnico / Tecnólogo / Profesional / Especialización / Maestría
+- anio_graduacion: año en que se graduó (ej: 2015) — pregunta: "¿En qué año terminaste tus estudios?"
+- titulo: título o carrera obtenida — pregunta: "¿Cuál es tu título o carrera?" (si dice Bachiller, pon "Bachiller")
+
+SITUACIÓN LABORAL (recopilar todos):
 - situacion_laboral: Empleado / Desempleado
-- aspiracion_salarial: número en pesos colombianos (ej: 1350000)
+- aspiracion_salarial: número en pesos (ej: 1750905). Si dice "salario mínimo" usa 1750905.
+- Si está EMPLEADO, pregunta también:
+  - tipo_contrato: Término Fijo / Indefinido / Obra Labor / Prestación de Servicios / Temporal
+  - salario_actual: salario actual en pesos
+- Si está DESEMPLEADO, pregunta también:
+  - meses_desempleado: hace cuántos meses está sin trabajo (número)
 
 FAMILIA Y DISPONIBILIDAD:
 - tiene_hijos: Sí / No
-- disponibilidad_desplazamiento: ¿está dispuesto a desplazarse a otras ciudades? Sí / No
+- disponibilidad_desplazamiento: ¿dispuesto a trabajar en otras ciudades? Sí / No
 
-EXPERIENCIA PREVIA (solo la más reciente, si tiene):
-- exp1_empresa: nombre de la empresa anterior (o "Sin experiencia")
+EXPERIENCIA LABORAL (la más reciente, si tiene):
+- exp1_empresa: empresa anterior (o "Sin experiencia")
 - exp1_cargo: cargo que desempeñó
-- exp1_tiempo: cuánto tiempo trabajó ahí (ej: "2 años", "6 meses")
+- exp1_tiempo: cuánto tiempo trabajó (ej: "2 años", "6 meses")
 
 REGLAS:
 - Habla en español colombiano natural, cálido y profesional.
-- Usa máximo 1-2 emojis por mensaje (excepto en el saludo de cumpleaños que puedes usar hasta 3).
-- Si algo no queda claro, pide amablemente que repita.
-- Si el candidato pregunta algo sobre Ara o el proceso, respóndele brevemente antes de continuar.
-- Para experiencia, si dice que no tiene, acepta "Sin experiencia" en los 3 campos de exp.
+- Combina preguntas cuando sea natural (máximo 2-3 por mensaje).
+- Usa máximo 1-2 emojis por mensaje (excepto cumpleaños: hasta 3).
 - NUNCA inventes datos que el candidato no haya dado.
-- Para correo: si el dominio no es gmail/hotmail/outlook/yahoo/icloud/live, pregunta si es correcto.
-- Cuando tengas los 17 datos, despídete indicando que un reclutador lo contactará pronto.
+- Para correo: si el dominio no es común, pregunta si es correcto.
+- Cuando tengas los 17 datos OBLIGATORIOS completos, despídete indicando que un reclutador lo contactará.
+- Los datos adicionales (direccion, anio_graduacion, titulo, tipo_contrato, salario_actual, meses_desempleado)
+  recógelos siempre que puedas — son importantes para el formulario.
 
 FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, sin texto extra):
 {
@@ -116,11 +128,17 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
     "genero": null,
     "telefono": null,
     "correo": null,
+    "direccion": null,
     "ciudad_aplica": null,
     "cargo": null,
     "fuente": null,
     "nivel_academico": null,
+    "anio_graduacion": null,
+    "titulo": null,
     "situacion_laboral": null,
+    "tipo_contrato": null,
+    "salario_actual": null,
+    "meses_desempleado": null,
     "aspiracion_salarial": null,
     "tiene_hijos": null,
     "disponibilidad_desplazamiento": null,
@@ -132,7 +150,10 @@ FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, si
 }
 
 - En "datos" pon los valores confirmados (null si aún no los tienes).
-- "completo": true SOLO cuando los 17 campos tengan valor (no null).
+- "completo": true SOLO cuando los 17 campos OBLIGATORIOS tengan valor:
+  nombre_completo, cedula, fecha_nacimiento, genero, telefono, correo, ciudad_aplica,
+  cargo, fuente, nivel_academico, situacion_laboral, aspiracion_salarial, tiene_hijos,
+  disponibilidad_desplazamiento, exp1_empresa, exp1_cargo, exp1_tiempo.
 - "mensaje" es exactamente lo que se envía por WhatsApp.
 """
 
@@ -253,18 +274,18 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         tel_wa = phone.replace("whatsapp:", "")
         tel = datos.get("telefono") or tel_wa
 
-        sal_raw = str(datos.get("aspiracion_salarial") or "0").lower()
-        # "salario mínimo" / "minimo" → valor SMMLV Colombia 2025
-        if any(w in sal_raw for w in ("minim", "mínimo", "minimo", "smlv", "smmlv")):
-            salario = 1750905.0
-        else:
+        def _parsear_salario(raw):
+            s = str(raw or "0").lower()
+            if any(w in s for w in ("minim", "mínimo", "minimo", "smlv", "smmlv")):
+                return 1750905.0
             try:
-                # Formato colombiano: "1.350.000" → quitar puntos de miles → float
-                sal_limpio = sal_raw.replace(".", "").replace(",", "").replace("$", "").replace(" ", "")
-                sal_limpio = "".join(c for c in sal_limpio if c.isdigit())
-                salario = float(sal_limpio) if sal_limpio else None
+                limpio = "".join(c for c in s.replace(".", "").replace(",", "").replace("$", "").replace(" ", "") if c.isdigit())
+                return float(limpio) if limpio else None
             except Exception:
-                salario = None
+                return None
+
+        salario         = _parsear_salario(datos.get("aspiracion_salarial"))
+        salario_actual  = _parsear_salario(datos.get("salario_actual"))
 
         tiene_hijos_raw = datos.get("tiene_hijos", "")
         tiene_hijos = str(tiene_hijos_raw).lower() in ("sí", "si", "s", "true", "1")
@@ -288,18 +309,30 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         else:
             municipio = ciudad
 
+        # meses_desempleado — convertir a int si es posible
+        try:
+            meses_desemp = int(str(datos.get("meses_desempleado") or "").strip()) if datos.get("meses_desempleado") else None
+        except Exception:
+            meses_desemp = None
+
         campos = dict(
             nombre=datos.get("nombre_completo", ""),
             fecha_nacimiento=datos.get("fecha_nacimiento"),
             genero=datos.get("genero"),
             correo=datos.get("correo"),
+            direccion=datos.get("direccion"),
             ciudad_aplica=ciudad,
             departamento=departamento,
             municipio=municipio,
             cargo=datos.get("cargo"),
             fuente=datos.get("fuente"),
             nivel_academico=datos.get("nivel_academico"),
+            anio_graduacion=datos.get("anio_graduacion"),
+            titulo=datos.get("titulo"),
             situacion_laboral=datos.get("situacion_laboral"),
+            tipo_contrato=datos.get("tipo_contrato"),
+            salario_actual=salario_actual,
+            meses_desempleado=meses_desemp,
             aspiracion_salarial=salario,
             tiene_hijos=tiene_hijos,
             disponibilidad_desplazamiento=disponibilidad,
@@ -681,18 +714,25 @@ def _cargar_datos_candidato(c: Candidato) -> dict:
         "fecha_nacimiento": c.fecha_nacimiento,
         "genero": c.genero,
         "correo": c.correo,
+        "direccion": c.direccion,
         "ciudad_aplica": c.ciudad_aplica,
         "departamento": c.departamento,
         "cargo": c.cargo,
         "fuente": c.fuente,
         "nivel_academico": c.nivel_academico,
+        "anio_graduacion": c.anio_graduacion,
+        "titulo": c.titulo,
         "situacion_laboral": c.situacion_laboral,
+        "tipo_contrato": c.tipo_contrato,
+        "salario_actual": str(int(c.salario_actual)) if c.salario_actual else None,
+        "meses_desempleado": str(c.meses_desempleado) if c.meses_desempleado is not None else None,
         "aspiracion_salarial": str(int(c.aspiracion_salarial)) if c.aspiracion_salarial else None,
         "tiene_hijos": "Sí" if c.tiene_hijos else ("No" if c.tiene_hijos is not None else None),
         "disponibilidad_desplazamiento": "Sí" if c.disponibilidad_desplazamiento else ("No" if c.disponibilidad_desplazamiento is not None else None),
         "exp1_empresa": c.exp1_empresa,
         "exp1_cargo": c.exp1_cargo,
         "exp1_tiempo": c.exp1_funciones,
+        "telefono": c.telefono_contacto,
     }.items() if v is not None}
 
 
