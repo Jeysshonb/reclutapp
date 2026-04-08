@@ -83,6 +83,27 @@ async def health():
     return {"status": "ok", "version": settings.APP_VERSION, "app": "reclutapp"}
 
 
+# ── Migración automática de columnas faltantes ────────────────────────────────
+def _migrar_columnas_faltantes():
+    """Agrega columnas nuevas del modelo que no existen aún en la BD (SQLite)."""
+    from app.database import engine
+    columnas_nuevas = [
+        ("candidatos", "localidad",          "VARCHAR(100)"),
+        ("candidatos", "zona",               "VARCHAR(50)"),
+        ("candidatos", "region",             "VARCHAR(20)"),
+    ]
+    with engine.connect() as conn:
+        for tabla, columna, tipo in columnas_nuevas:
+            try:
+                conn.execute(__import__("sqlalchemy").text(
+                    f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}"
+                ))
+                conn.commit()
+                logger.info(f"Migración: columna '{columna}' agregada a '{tabla}'")
+            except Exception:
+                pass  # ya existe — ignorar
+
+
 # ── Startup ────────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup():
@@ -95,6 +116,7 @@ async def startup():
         os.makedirs(db_dir, exist_ok=True)
 
     Base.metadata.create_all(bind=engine)
+    _migrar_columnas_faltantes()
 
     def _hash(clave: str) -> str:
         return _bcrypt.hashpw(clave.encode(), _bcrypt.gensalt()).decode()
