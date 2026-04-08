@@ -301,8 +301,11 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             negocio="Tiendas Ara",
             status=status,
         )
-        # Actualizar si ya existe, crear si no
-        c = db.query(Candidato).filter(Candidato.cedula == cedula_limpia).first() if cedula_limpia else None
+        # Actualizar si ya existe (y no está borrado), crear si no
+        c = db.query(Candidato).filter(
+            Candidato.cedula == cedula_limpia,
+            Candidato.deleted_at.is_(None)
+        ).first() if cedula_limpia else None
         if c:
             for k, v in campos.items():
                 if v is not None:
