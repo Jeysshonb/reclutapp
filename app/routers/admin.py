@@ -254,3 +254,28 @@ async def upload_db(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/db-check", tags=["administración"])
+def db_check(
+    _: Usuario = Depends(require_role("administrador")),
+):
+    """Verifica columnas de la tabla candidatos y wa_sessions en la BD."""
+    from app.database import engine
+    import sqlalchemy as sa
+    with engine.connect() as conn:
+        tablas = {}
+        for tabla in ("candidatos", "wa_sessions", "wa_archivos"):
+            try:
+                rows = conn.execute(sa.text(f"PRAGMA table_info({tabla})")).fetchall()
+                tablas[tabla] = [r[1] for r in rows]  # r[1] = nombre columna
+            except Exception as e:
+                tablas[tabla] = f"ERROR: {e}"
+        # Verificar columnas clave
+        candidatos_cols = tablas.get("candidatos", [])
+        faltantes = [c for c in ("localidad", "zona", "region") if c not in candidatos_cols]
+        return {
+            "ok": len(faltantes) == 0,
+            "columnas_faltantes": faltantes,
+            "tablas": tablas,
+        }
