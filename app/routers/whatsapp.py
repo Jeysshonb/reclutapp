@@ -21,6 +21,17 @@ from app.ciudades_ara import buscar_ciudad
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhook", tags=["whatsapp"])
 
+# Lock por cédula — evita inserciones duplicadas cuando varios partial saves corren en paralelo
+import threading
+_SAVE_LOCKS: dict = {}
+_LOCKS_MUTEX = threading.Lock()
+
+def _get_save_lock(key: str) -> threading.Lock:
+    with _LOCKS_MUTEX:
+        if key not in _SAVE_LOCKS:
+            _SAVE_LOCKS[key] = threading.Lock()
+        return _SAVE_LOCKS[key]
+
 TIMEOUT_MINUTOS = 30
 
 DOMINIOS_EMAIL = ("gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "icloud.com",
@@ -265,6 +276,13 @@ def _enriquecer_con_ciudad(datos: dict) -> dict:
 
 
 def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
+    cedula_key = "".join(c for c in str(datos.get("cedula") or "") if c.isdigit()) or phone
+    lock = _get_save_lock(cedula_key)
+    with lock:  # serializa saves del mismo candidato — evita duplicados por race condition
+        _guardar_candidato_locked(datos, phone, parcial)
+
+
+def _guardar_candidato_locked(datos: dict, phone: str, parcial: bool = False) -> None:
     db = SessionLocal()
     try:
         tel_wa = phone.replace("whatsapp:", "")
@@ -952,7 +970,7 @@ async def whatsapp_json(payload: WaMensaje):
             elif payload.documento_base64:
                 cedula_actual = datos.get("cedula")
                 nombre_doc = payload.documento_nombre or "documento"
-                asyncio.create_task(_subir_blob(payload.documento_base64, nombre_doc, "pdf", phone, cedula_actual))
+                await _subir_blob(payload.documento_base64, nombre_doc, "pdf", phone, cedula_actual)
                 texto = await _extraer_texto_documento(
                     payload.documento_base64,
                     payload.documento_mimetype or "",
@@ -969,7 +987,8 @@ async def whatsapp_json(payload: WaMensaje):
 
             elif payload.imagen_base64:
                 cedula_actual = datos.get("cedula")
-                asyncio.create_task(_subir_blob(payload.imagen_base64, "imagen.jpg", "imagen", phone, cedula_actual))
+                # await garantiza que la foto quede guardada en blob antes de responder
+                await _subir_blob(payload.imagen_base64, "imagen.jpg", "imagen", phone, cedula_actual)
                 texto_imagen = await _extraer_datos_imagen(payload.imagen_base64, payload.imagen_mimetype or "image/jpeg")
                 if texto_imagen.startswith("__ERROR__"):
                     return {"response": "No pude leer la imagen 😕 Intenta con mejor iluminación o más cerca."}

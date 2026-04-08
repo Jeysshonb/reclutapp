@@ -244,8 +244,12 @@ async function conectar() {
             } catch(err) {
                 console.error(`Error procesando mensaje: ${err.message}`);
                 try {
-                    await sock.sendMessage(message.key.remoteJid,
-                        { text: 'Lo siento, tuve un problema tecnico. Por favor intenta en un momento.' });
+                    // Si es timeout (ECONNABORTED / timeout) el servidor está despertando — pedir reenvío
+                    const esTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout') || err.response?.status >= 500;
+                    const msgError = esTimeout
+                        ? '⏳ Un momento, estoy cargando... Por favor envía tu mensaje de nuevo 😊'
+                        : 'Ocurrió un error. Por favor intenta de nuevo.';
+                    await sock.sendMessage(message.key.remoteJid, { text: msgError });
                 } catch(e) {}
             }
         }
