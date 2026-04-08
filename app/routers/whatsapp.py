@@ -275,13 +275,23 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         exp_funciones = datos.get("exp1_tiempo")
 
         cedula_limpia = "".join(c for c in str(datos.get("cedula") or "") if c.isdigit())
+
+        # municipio: para Bogotá es "Bogotá D.C.", para otras ciudades es ciudad_aplica
+        ciudad = datos.get("ciudad_aplica")
+        departamento = datos.get("departamento")
+        if departamento == "Bogotá D.C.":
+            municipio = "Bogotá D.C."
+        else:
+            municipio = ciudad
+
         campos = dict(
             nombre=datos.get("nombre_completo", ""),
             fecha_nacimiento=datos.get("fecha_nacimiento"),
             genero=datos.get("genero"),
             correo=datos.get("correo"),
-            ciudad_aplica=datos.get("ciudad_aplica"),
-            departamento=datos.get("departamento"),
+            ciudad_aplica=ciudad,
+            departamento=departamento,
+            municipio=municipio,
             cargo=datos.get("cargo"),
             fuente=datos.get("fuente"),
             nivel_academico=datos.get("nivel_academico"),
