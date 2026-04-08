@@ -253,9 +253,12 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         tel_wa = phone.replace("whatsapp:", "")
         tel = datos.get("telefono") or tel_wa
 
-        sal_raw = datos.get("aspiracion_salarial") or "0"
+        sal_raw = str(datos.get("aspiracion_salarial") or "0")
         try:
-            salario = float("".join(c for c in str(sal_raw) if c.isdigit() or c == "."))
+            # Formato colombiano: "1.350.000" → quitar puntos de miles → float
+            sal_limpio = sal_raw.replace(".", "").replace(",", "").replace("$", "").replace(" ", "")
+            sal_limpio = "".join(c for c in sal_limpio if c.isdigit())
+            salario = float(sal_limpio) if sal_limpio else None
         except Exception:
             salario = None
 
@@ -310,8 +313,9 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         db.commit()
         logger.info(f"[AraBot] Candidato {'parcial' if parcial else 'completo'} guardado: {c.nombre} / {tel}")
     except Exception as e:
-        logger.error(f"[AraBot] Error guardando candidato: {e}", exc_info=True)
+        logger.error(f"[AraBot] ERROR guardando candidato — datos: {datos} — error: {e}", exc_info=True)
         db.rollback()
+        raise  # propagar para que asyncio.to_thread lo surfacee
     finally:
         db.close()
 
@@ -873,10 +877,15 @@ async def whatsapp_json(payload: WaMensaje):
             history = history[-20:]
 
         if completo:
-            session.step = "done"
-            await asyncio.to_thread(_guardar_candidato, datos_nuevos, phone, False)
-            resumen = _generar_resumen(datos_nuevos)
-            mensaje_final = f"{mensaje_bot}\n\n{resumen}"
+            try:
+                await asyncio.to_thread(_guardar_candidato, datos_nuevos, phone, False)
+                session.step = "done"
+                resumen = _generar_resumen(datos_nuevos)
+                mensaje_final = f"{mensaje_bot}\n\n{resumen}"
+            except Exception as save_err:
+                logger.error(f"[AraBot] Fallo al guardar candidato completo: {save_err}", exc_info=True)
+                session.step = "activo"
+                mensaje_final = "Tuve un problema técnico al guardar tu información 😕 Por favor envía tu respuesta de nuevo en un momento."
         else:
             session.step = "activo"
             mensaje_final = mensaje_bot
