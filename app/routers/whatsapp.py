@@ -361,7 +361,9 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
                         continue
                     setattr(c, k, v)
         else:
-            c = Candidato(cedula=cedula_limpia, **campos)
+            # Hora colombiana (UTC-5) para created_at — control de cuándo se hizo la entrevista
+            ahora_col = datetime.now(timezone(timedelta(hours=-5))).replace(tzinfo=None)
+            c = Candidato(cedula=cedula_limpia, created_at=ahora_col, **campos)
             db.add(c)
         db.commit()
         logger.info(f"[AraBot] Candidato {'parcial' if parcial else 'completo'} guardado: {c.nombre} / {tel}")
