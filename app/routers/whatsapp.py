@@ -323,6 +323,9 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         if c:
             for k, v in campos.items():
                 if v is not None:
+                    # No degradar status si ya está en un estado más avanzado que Incompleto
+                    if k == "status" and parcial and c.status and "Incompleto" not in c.status:
+                        continue
                     setattr(c, k, v)
         else:
             c = Candidato(cedula=cedula_limpia, **campos)
@@ -907,6 +910,10 @@ async def whatsapp_json(payload: WaMensaje):
         else:
             session.step = "activo"
             mensaje_final = mensaje_bot
+            # Auto-guardar parcial en background si ya tenemos cédula + nombre
+            # Así el candidato queda visible en la plataforma aunque abandone la conversación
+            if datos_nuevos.get("cedula") and datos_nuevos.get("nombre_completo"):
+                asyncio.create_task(asyncio.to_thread(_guardar_candidato, {**datos_nuevos}, phone, True))
 
         session.data = json.dumps({"history": history, "datos": datos_nuevos, "meta": meta}, ensure_ascii=False)
         db.commit()
