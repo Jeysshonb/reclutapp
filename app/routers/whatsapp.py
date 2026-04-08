@@ -256,7 +256,7 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         sal_raw = str(datos.get("aspiracion_salarial") or "0").lower()
         # "salario mínimo" / "minimo" → valor SMMLV Colombia 2025
         if any(w in sal_raw for w in ("minim", "mínimo", "minimo", "smlv", "smmlv")):
-            salario = 1300000.0
+            salario = 1750905.0
         else:
             try:
                 # Formato colombiano: "1.350.000" → quitar puntos de miles → float
