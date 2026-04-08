@@ -301,13 +301,16 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
 
         cedula_limpia = "".join(c for c in str(datos.get("cedula") or "") if c.isdigit())
 
-        # municipio: para Bogotá es "Bogotá D.C.", para otras ciudades es ciudad_aplica
+        # municipio y localidad según ciudad
         ciudad = datos.get("ciudad_aplica")
         departamento = datos.get("departamento")
-        if departamento == "Bogotá D.C.":
+        es_bogota = departamento in ("Bogotá D.C.", "BOGOTA", "Bogota")
+        if es_bogota:
             municipio = "Bogotá D.C."
+            localidad  = ciudad   # ej: "Suba", "Kennedy"
         else:
             municipio = ciudad
+            localidad  = None
 
         # meses_desempleado — convertir a int si es posible
         try:
@@ -324,6 +327,7 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             ciudad_aplica=ciudad,
             departamento=departamento,
             municipio=municipio,
+            localidad=localidad,
             cargo=datos.get("cargo"),
             fuente=datos.get("fuente"),
             nivel_academico=datos.get("nivel_academico"),
@@ -646,6 +650,12 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
             data = base64.b64decode(data_b64)
             blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
             client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
+            # Crear contenedor si no existe
+            try:
+                client.create_container("whatsapp-docs")
+                logger.info("[AraBot] Contenedor whatsapp-docs creado")
+            except Exception:
+                pass  # ya existe
             container = client.get_container_client("whatsapp-docs")
             container.upload_blob(blob_name, data, overwrite=True)
             return f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}"
@@ -664,7 +674,7 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
         logger.info(f"[AraBot] Archivo subido: {url}")
         return url
     except Exception as e:
-        logger.error(f"[AraBot] Error subiendo blob: {e}")
+        logger.error(f"[AraBot] Error subiendo blob ({tipo}/{nombre}): {e}", exc_info=True)
         return None
 
 
