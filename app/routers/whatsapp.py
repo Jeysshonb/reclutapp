@@ -21,7 +21,7 @@ from app.ciudades_ara import buscar_ciudad
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhook", tags=["whatsapp"])
 
-TIMEOUT_MINUTOS = 5
+TIMEOUT_MINUTOS = 30
 
 DOMINIOS_EMAIL = ("gmail.com", "hotmail.com", "outlook.com", "yahoo.com", "icloud.com",
                   "live.com", "hotmail.es", "yahoo.es", "outlook.es")
@@ -205,7 +205,7 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
             model=s.AZURE_OPENAI_DEPLOYMENT,
             messages=messages,
             temperature=0.3,
-            max_tokens=380,
+            max_tokens=900,
             response_format={"type": "json_object"},
         )
         result = json.loads(resp.choices[0].message.content)
@@ -253,14 +253,18 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         tel_wa = phone.replace("whatsapp:", "")
         tel = datos.get("telefono") or tel_wa
 
-        sal_raw = str(datos.get("aspiracion_salarial") or "0")
-        try:
-            # Formato colombiano: "1.350.000" → quitar puntos de miles → float
-            sal_limpio = sal_raw.replace(".", "").replace(",", "").replace("$", "").replace(" ", "")
-            sal_limpio = "".join(c for c in sal_limpio if c.isdigit())
-            salario = float(sal_limpio) if sal_limpio else None
-        except Exception:
-            salario = None
+        sal_raw = str(datos.get("aspiracion_salarial") or "0").lower()
+        # "salario mínimo" / "minimo" → valor SMMLV Colombia 2025
+        if any(w in sal_raw for w in ("minim", "mínimo", "minimo", "smlv", "smmlv")):
+            salario = 1300000.0
+        else:
+            try:
+                # Formato colombiano: "1.350.000" → quitar puntos de miles → float
+                sal_limpio = sal_raw.replace(".", "").replace(",", "").replace("$", "").replace(" ", "")
+                sal_limpio = "".join(c for c in sal_limpio if c.isdigit())
+                salario = float(sal_limpio) if sal_limpio else None
+            except Exception:
+                salario = None
 
         tiene_hijos_raw = datos.get("tiene_hijos", "")
         tiene_hijos = str(tiene_hijos_raw).lower() in ("sí", "si", "s", "true", "1")
@@ -708,8 +712,11 @@ async def whatsapp_json(payload: WaMensaje):
             msg_lower = msg.lower().strip()
             afirmativo = any(w in msg_lower for w in ["si", "sí", "yes", "ok", "dale", "claro", "acepto", "listo", "okay", "sure", "1"])
             if afirmativo:
+                # Pre-llenar teléfono desde número WhatsApp (quitar prefijo país si tiene)
+                tel_wa = phone.replace("whatsapp:", "")
+                tel_pre = tel_wa[-10:] if len(tel_wa) >= 10 else tel_wa
                 session.step = "activo"
-                session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
+                session.data = json.dumps({"history": [], "datos": {"telefono": tel_pre}, "meta": {}})
                 db.commit()
                 return {"response": (
                     "¡Perfecto! Gracias por aceptar 😊\n\n"
