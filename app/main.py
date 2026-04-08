@@ -88,9 +88,64 @@ def _migrar_columnas_faltantes():
     """Agrega columnas nuevas del modelo que no existen aún en la BD (SQLite)."""
     from app.database import engine
     columnas_nuevas = [
-        ("candidatos", "localidad",          "VARCHAR(100)"),
-        ("candidatos", "zona",               "VARCHAR(50)"),
-        ("candidatos", "region",             "VARCHAR(20)"),
+        # Agregadas en iteraciones anteriores
+        ("candidatos", "localidad",                       "VARCHAR(100)"),
+        ("candidatos", "zona",                            "VARCHAR(50)"),
+        ("candidatos", "region",                          "VARCHAR(20)"),
+        # Sección 0 — proceso
+        ("candidatos", "tipo_formulario",                 "VARCHAR(100)"),
+        # Sección 3 — inclusión laboral
+        ("candidatos", "tiene_discapacidad",              "BOOLEAN DEFAULT 0"),
+        ("candidatos", "tipo_discapacidad",               "VARCHAR(200)"),
+        ("candidatos", "tiene_certificado_discapacidad",  "BOOLEAN DEFAULT 0"),
+        # Sección 4 — familia y disponibilidad
+        ("candidatos", "num_hijos",                       "INTEGER"),
+        ("candidatos", "edades_hijos",                    "VARCHAR(100)"),
+        ("candidatos", "apoyo_cuidado",                   "VARCHAR(200)"),
+        ("candidatos", "familiar_en_ara",                 "BOOLEAN DEFAULT 0"),
+        ("candidatos", "quien_familiar_ara",              "VARCHAR(200)"),
+        ("candidatos", "medio_transporte",                "VARCHAR(50)"),
+        ("candidatos", "destino_desplazamiento",          "VARCHAR(200)"),
+        ("candidatos", "disponibilidad_reubicacion",      "BOOLEAN DEFAULT 0"),
+        ("candidatos", "destino_reubicacion",             "VARCHAR(200)"),
+        ("candidatos", "comentarios_disponibilidad",      "TEXT"),
+        # Sección 5 — educación
+        ("candidatos", "estudia_actualmente",             "BOOLEAN DEFAULT 0"),
+        ("candidatos", "modalidad_estudio",               "VARCHAR(50)"),
+        ("candidatos", "proyectos_corto_plazo",           "TEXT"),
+        # Sección 6 — situación laboral
+        ("candidatos", "justificacion_cambio_indefinido", "TEXT"),
+        # Sección 7 — experiencia laboral (campos detallados)
+        ("candidatos", "exp1_actividad",                  "VARCHAR(200)"),
+        ("candidatos", "exp1_ciudad",                     "VARCHAR(100)"),
+        ("candidatos", "exp1_salario",                    "FLOAT"),
+        ("candidatos", "exp1_fecha_inicio",               "VARCHAR(20)"),
+        ("candidatos", "exp1_fecha_retiro",               "VARCHAR(20)"),
+        ("candidatos", "exp1_motivo_retiro",              "VARCHAR(150)"),
+        ("candidatos", "exp1_argumentacion_mr",           "TEXT"),
+        ("candidatos", "exp1_tiene_certificado",          "BOOLEAN DEFAULT 0"),
+        ("candidatos", "exp2_empresa",                    "VARCHAR(200)"),
+        ("candidatos", "exp2_cargo",                      "VARCHAR(150)"),
+        ("candidatos", "exp2_actividad",                  "VARCHAR(200)"),
+        ("candidatos", "exp2_ciudad",                     "VARCHAR(100)"),
+        ("candidatos", "exp2_salario",                    "FLOAT"),
+        ("candidatos", "exp2_fecha_inicio",               "VARCHAR(20)"),
+        ("candidatos", "exp2_fecha_retiro",               "VARCHAR(20)"),
+        ("candidatos", "exp2_funciones",                  "TEXT"),
+        ("candidatos", "exp2_motivo_retiro",              "VARCHAR(150)"),
+        ("candidatos", "exp2_argumentacion_mr",           "TEXT"),
+        ("candidatos", "exp2_tiene_certificado",          "BOOLEAN DEFAULT 0"),
+        ("candidatos", "exp3_empresa",                    "VARCHAR(200)"),
+        ("candidatos", "exp3_cargo",                      "VARCHAR(150)"),
+        ("candidatos", "exp3_actividad",                  "VARCHAR(200)"),
+        ("candidatos", "exp3_ciudad",                     "VARCHAR(100)"),
+        ("candidatos", "exp3_salario",                    "FLOAT"),
+        ("candidatos", "exp3_fecha_inicio",               "VARCHAR(20)"),
+        ("candidatos", "exp3_fecha_retiro",               "VARCHAR(20)"),
+        ("candidatos", "exp3_funciones",                  "TEXT"),
+        ("candidatos", "exp3_motivo_retiro",              "VARCHAR(150)"),
+        ("candidatos", "exp3_argumentacion_mr",           "TEXT"),
+        ("candidatos", "exp3_tiene_certificado",          "BOOLEAN DEFAULT 0"),
     ]
     with engine.connect() as conn:
         for tabla, columna, tipo in columnas_nuevas:

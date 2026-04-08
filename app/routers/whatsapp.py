@@ -40,121 +40,111 @@ Eres *AraBot*, el asistente virtual de reclutamiento de *Tiendas Ara* (Grupo Jer
 Tienes 50 años de experiencia en selección de personal operativo en retail colombiano.
 Eres cálido, directo, profesional y conoces perfectamente los perfiles que busca Ara.
 
-TU MISIÓN: Entrevistar al candidato por WhatsApp y recopilar sus datos de forma natural y amigable.
-Habla como un reclutador experto de verdad — no como un formulario. Puedes combinar varias preguntas
-en un mensaje cuando sea natural. Si el candidato da información sin que se la pidas, captúrala.
-Si el candidato envía su hoja de vida, imagen o documento: extrae TODOS los datos que puedas y responde con un resumen EXPLÍCITO así: "Encontré la siguiente información: *Nombre:* X, *Cédula:* Y, *Ciudad:* Z... ¿Todo correcto o hay algo que corregir?" Luego pregunta solo por los datos que falten.
+TU MISIÓN: Entrevistar al candidato por WhatsApp siguiendo el formulario de entrevista de Tiendas Ara (secciones 1 a 7). Habla como un reclutador experto — no como un formulario. Combina 2-3 preguntas en un mensaje cuando sea natural. Si el candidato da información sin que se la pidas, captúrala. Si envía hoja de vida o imagen, extrae TODOS los datos y muestra un resumen: "Encontré: *Nombre:* X, *Cédula:* Y... ¿Todo correcto?"
 
-ORDEN DE RECOLECCIÓN — sigue este orden:
-1. cedula: PRIMERO SIEMPRE — ESCRIBE EXACTAMENTE ESTO (sin cambiar nada): "¿Cuál es tu número de cédula? Puedes escribirlo o enviarme una foto de la *parte frontal* de tu cédula 📸"
-2. nombre_completo: cuando tengas la cédula (por foto o texto), confirma el nombre así: "Vi que tu nombre es *X* según [tu WhatsApp / tu cédula], ¿es correcto?" — si el nombre viene de la foto de cédula, úsalo directamente como nombre_completo confirmado
-3. fecha_nacimiento: ESCRIBE EXACTAMENTE ESTO (sin cambiar nada): "¿Cuál es tu fecha de nacimiento? Puedes escribirla (DD/MM/AAAA) o enviarme una foto de la *parte trasera* de tu cédula 📸"
-4. genero: pregunta SIEMPRE justo después de fecha_nacimiento: "¿Cuál es tu género? *Masculino*, *Femenino* u *Otro*"
-5. Los demás en el orden que fluya mejor
+════ ORDEN DE RECOLECCIÓN (igual que el formulario, secciones 1-7) ════
 
-VALIDACIÓN DE CÉDULA POR FOTO:
-- Si el candidato envía una foto y se extrae cédula y/o nombre, confirma SIEMPRE: "Leí tu cédula *XXXXXXX* y tu nombre *YYYY* — ¿está correcto?"
-- Solo guarda los datos si el candidato confirma (dice sí, correcto, etc.)
-- Si el candidato corrige algo, actualiza el dato con lo que diga
+SECCIÓN 1 — DATOS PERSONALES:
+1. cedula — PRIMERO SIEMPRE — di exactamente: "¿Cuál es tu número de cédula? Puedes escribirlo o enviarme una foto de la *parte frontal* de tu cédula 📸"
+2. nombre_completo — confirma: "Vi que tu nombre es *X*, ¿es correcto?"
+3. fecha_nacimiento — di exactamente: "¿Cuál es tu fecha de nacimiento? (DD/MM/AAAA) o foto de la *parte trasera* de tu cédula 📸"
+4. genero — justo después: "¿Cuál es tu género? *Masculino*, *Femenino*, *No binario* u *Otro*"
+5. telefono — "¿Cuál es tu número de celular?"
+6. correo — "¿Cuál es tu correo electrónico?"
+7. direccion — "¿Cuál es tu dirección de residencia con el barrio?"
+8. ciudad_aplica — si dice Bogotá, preguntar localidad (ver BOGOTÁ abajo)
+
+SECCIÓN 0 — PROCESO (preguntar junto con personales cuando fluya):
+9. cargo — qué cargo solicita (Operador de Tienda en Formación / Operador de Tienda / Operador de Tienda y Montacarga / Operador Part Time / Supervisor Junior de Tienda / Supervisor de Tienda / Jefe de Tienda / Aprendiz SENA)
+10. tipo_formulario — se deduce del cargo: "Operador*" → "ODT"; "Supervisor*" o "Jefe*" → "SDT-JDT"; "Part Time" → "Part Time"; "SENA" → "SENA"
+11. fuente — cómo se enteró (Computrabajo / Magneto / Indeed / SENA / Referido / Redes Sociales / Feria Laboral / Voz a Voz / Base de Datos Interna)
+
+SECCIÓN 3 — INCLUSIÓN LABORAL:
+12. tiene_discapacidad — "¿Te identificas como persona con discapacidad?" (Sí/No — pregunta con respeto)
+    → Si Sí: tipo_discapacidad ("¿Qué tipo de discapacidad?")
+
+SECCIÓN 4 — FAMILIA Y DISPONIBILIDAD:
+13. tiene_hijos — "¿Tienes hijos?"
+    → Si Sí: num_hijos ("¿Cuántos?"), edades_hijos ("¿Qué edades tienen? (separadas por coma)"), apoyo_cuidado ("¿Quién los cuida mientras trabajas?")
+14. familiar_en_ara — "¿Tienes algún familiar trabajando en Tiendas Ara?"
+    → Si Sí: quien_familiar_ara ("¿Quién y en qué tienda?")
+15. medio_transporte — "¿Tienes medio de transporte propio? (Moto / Carro / Bicicleta / Ninguno)"
+16. disponibilidad_desplazamiento — "¿Tienes disponibilidad de desplazarte a otro municipio diariamente?"
+    → Si Sí: destino_desplazamiento ("¿A qué municipio?")
+17. disponibilidad_reubicacion — "¿Tendrías disponibilidad de reubicarte en otro municipio?"
+    → Si Sí: destino_reubicacion ("¿A cuál municipio?")
+
+SECCIÓN 5 — EDUCACIÓN:
+18. nivel_academico — Primaria / Noveno / Bachiller / Técnico / Tecnólogo / Profesional / Especialización / Maestría
+19. anio_graduacion — "¿En qué año terminaste tus estudios?"
+20. titulo — "¿Cuál es tu título o carrera?" (si Bachiller: "Bachiller")
+21. estudia_actualmente — "¿Estudias actualmente?"
+    → Si Sí: modalidad_estudio ("¿En qué modalidad? Presencial / Virtual / Semipresencial")
+22. proyectos_corto_plazo — "¿Cuáles son tus proyectos o planes a corto plazo (1-2 años)?"
+
+SECCIÓN 6 — SITUACIÓN LABORAL:
+23. situacion_laboral — Empleado / Desempleado / Independiente / Estudiante / Contrato Suspendido
+    → Si Empleado o Contrato Suspendido: tipo_contrato (Indefinido / Término Fijo / Obra Labor / Prestación de Servicios / Temporal), salario_actual (en pesos)
+      → Si tipo_contrato == "Indefinido": justificacion_cambio_indefinido ("¿Por qué quieres cambiar ese contrato indefinido?")
+    → Si Desempleado: meses_desempleado ("¿Hace cuántos meses estás sin trabajo?")
+24. aspiracion_salarial — "¿Cuál es tu aspiración salarial?" (número o "salario mínimo" = 1750905)
+
+SECCIÓN 7 — EXPERIENCIA LABORAL (hasta 3 trabajos, más reciente primero):
+Exp 1 — siempre requerir:
+  exp1_empresa (o "Sin experiencia"), exp1_cargo, exp1_actividad (actividad de la empresa, ej: "Retail"),
+  exp1_ciudad, exp1_salario (pesos), exp1_fecha_inicio (MM/AAAA), exp1_fecha_retiro (MM/AAAA o "Actual"),
+  exp1_funciones (resumen de funciones), exp1_motivo_retiro (si ya salió)
+Exp 2 — preguntar: "¿Tienes otra experiencia laboral anterior?":
+  exp2_empresa, exp2_cargo, exp2_actividad, exp2_ciudad, exp2_salario,
+  exp2_fecha_inicio, exp2_fecha_retiro, exp2_funciones, exp2_motivo_retiro
+Exp 3 — si tiene más:
+  exp3_empresa, exp3_cargo, exp3_actividad, exp3_ciudad, exp3_salario,
+  exp3_fecha_inicio, exp3_fecha_retiro, exp3_funciones, exp3_motivo_retiro
+
+BOGOTÁ — si dice "Bogotá" o "Bogotá D.C.":
+- Preguntar: "¿En qué localidad de Bogotá vives? (ej: Kennedy, Suba, Engativá, Usaquén...)"
+- Guardar la LOCALIDAD como ciudad_aplica (ej: "Kennedy"), NO "Bogotá"
+- Localidades válidas: Barrios Unidos, Chapinero, Engativá, Fontibón, Suba, Teusaquillo, Usaquén, Santa Fe, Puente Aranda, Tunjuelito, Usme, Ciudad Bolívar, Rafael Uribe Uribe, San Cristóbal, Kennedy, Bosa, Los Mártires, Antonio Nariño
+
+VALIDACIÓN CÉDULA POR FOTO:
+- Si se extrae cédula/nombre de foto, confirmar: "Leí tu cédula *XXXXXXX* y nombre *YYYY* — ¿está correcto?"
+- Solo guardar si confirma. Si corrige, usar lo que diga.
 
 EDAD Y CUMPLEAÑOS:
-- Cuando registres fecha_nacimiento, calcula la edad usando la fecha actual que se te indica en el contexto.
-- Menciona la edad naturalmente: "¡Genial! Tienes *X años* 😊"
-- Si HOY es exactamente el día y mes de su cumpleaños (mismo DD/MM que la fecha actual): felicítalo PRIMERO con entusiasmo antes de continuar: "¡Feliz cumpleaños! 🎂🎉 ¡Qué bueno que estás buscando nuevas oportunidades justamente en tu día!"
-
-DATOS PERSONALES (recopilar todos):
-- cedula: número de cédula (solo dígitos) — PRIMER dato
-- nombre_completo: nombre completo
-- fecha_nacimiento: DD/MM/AAAA
-- genero: Masculino / Femenino / Otro
-- telefono: celular colombiano (10 dígitos) — pregunta: "¿Cuál es tu número de celular?"
-- correo: correo electrónico (dominios: gmail, hotmail, outlook, yahoo, icloud, live)
-- direccion: dirección de residencia incluyendo barrio — pregunta: "¿Cuál es tu dirección de residencia con el barrio?"
-- ciudad_aplica: ciudad donde aplica.
-  IMPORTANTE — si dice "Bogotá" o "Bogotá D.C.", pregunta su localidad:
-  "¿En qué localidad de Bogotá vives? (ej: Kennedy, Suba, Usaquén, Engativá...)"
-  Guarda la LOCALIDAD (ej: "Kennedy"), NO "Bogotá".
-  Localidades válidas: Barrios Unidos, Chapinero, Engativá, Fontibón, Suba, Teusaquillo, Usaquén,
-  Santa Fe, Puente Aranda, Tunjuelito, Usme, Ciudad Bolívar, Rafael Uribe Uribe, San Cristóbal,
-  Kennedy, Bosa, Los Mártires, Antonio Nariño.
-
-DATOS DEL PROCESO (recopilar todos):
-- cargo: cargo al que aspira — opciones: Operador de Tienda en Formación, Operador de Tienda,
-  Operador de Tienda y Montacarga, Operador Part Time, Supervisor Junior de Tienda,
-  Supervisor de Tienda, Jefe de Tienda, Aprendiz SENA
-- fuente: cómo se enteró — Computrabajo, Magneto, Indeed, SENA, Referido, Redes Sociales,
-  Feria Laboral, Voz a Voz, Base de Datos Interna
-
-EDUCACIÓN (recopilar todos):
-- nivel_academico: Primaria / Noveno / Bachiller / Técnico / Tecnólogo / Profesional / Especialización / Maestría
-- anio_graduacion: año en que se graduó (ej: 2015) — pregunta: "¿En qué año terminaste tus estudios?"
-- titulo: título o carrera obtenida — pregunta: "¿Cuál es tu título o carrera?" (si dice Bachiller, pon "Bachiller")
-
-SITUACIÓN LABORAL (recopilar todos):
-- situacion_laboral: Empleado / Desempleado
-- aspiracion_salarial: número en pesos (ej: 1750905). Si dice "salario mínimo" usa 1750905.
-- Si está EMPLEADO, pregunta también:
-  - tipo_contrato: Término Fijo / Indefinido / Obra Labor / Prestación de Servicios / Temporal
-  - salario_actual: salario actual en pesos
-- Si está DESEMPLEADO, pregunta también:
-  - meses_desempleado: hace cuántos meses está sin trabajo (número)
-
-FAMILIA Y DISPONIBILIDAD:
-- tiene_hijos: Sí / No
-- disponibilidad_desplazamiento: ¿dispuesto a trabajar en otras ciudades? Sí / No
-
-EXPERIENCIA LABORAL (la más reciente, si tiene):
-- exp1_empresa: empresa anterior (o "Sin experiencia")
-- exp1_cargo: cargo que desempeñó
-- exp1_tiempo: cuánto tiempo trabajó (ej: "2 años", "6 meses")
+- Al registrar fecha_nacimiento, calcular edad: "¡Genial! Tienes *X años* 😊"
+- Si HOY es su cumpleaños (mismo DD/MM): "¡Feliz cumpleaños! 🎂🎉 ¡Qué bueno que estás buscando nuevas oportunidades en tu día!"
 
 REGLAS:
-- Habla en español colombiano natural, cálido y profesional.
-- Combina preguntas cuando sea natural (máximo 2-3 por mensaje).
-- Usa máximo 1-2 emojis por mensaje (excepto cumpleaños: hasta 3).
-- NUNCA inventes datos que el candidato no haya dado.
-- Para correo: si el dominio no es común, pregunta si es correcto.
-- Cuando tengas los 17 datos OBLIGATORIOS completos, despídete indicando que un reclutador lo contactará.
-- Los datos adicionales (direccion, anio_graduacion, titulo, tipo_contrato, salario_actual, meses_desempleado)
-  recógelos siempre que puedas — son importantes para el formulario.
+- Español colombiano natural, cálido, profesional.
+- Máximo 2-3 preguntas por mensaje; máximo 1-2 emojis (excepto cumpleaños).
+- NUNCA inventes datos. Para correo verificar dominio común.
+- Cuando tengas los 17 OBLIGATORIOS completos, despídete: "Un reclutador de Tiendas Ara te contactará pronto. ¡Mucha suerte! 🍀"
 
-FORMATO DE RESPUESTA — SIEMPRE responde con este JSON exacto (sin markdown, sin texto extra):
+FORMATO DE RESPUESTA — JSON exacto (sin markdown):
 {
-  "mensaje": "texto que le envías al candidato",
+  "mensaje": "texto para el candidato",
   "datos": {
-    "nombre_completo": null,
-    "cedula": null,
-    "fecha_nacimiento": null,
-    "genero": null,
-    "telefono": null,
-    "correo": null,
-    "direccion": null,
-    "ciudad_aplica": null,
-    "cargo": null,
-    "fuente": null,
-    "nivel_academico": null,
-    "anio_graduacion": null,
-    "titulo": null,
-    "situacion_laboral": null,
-    "tipo_contrato": null,
-    "salario_actual": null,
-    "meses_desempleado": null,
-    "aspiracion_salarial": null,
-    "tiene_hijos": null,
-    "disponibilidad_desplazamiento": null,
-    "exp1_empresa": null,
-    "exp1_cargo": null,
-    "exp1_tiempo": null
+    SOLO incluye los campos con valor confirmado — NO pongas los que no tienes aún.
+    Campos posibles: nombre_completo, cedula, fecha_nacimiento, genero, telefono, correo, direccion,
+    ciudad_aplica, cargo, tipo_formulario, fuente,
+    tiene_discapacidad, tipo_discapacidad,
+    tiene_hijos, num_hijos, edades_hijos, apoyo_cuidado,
+    familiar_en_ara, quien_familiar_ara, medio_transporte,
+    disponibilidad_desplazamiento, destino_desplazamiento, disponibilidad_reubicacion, destino_reubicacion,
+    nivel_academico, anio_graduacion, titulo, estudia_actualmente, modalidad_estudio, proyectos_corto_plazo,
+    situacion_laboral, tipo_contrato, salario_actual, meses_desempleado, justificacion_cambio_indefinido, aspiracion_salarial,
+    exp1_empresa, exp1_cargo, exp1_actividad, exp1_ciudad, exp1_salario, exp1_fecha_inicio, exp1_fecha_retiro, exp1_funciones, exp1_motivo_retiro,
+    exp2_empresa, exp2_cargo, exp2_actividad, exp2_ciudad, exp2_salario, exp2_fecha_inicio, exp2_fecha_retiro, exp2_funciones, exp2_motivo_retiro,
+    exp3_empresa, exp3_cargo, exp3_actividad, exp3_ciudad, exp3_salario, exp3_fecha_inicio, exp3_fecha_retiro, exp3_funciones, exp3_motivo_retiro
   },
   "completo": false
 }
 
-- En "datos" pon los valores confirmados (null si aún no los tienes).
-- "completo": true SOLO cuando los 17 campos OBLIGATORIOS tengan valor:
+"completo": true SOLO cuando los 17 OBLIGATORIOS tienen valor:
   nombre_completo, cedula, fecha_nacimiento, genero, telefono, correo, ciudad_aplica,
   cargo, fuente, nivel_academico, situacion_laboral, aspiracion_salarial, tiene_hijos,
-  disponibilidad_desplazamiento, exp1_empresa, exp1_cargo, exp1_tiempo.
-- "mensaje" es exactamente lo que se envía por WhatsApp.
+  disponibilidad_desplazamiento, exp1_empresa, exp1_cargo, exp1_funciones.
+"mensaje" es EXACTAMENTE lo que se envía al candidato.
 """
 
 
@@ -226,7 +216,7 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
             model=s.AZURE_OPENAI_DEPLOYMENT,
             messages=messages,
             temperature=0.3,
-            max_tokens=900,
+            max_tokens=1200,
             response_format={"type": "json_object"},
         )
         result = json.loads(resp.choices[0].message.content)
@@ -242,11 +232,11 @@ async def _llamar_ia(history: list, user_msg: str, datos: dict, nombre: str | No
             if v is not None:
                 merged[k] = v
         result["datos"] = merged
-        # Forzar completo si los 16 campos tienen valor
+        # Forzar completo si los 17 campos obligatorios tienen valor
         campos_requeridos = ["nombre_completo","cedula","fecha_nacimiento","genero","telefono","correo",
                              "ciudad_aplica","cargo","fuente","nivel_academico","situacion_laboral",
                              "aspiracion_salarial","tiene_hijos","disponibilidad_desplazamiento",
-                             "exp1_empresa","exp1_cargo","exp1_tiempo"]
+                             "exp1_empresa","exp1_cargo","exp1_funciones"]
         if all(merged.get(c) for c in campos_requeridos):
             result["completo"] = True
         return result
@@ -287,17 +277,24 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         salario         = _parsear_salario(datos.get("aspiracion_salarial"))
         salario_actual  = _parsear_salario(datos.get("salario_actual"))
 
-        tiene_hijos_raw = datos.get("tiene_hijos", "")
-        tiene_hijos = str(tiene_hijos_raw).lower() in ("sí", "si", "s", "true", "1")
+        def _bool(raw):
+            """None si no se ha capturado; True/False si ya se preguntó."""
+            if raw is None:
+                return None
+            return str(raw).lower() in ("sí", "si", "s", "true", "1", "yes")
 
-        disp_raw = datos.get("disponibilidad_desplazamiento", "")
-        disponibilidad = str(disp_raw).lower() in ("sí", "si", "s", "true", "1")
+        tiene_hijos         = _bool(datos.get("tiene_hijos"))
+        disponibilidad      = _bool(datos.get("disponibilidad_desplazamiento"))
+        disp_reubicacion    = _bool(datos.get("disponibilidad_reubicacion"))
+        tiene_discapacidad  = _bool(datos.get("tiene_discapacidad"))
+        familiar_en_ara     = _bool(datos.get("familiar_en_ara"))
+        estudia_actualmente = _bool(datos.get("estudia_actualmente"))
 
         status = "Incompleto - Bot WA" if parcial else "En Proceso"
         obs = f"[{'Registro parcial' if parcial else 'Registro completo'} por AraBot vía WhatsApp]\nNúmero WA: {tel_wa}"
 
-        # Tiempo de experiencia va en funciones si no hay campo directo
-        exp_funciones = datos.get("exp1_tiempo")
+        # exp1_funciones: nuevo campo directo; exp1_tiempo era el nombre anterior (backward compat)
+        exp1_funciones = datos.get("exp1_funciones") or datos.get("exp1_tiempo")
 
         cedula_limpia = "".join(c for c in str(datos.get("cedula") or "") if c.isdigit())
 
@@ -312,11 +309,28 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             municipio = ciudad
             localidad  = None
 
-        # meses_desempleado — convertir a int si es posible
-        try:
-            meses_desemp = int(str(datos.get("meses_desempleado") or "").strip()) if datos.get("meses_desempleado") else None
-        except Exception:
-            meses_desemp = None
+        # enteros opcionales
+        def _int_safe(raw):
+            try:
+                return int(str(raw or "").strip()) if raw is not None and str(raw).strip() else None
+            except Exception:
+                return None
+
+        num_hijos    = _int_safe(datos.get("num_hijos"))
+        meses_desemp = _int_safe(datos.get("meses_desempleado"))
+
+        # tipo_formulario — deducir del cargo si no viene explícito
+        tipo_formulario = datos.get("tipo_formulario")
+        if not tipo_formulario:
+            cargo_val = (datos.get("cargo") or "").lower()
+            if "sena" in cargo_val:
+                tipo_formulario = "SENA"
+            elif "part time" in cargo_val:
+                tipo_formulario = "Part Time"
+            elif any(w in cargo_val for w in ("supervisor", "jefe")):
+                tipo_formulario = "SDT-JDT"
+            elif cargo_val:
+                tipo_formulario = "ODT"
 
         campos = dict(
             nombre=datos.get("nombre_completo", ""),
@@ -329,20 +343,68 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
             municipio=municipio,
             localidad=localidad,
             cargo=datos.get("cargo"),
+            tipo_formulario=tipo_formulario,
             fuente=datos.get("fuente"),
+            # Sección 3 — inclusión laboral
+            tiene_discapacidad=tiene_discapacidad,
+            tipo_discapacidad=datos.get("tipo_discapacidad"),
+            # Sección 4 — familia y disponibilidad
+            tiene_hijos=tiene_hijos,
+            num_hijos=num_hijos,
+            edades_hijos=datos.get("edades_hijos"),
+            apoyo_cuidado=datos.get("apoyo_cuidado"),
+            familiar_en_ara=familiar_en_ara,
+            quien_familiar_ara=datos.get("quien_familiar_ara"),
+            medio_transporte=datos.get("medio_transporte"),
+            disponibilidad_desplazamiento=disponibilidad,
+            destino_desplazamiento=datos.get("destino_desplazamiento"),
+            disponibilidad_reubicacion=disp_reubicacion,
+            destino_reubicacion=datos.get("destino_reubicacion"),
+            # Sección 5 — educación
             nivel_academico=datos.get("nivel_academico"),
             anio_graduacion=datos.get("anio_graduacion"),
             titulo=datos.get("titulo"),
+            estudia_actualmente=estudia_actualmente,
+            modalidad_estudio=datos.get("modalidad_estudio"),
+            proyectos_corto_plazo=datos.get("proyectos_corto_plazo"),
+            # Sección 6 — situación laboral
             situacion_laboral=datos.get("situacion_laboral"),
             tipo_contrato=datos.get("tipo_contrato"),
             salario_actual=salario_actual,
             meses_desempleado=meses_desemp,
+            justificacion_cambio_indefinido=datos.get("justificacion_cambio_indefinido"),
             aspiracion_salarial=salario,
-            tiene_hijos=tiene_hijos,
-            disponibilidad_desplazamiento=disponibilidad,
+            # Sección 7 — experiencia exp1
             exp1_empresa=datos.get("exp1_empresa"),
             exp1_cargo=datos.get("exp1_cargo"),
-            exp1_funciones=exp_funciones,
+            exp1_actividad=datos.get("exp1_actividad"),
+            exp1_ciudad=datos.get("exp1_ciudad"),
+            exp1_salario=_parsear_salario(datos.get("exp1_salario")),
+            exp1_fecha_inicio=datos.get("exp1_fecha_inicio"),
+            exp1_fecha_retiro=datos.get("exp1_fecha_retiro"),
+            exp1_funciones=exp1_funciones,
+            exp1_motivo_retiro=datos.get("exp1_motivo_retiro"),
+            # exp2
+            exp2_empresa=datos.get("exp2_empresa"),
+            exp2_cargo=datos.get("exp2_cargo"),
+            exp2_actividad=datos.get("exp2_actividad"),
+            exp2_ciudad=datos.get("exp2_ciudad"),
+            exp2_salario=_parsear_salario(datos.get("exp2_salario")),
+            exp2_fecha_inicio=datos.get("exp2_fecha_inicio"),
+            exp2_fecha_retiro=datos.get("exp2_fecha_retiro"),
+            exp2_funciones=datos.get("exp2_funciones"),
+            exp2_motivo_retiro=datos.get("exp2_motivo_retiro"),
+            # exp3
+            exp3_empresa=datos.get("exp3_empresa"),
+            exp3_cargo=datos.get("exp3_cargo"),
+            exp3_actividad=datos.get("exp3_actividad"),
+            exp3_ciudad=datos.get("exp3_ciudad"),
+            exp3_salario=_parsear_salario(datos.get("exp3_salario")),
+            exp3_fecha_inicio=datos.get("exp3_fecha_inicio"),
+            exp3_fecha_retiro=datos.get("exp3_fecha_retiro"),
+            exp3_funciones=datos.get("exp3_funciones"),
+            exp3_motivo_retiro=datos.get("exp3_motivo_retiro"),
+            # auditoría
             telefono_contacto=tel,
             zona=datos.get("zona"),
             region=datos.get("cod_reg"),
@@ -602,7 +664,7 @@ def _generar_resumen(datos: dict) -> str:
         ("disponibilidad_desplazamiento", "Disponible para desplazarse"),
         ("exp1_empresa", "Empresa anterior"),
         ("exp1_cargo", "Cargo anterior"),
-        ("exp1_tiempo", "Tiempo de experiencia"),
+        ("exp1_funciones", "Funciones / experiencia"),
     ]
     lineas = ["📋 *Resumen de tu registro:*\n"]
     for key, label in campos:
@@ -720,31 +782,82 @@ async def _extraer_datos_imagen(imagen_b64: str, mimetype: str) -> str:
 
 
 def _cargar_datos_candidato(c: Candidato) -> dict:
+    def _yn(val):
+        return "Sí" if val else ("No" if val is not None else None)
     return {k: v for k, v in {
+        # Sección 1 — datos personales
         "nombre_completo": c.nombre,
         "cedula": c.cedula,
         "fecha_nacimiento": c.fecha_nacimiento,
         "genero": c.genero,
+        "telefono": c.telefono_contacto,
         "correo": c.correo,
         "direccion": c.direccion,
         "ciudad_aplica": c.ciudad_aplica,
         "departamento": c.departamento,
+        # Sección 0 — proceso
         "cargo": c.cargo,
+        "tipo_formulario": c.tipo_formulario,
         "fuente": c.fuente,
+        # Sección 3 — inclusión laboral
+        "tiene_discapacidad": _yn(c.tiene_discapacidad),
+        "tipo_discapacidad": c.tipo_discapacidad,
+        # Sección 4 — familia
+        "tiene_hijos": _yn(c.tiene_hijos),
+        "num_hijos": str(c.num_hijos) if c.num_hijos is not None else None,
+        "edades_hijos": c.edades_hijos,
+        "apoyo_cuidado": c.apoyo_cuidado,
+        "familiar_en_ara": _yn(c.familiar_en_ara),
+        "quien_familiar_ara": c.quien_familiar_ara,
+        "medio_transporte": c.medio_transporte,
+        "disponibilidad_desplazamiento": _yn(c.disponibilidad_desplazamiento),
+        "destino_desplazamiento": c.destino_desplazamiento,
+        "disponibilidad_reubicacion": _yn(c.disponibilidad_reubicacion),
+        "destino_reubicacion": c.destino_reubicacion,
+        # Sección 5 — educación
         "nivel_academico": c.nivel_academico,
         "anio_graduacion": c.anio_graduacion,
         "titulo": c.titulo,
+        "estudia_actualmente": _yn(c.estudia_actualmente),
+        "modalidad_estudio": c.modalidad_estudio,
+        "proyectos_corto_plazo": c.proyectos_corto_plazo,
+        # Sección 6 — situación laboral
         "situacion_laboral": c.situacion_laboral,
         "tipo_contrato": c.tipo_contrato,
         "salario_actual": str(int(c.salario_actual)) if c.salario_actual else None,
         "meses_desempleado": str(c.meses_desempleado) if c.meses_desempleado is not None else None,
+        "justificacion_cambio_indefinido": c.justificacion_cambio_indefinido,
         "aspiracion_salarial": str(int(c.aspiracion_salarial)) if c.aspiracion_salarial else None,
-        "tiene_hijos": "Sí" if c.tiene_hijos else ("No" if c.tiene_hijos is not None else None),
-        "disponibilidad_desplazamiento": "Sí" if c.disponibilidad_desplazamiento else ("No" if c.disponibilidad_desplazamiento is not None else None),
+        # Sección 7 — experiencia exp1
         "exp1_empresa": c.exp1_empresa,
         "exp1_cargo": c.exp1_cargo,
-        "exp1_tiempo": c.exp1_funciones,
-        "telefono": c.telefono_contacto,
+        "exp1_actividad": c.exp1_actividad,
+        "exp1_ciudad": c.exp1_ciudad,
+        "exp1_salario": str(int(c.exp1_salario)) if c.exp1_salario else None,
+        "exp1_fecha_inicio": c.exp1_fecha_inicio,
+        "exp1_fecha_retiro": c.exp1_fecha_retiro,
+        "exp1_funciones": c.exp1_funciones,
+        "exp1_motivo_retiro": c.exp1_motivo_retiro,
+        # exp2
+        "exp2_empresa": c.exp2_empresa,
+        "exp2_cargo": c.exp2_cargo,
+        "exp2_actividad": c.exp2_actividad,
+        "exp2_ciudad": c.exp2_ciudad,
+        "exp2_salario": str(int(c.exp2_salario)) if c.exp2_salario else None,
+        "exp2_fecha_inicio": c.exp2_fecha_inicio,
+        "exp2_fecha_retiro": c.exp2_fecha_retiro,
+        "exp2_funciones": c.exp2_funciones,
+        "exp2_motivo_retiro": c.exp2_motivo_retiro,
+        # exp3
+        "exp3_empresa": c.exp3_empresa,
+        "exp3_cargo": c.exp3_cargo,
+        "exp3_actividad": c.exp3_actividad,
+        "exp3_ciudad": c.exp3_ciudad,
+        "exp3_salario": str(int(c.exp3_salario)) if c.exp3_salario else None,
+        "exp3_fecha_inicio": c.exp3_fecha_inicio,
+        "exp3_fecha_retiro": c.exp3_fecha_retiro,
+        "exp3_funciones": c.exp3_funciones,
+        "exp3_motivo_retiro": c.exp3_motivo_retiro,
     }.items() if v is not None}
 
 
