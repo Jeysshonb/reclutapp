@@ -712,11 +712,8 @@ async def whatsapp_json(payload: WaMensaje):
             msg_lower = msg.lower().strip()
             afirmativo = any(w in msg_lower for w in ["si", "sí", "yes", "ok", "dale", "claro", "acepto", "listo", "okay", "sure", "1"])
             if afirmativo:
-                # Pre-llenar teléfono desde número WhatsApp (quitar prefijo país si tiene)
-                tel_wa = phone.replace("whatsapp:", "")
-                tel_pre = tel_wa[-10:] if len(tel_wa) >= 10 else tel_wa
                 session.step = "activo"
-                session.data = json.dumps({"history": [], "datos": {"telefono": tel_pre}, "meta": {}})
+                session.data = json.dumps({"history": [], "datos": {}, "meta": {}})
                 db.commit()
                 return {"response": (
                     "¡Perfecto! Gracias por aceptar 😊\n\n"
