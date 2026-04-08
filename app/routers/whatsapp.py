@@ -274,7 +274,7 @@ def _guardar_candidato(datos: dict, phone: str, parcial: bool = False) -> None:
         # Tiempo de experiencia va en funciones si no hay campo directo
         exp_funciones = datos.get("exp1_tiempo")
 
-        cedula_limpia = (datos.get("cedula") or "").strip()
+        cedula_limpia = "".join(c for c in str(datos.get("cedula") or "") if c.isdigit())
         campos = dict(
             nombre=datos.get("nombre_completo", ""),
             fecha_nacimiento=datos.get("fecha_nacimiento"),
@@ -840,11 +840,17 @@ async def whatsapp_json(payload: WaMensaje):
         completo = result.get("completo", False)
 
         # ── Verificar cédula en DB (primera vez que se captura) ────────────────
+        cedula_nueva_raw = datos_nuevos.get("cedula")
+        if cedula_nueva_raw:
+            # Normalizar: solo dígitos (GPT puede devolver "1.019.060.017" desde foto)
+            cedula_nueva_norm = "".join(c for c in str(cedula_nueva_raw) if c.isdigit())
+            if cedula_nueva_norm:
+                datos_nuevos["cedula"] = cedula_nueva_norm
         cedula_nueva = datos_nuevos.get("cedula")
         if cedula_nueva and not meta.get("cedula_verificada"):
             meta["cedula_verificada"] = True
             cand_existente = db.query(Candidato).filter(
-                Candidato.cedula == str(cedula_nueva),
+                Candidato.cedula == cedula_nueva,
                 Candidato.deleted_at.is_(None)
             ).order_by(Candidato.created_at.desc()).first()
 
