@@ -769,17 +769,7 @@ async def whatsapp_json(payload: WaMensaje):
         # ── Procesar medios ────────────────────────────────────────────────────
         if msg in ("[audio]", "[documento]", "[foto_cedula]") or not msg:
             if payload.audio_base64:
-                s_cfg = get_settings()
-                if not s_cfg.AZURE_WHISPER_DEPLOYMENT:
-                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
-                texto = await _transcribir_audio(payload.audio_base64, payload.audio_mimetype or "audio/ogg")
-                if texto and not texto.startswith("__ERROR_AUDIO__"):
-                    msg = texto
-                    logger.info(f"[AraBot] Audio transcrito {phone}: {texto[:60]}")
-                elif texto and texto.startswith("__ERROR_AUDIO__"):
-                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
-                else:
-                    return {"response": "Por el momento no puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
+                return {"response": "No puedo procesar audios 🎤 Por favor *escribe* tu respuesta en texto."}
 
             elif payload.documento_base64:
                 cedula_actual = datos.get("cedula")
