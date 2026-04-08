@@ -433,7 +433,7 @@ async function init(){
   document.getElementById('wbFecha').textContent=colDate.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   if(rol==='administrador')document.getElementById('lnkAdmin').style.display='flex';
   if(!token()){location.href='/';return}
-  await Promise.all([cargarKpis(),cargarFiltros(),buscar()]);
+  await Promise.all([cargarFiltros(),buscar()]);
 }
 
 function buildFilterParams(){
@@ -500,7 +500,6 @@ function buildParams(p=0){
 
 async function buscar(p=0){
   page=p;
-  cargarKpis();
   try{
     const r=await fetch('/api/candidatos/?'+buildParams(p),{headers:auth()});
     if(r.status===401){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
