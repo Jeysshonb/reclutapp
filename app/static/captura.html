@@ -1036,7 +1036,11 @@ const token=()=>localStorage.getItem('token');
 const rol=()=>localStorage.getItem('rol');
 const authH=()=>{
   const t=token();
-  if(!t){localStorage.clear();location.href='/';return{}}
+  if(!t){
+    if(window.parent!==window){toast('Sesión expirada. Recarga la página.','error');}
+    else{localStorage.clear();location.href='/';}
+    return{};
+  }
   return{'Authorization':'Bearer '+t,'Content-Type':'application/json'};
 };
 let candidatoId=null;
@@ -1444,11 +1448,12 @@ function renderPending(){
       <button class="frm" onclick="quitarPending(${i})">Quitar</button>
     </div>
   `).join('');
-  btn.style.display=archivosEnCola.length&&candidatoId?'flex':'none';
+  btn.style.display=archivosEnCola.length?'flex':'none';
+  btn.textContent=candidatoId?'⬆ Subir archivos':'💾 Guardar y subir archivos';
 }
 
 async function subirArchivos(){
-  if(!candidatoId){toast('Primero guarda el candidato.','error');return}
+  if(!candidatoId){await guardar();if(!candidatoId)return}
   const btn=document.getElementById('btnSubirArchivos');
   btn.textContent='Subiendo...';btn.disabled=true;
   let ok=0,fail=0;
@@ -1456,6 +1461,7 @@ async function subirArchivos(){
     const fd=new FormData();fd.append('archivo',f);
     try{
       const r=await fetch(`/api/archivos/${candidatoId}`,{method:'POST',headers:{'Authorization':'Bearer '+token()},body:fd});
+      if(r.status===401){toast('Sesión expirada. Recarga la página.','error');break}
       if(r.ok)ok++;else fail++;
     }catch(e){fail++}
   }
