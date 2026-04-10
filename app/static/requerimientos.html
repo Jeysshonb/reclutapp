@@ -207,14 +207,14 @@ nav{background:linear-gradient(135deg,#FE5000,#c73d00);padding:0 24px;height:56p
   <!-- Barra resultados -->
   <div class="bar">
     <div class="res-count" id="resCount">Cargando...</div>
-    <button class="btn btn-green" onclick="descargarCSV()">
+    <button class="btn btn-green" onclick="descargarExcel()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Descargar CSV Completo
+      Descargar Excel Completo
     </button>
   </div>
 
-  <!-- Fichas -->
-  <div id="fichas"><div class="spinner">Cargando fichas...</div></div>
+  <!-- Requerimientos -->
+  <div id="fichas"><div class="spinner">Cargando requerimientos...</div></div>
 
   <!-- Paginación -->
   <div class="pagination" id="pagination"></div>
@@ -451,7 +451,7 @@ async function cargarFicha(id){
 
 async function buscar(p=0){
   page=p;
-  document.getElementById('fichas').innerHTML='<div class="spinner">Cargando fichas...</div>';
+  document.getElementById('fichas').innerHTML='<div class="spinner">Cargando requerimientos...</div>';
   try{
     const r=await fetch('/api/candidatos/?'+buildParams(p*LIMIT),{headers:auth()});
     if(r.status===401){localStorage.clear();location.href='/';return}
@@ -487,9 +487,9 @@ function renderPaginacion(){
   el.innerHTML=html;
 }
 
-function descargarCSV(){
+function descargarExcel(){
   const t=localStorage.getItem('token')||'';
-  window.location.href=`/api/export/csv-completo?${buildCSVParams()}&token=${encodeURIComponent(t)}`;
+  window.location.href=`/api/export/excel-completo?${buildCSVParams()}&token=${encodeURIComponent(t)}`;
 }
 
 async function cargarFiltros(){

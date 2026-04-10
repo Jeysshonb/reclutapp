@@ -257,7 +257,8 @@ def exportar_csv(
     candidatos = _get_filtered(db, negocio, reclutador, status, cargo, zona, region, fecha_desde, fecha_hasta)
 
     buf = io.StringIO()
-    writer = csv.DictWriter(buf, fieldnames=COLUMNAS_EXPORT, extrasaction="ignore")
+    # Separador ";" — Excel español abre directo sin asistente de importación
+    writer = csv.DictWriter(buf, fieldnames=COLUMNAS_EXPORT, extrasaction="ignore", delimiter=";")
     writer.writeheader()
     FECHA_COLS = {col for col in COLUMNAS_EXPORT if "fecha" in col or col == "created_at"}
 
@@ -301,7 +302,7 @@ def exportar_csv_completo(
     candidatos = _get_filtered(db, negocio, reclutador, status, cargo, zona, region, fecha_desde, fecha_hasta)
 
     buf = io.StringIO()
-    writer = csv.DictWriter(buf, fieldnames=COLUMNAS_COMPLETO, extrasaction="ignore")
+    writer = csv.DictWriter(buf, fieldnames=COLUMNAS_COMPLETO, extrasaction="ignore", delimiter=";")
     writer.writeheader()
     FECHA_COLS = {col for col in COLUMNAS_COMPLETO if "fecha" in col or col == "created_at"}
     BOOL_COLS = {col for col in COLUMNAS_COMPLETO if col.startswith("tiene_") or col.startswith("disponibilidad_") or col.startswith("estudia_") or col.startswith("familiar_") or col in ("lista_negra",)}
@@ -326,5 +327,75 @@ def exportar_csv_completo(
     return StreamingResponse(
         io.BytesIO(buf.getvalue().encode("utf-8-sig")),
         media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
+@router.get("/excel-completo")
+def exportar_excel_completo(
+    negocio: Optional[str] = Query(None),
+    reclutador: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    cargo: Optional[str] = Query(None),
+    zona: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
+    fecha_desde: Optional[str] = Query(None),
+    fecha_hasta: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user_download),
+):
+    """Excel .xlsx con TODOS los campos — abre directo en Excel sin conversión."""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    candidatos = _get_filtered(db, negocio, reclutador, status, cargo, zona, region, fecha_desde, fecha_hasta)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Requerimientos"
+
+    header_fill = PatternFill("solid", fgColor="FE5000")
+    header_font = Font(color="FFFFFF", bold=True, size=10)
+    center = Alignment(horizontal="center", wrap_text=False)
+
+    for col_i, col_name in enumerate(COLUMNAS_COMPLETO, 1):
+        cell = ws.cell(row=1, column=col_i, value=ENCABEZADOS_COMPLETO.get(col_name, col_name))
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center
+
+    FECHA_COLS = {col for col in COLUMNAS_COMPLETO if "fecha" in col or col == "created_at"}
+    BOOL_COLS = {col for col in COLUMNAS_COMPLETO if col.startswith("tiene_") or col.startswith("disponibilidad_") or col.startswith("estudia_") or col.startswith("familiar_") or col in ("lista_negra",)}
+
+    for row_i, c in enumerate(candidatos, 2):
+        for col_i, col_name in enumerate(COLUMNAS_COMPLETO, 1):
+            val = getattr(c, col_name, None)
+            if val is not None and col_name in FECHA_COLS:
+                s = str(val).split("T")[0].split(" ")[0]
+                parts = s.split("-")
+                val = f"{parts[2]}/{parts[1]}/{parts[0]}" if len(parts) == 3 else s
+            elif col_name in BOOL_COLS:
+                val = "Sí" if val else "No"
+            elif hasattr(val, "isoformat"):
+                val = str(val)
+            ws.cell(row=row_i, column=col_i, value=val)
+
+    # Ajustar ancho de columnas
+    for col in ws.columns:
+        max_len = max((len(str(cell.value or "")) for cell in col), default=0)
+        ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 40)
+
+    # Freeze primera fila
+    ws.freeze_panes = "A2"
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    today = date.today().strftime("%Y%m%d")
+    fname = f"requerimientos_{today}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{fname}"'},
     )

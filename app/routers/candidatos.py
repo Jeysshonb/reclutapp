@@ -231,6 +231,14 @@ def editar_candidato(
         data["imc"] = imc
         data["resultado_imc"] = resultado_imc
 
+    # Si el candidato viene del bot (reclutador = 'Bot WhatsApp' o vacío),
+    # asignar automáticamente la reclutadora que está editando.
+    if not candidato.reclutador or candidato.reclutador == "Bot WhatsApp":
+        nuevo_rec = current_user.nombre_display or current_user.email
+        if candidato.reclutador != nuevo_rec:
+            cambios.append(f"reclutador: '{candidato.reclutador}' → '{nuevo_rec}'")
+            candidato.reclutador = nuevo_rec
+
     for campo, valor in data.items():
         valor_anterior = getattr(candidato, campo, None)
         if valor_anterior != valor:

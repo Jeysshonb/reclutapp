@@ -561,7 +561,10 @@ function renderTabla(data){
       </td>
       <td style="font-size:.82rem;white-space:normal;min-width:140px">${c.cargo||'—'}</td>
       <td style="font-size:.82rem">${c.negocio||'—'}</td>
-      <td style="font-size:.8rem;color:#666;white-space:normal;min-width:120px">${c.reclutador||'—'}</td>
+      <td style="font-size:.8rem;color:#666;white-space:normal;min-width:120px">
+        ${c.reclutador||'—'}
+        ${(!c.reclutador||c.reclutador==='Bot WhatsApp')&&['administrador','especialista'].includes(localStorage.getItem('rol'))?`<button onclick="event.stopPropagation();asignarme(${c.id})" style="background:none;border:1px solid #FE5000;color:#FE5000;border-radius:5px;padding:2px 7px;cursor:pointer;font-size:.7rem;margin-top:3px;display:block">📋 Asignarme</button>`:''}
+      </td>
       <td style="font-size:.8rem;white-space:nowrap">${fmtFecha(c.fecha_prog_operaciones)}</td>
       <td>${resultBadge(c.resultado_operaciones)}</td>
       <td>${resultBadge(c.resultado_rrhh)}</td>
@@ -619,6 +622,18 @@ function cerrarPanel(){
 }
 // Cerrar con Escape
 document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarPanel()});
+
+async function asignarme(candidatoId){
+  const nombre=localStorage.getItem('nombre')||'';
+  if(!nombre)return;
+  const r=await fetch(`/api/candidatos/${candidatoId}`,{
+    method:'PUT',
+    headers:{...auth(),'Content-Type':'application/json'},
+    body:JSON.stringify({reclutador:nombre})
+  });
+  if(r.ok){buscar(page);}
+  else{alert('Error al asignar: '+r.status);}
+}
 
 async function liberarBot(phone, nombre){
   if(!confirm(`¿Liberar el bot para "${nombre}" (${phone})?\n\nEl candidato podrá iniciar un nuevo proceso por WhatsApp.`)) return;
