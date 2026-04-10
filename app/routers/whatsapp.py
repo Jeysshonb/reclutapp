@@ -1103,7 +1103,7 @@ async def whatsapp_json(payload: WaMensaje):
             # Auto-guardar parcial en background si ya tenemos cédula + nombre
             # Así el candidato queda visible en la plataforma aunque abandone la conversación
             if datos_nuevos.get("cedula") and datos_nuevos.get("nombre_completo"):
-                asyncio.create_task(asyncio.to_thread(_guardar_candidato, {**datos_nuevos}, phone, True))
+                await asyncio.to_thread(_guardar_candidato, {**datos_nuevos}, phone, True)
 
         session.data = json.dumps({"history": history, "datos": datos_nuevos, "meta": meta}, ensure_ascii=False)
         db.commit()
