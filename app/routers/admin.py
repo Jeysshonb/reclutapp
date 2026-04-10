@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.services.blob_service import _refresh_wa_url
 from app.models.candidato import (
     CatNegocio, CatCargo, CatFuenteHV, CatResultado,
     CatDepartamento, CatMunicipio, CatMotivoRetiro,
@@ -250,7 +251,7 @@ def listar_wa_archivos(
         q = q.filter(WaArchivo.phone == phone)
     return [
         {"id": a.id, "phone": a.phone, "cedula": a.cedula, "tipo": a.tipo,
-         "nombre": a.nombre, "blob_url": a.blob_url, "created_at": a.created_at}
+         "nombre": a.nombre, "blob_url": _refresh_wa_url(a.blob_url), "created_at": a.created_at}
         for a in q.all()
     ]
 

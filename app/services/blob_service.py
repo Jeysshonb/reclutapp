@@ -137,6 +137,54 @@ def delete_file(blob_name: str):
                 logger.error(f"Error eliminando archivo local {local_path}: {e}")
 
 
+def generate_sas_url_for(container_name: str, blob_name: str, hours: int = 4) -> str:
+    """Genera SAS URL para cualquier contenedor de la misma cuenta."""
+    is_available()
+    if _client is None:
+        return ""
+    try:
+        from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+        from datetime import datetime, timedelta, timezone
+        account_name = _client.account_name
+        account_key = getattr(_client.credential, "account_key", None)
+        if not account_key:
+            return ""
+        sas = generate_blob_sas(
+            account_name=account_name,
+            container_name=container_name,
+            blob_name=blob_name,
+            account_key=account_key,
+            permission=BlobSasPermissions(read=True),
+            expiry=datetime.now(timezone.utc) + timedelta(hours=hours),
+        )
+        return f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas}"
+    except Exception as e:
+        logger.error(f"Error generando SAS URL ({container_name}/{blob_name}): {e}", exc_info=True)
+        return ""
+
+
+def _refresh_wa_url(blob_url: str, hours: int = 4) -> str:
+    """Si la URL de WaArchivo no tiene SAS, extrae el blob_name y regenera SAS."""
+    if not blob_url:
+        return blob_url
+    # Si ya tiene SAS token, devolver tal cual
+    if "?se=" in blob_url or "?sv=" in blob_url or "&sig=" in blob_url:
+        return blob_url
+    # Extraer container y blob_name de la URL directa
+    # Formato: https://{account}.blob.core.windows.net/{container}/{blob_name}
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(blob_url)
+        parts = parsed.path.lstrip("/").split("/", 1)
+        if len(parts) == 2:
+            container_name, blob_name = parts
+            sas_url = generate_sas_url_for(container_name, blob_name, hours=hours)
+            return sas_url or blob_url
+    except Exception:
+        pass
+    return blob_url
+
+
 def generate_sas_url(blob_name: str, hours: int = 2) -> str:
     # Asegurar lazy init
     is_available()
