@@ -326,8 +326,8 @@ function renderFicha(d,num){
       <div class="card-top-left">
         <span class="card-num">#${num}</span>
         <div>
-          <div class="card-nombre">${d.nombre||'Sin nombre'}</div>
-          <div class="card-cedula">CC ${d.cedula} &nbsp;·&nbsp; ${cargo} &nbsp;·&nbsp; ${rec} &nbsp;·&nbsp; ${fecha}</div>
+          <div class="card-nombre">${d.nombre||'Sin nombre'} <span style="font-weight:500;opacity:.85;font-size:.85rem">· CC ${d.cedula}</span></div>
+          <div class="card-cedula">${cargo} &nbsp;·&nbsp; ${rec} &nbsp;·&nbsp; ${fecha}</div>
         </div>
       </div>
       <div class="card-top-right">
