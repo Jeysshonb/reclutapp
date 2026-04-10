@@ -1359,6 +1359,7 @@ async function cargarCandidato(id){
   if(d.resultado_rrhh) actualizarBadgePipe('resultado_rrhh','badgeRrhh');
   if(d.concepto_emo) actualizarBadgePipe('concepto_emo','badgeEmo');
   if(d.concepto_es) actualizarBadgePipe('concepto_es','badgeEs');
+  actualizarTallas();
   calcIMC();
   document.title='Reclutamiento ARA — '+d.nombre;
   document.getElementById('fechaHoraRegistro').value=_fmtFechaHoraAuto(d.created_at);
