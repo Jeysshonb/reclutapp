@@ -84,7 +84,8 @@ def upload_file(file_bytes: bytes, original_filename: str, candidato_id: int) ->
             file_bytes, overwrite=True,
             content_settings=_make_content_settings(content_type),
         )
-        return {"blob_name": blob_name, "blob_url": blob_client.url, "tipo": tipo}
+        sas_url = generate_sas_url(blob_name, hours=365 * 24 * 5)  # 5 años
+        return {"blob_name": blob_name, "blob_url": sas_url or blob_client.url, "tipo": tipo}
 
     # ── Local ──
     folder = os.path.join(_local_dir, f"candidato-{candidato_id}")

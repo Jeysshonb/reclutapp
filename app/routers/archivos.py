@@ -110,7 +110,8 @@ def listar_archivos(
         ArchivoCandidato.candidato_id == candidato_id
     ).order_by(ArchivoCandidato.created_at).all()
     return [
-        {"id": a.id, "nombre_original": a.nombre_original, "blob_url": a.blob_url,
+        {"id": a.id, "nombre_original": a.nombre_original,
+         "blob_url": blob_service.generate_sas_url(a.blob_name, hours=4) if a.blob_name else a.blob_url,
          "tipo": a.tipo, "tamanio_bytes": a.tamanio_bytes,
          "etapa": a.etapa or "general", "created_at": str(a.created_at)}
         for a in archivos
