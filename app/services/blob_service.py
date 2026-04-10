@@ -138,6 +138,8 @@ def delete_file(blob_name: str):
 
 
 def generate_sas_url(blob_name: str, hours: int = 2) -> str:
+    # Asegurar lazy init
+    is_available()
     if _client is None:
         if _local_dir is not None:
             return f"/uploads/{blob_name}"
@@ -147,9 +149,14 @@ def generate_sas_url(blob_name: str, hours: int = 2) -> str:
         from datetime import datetime, timedelta, timezone
         account_name = _client.account_name
         cred = _client.credential
+        # StorageSharedKeyCredential expone account_key
         account_key = getattr(cred, "account_key", None)
         if not account_key:
-            return _client.get_blob_client(container=_container, blob=blob_name).url
+            # Intentar extraer desde named_key_credential
+            account_key = getattr(cred, "named_key", {}).get("key") if hasattr(cred, "named_key") else None
+        if not account_key:
+            logger.error("No se puede generar SAS: account_key no disponible en la credencial")
+            return ""
         sas = generate_blob_sas(
             account_name=account_name,
             container_name=_container,
@@ -160,8 +167,8 @@ def generate_sas_url(blob_name: str, hours: int = 2) -> str:
         )
         return f"https://{account_name}.blob.core.windows.net/{_container}/{blob_name}?{sas}"
     except Exception as e:
-        logger.error(f"Error generando SAS URL: {e}")
-        return _client.get_blob_client(container=_container, blob=blob_name).url
+        logger.error(f"Error generando SAS URL: {e}", exc_info=True)
+        return ""
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
