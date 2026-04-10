@@ -157,6 +157,10 @@ nav{background:linear-gradient(135deg,#FE5000,#c73d00);padding:0 24px;height:56p
   <div class="filters-card">
     <div class="filters-row">
       <div class="fg">
+        <label>Cédula o Nombre</label>
+        <input type="text" id="fBuscar" placeholder="Buscar..." style="min-width:160px" onkeydown="if(event.key==='Enter')buscar(0)">
+      </div>
+      <div class="fg">
         <label>Desde</label>
         <input type="date" id="fDesde">
       </div>
@@ -234,12 +238,14 @@ function fmtDate(s){if(!s)return null;const p=(s.split('T')[0]).split('-');retur
 
 function buildParams(skip=0){
   const p=new URLSearchParams();
+  const b=document.getElementById('fBuscar').value.trim();
   const d=document.getElementById('fDesde').value;
   const h=document.getElementById('fHasta').value;
   const c=document.getElementById('fCargo').value;
   const r=document.getElementById('fRegion').value;
   const rc=document.getElementById('fReclutador').value;
   const st=document.getElementById('fStatus').value;
+  if(b)p.set('buscar',b);
   if(d)p.set('fecha_desde',d);if(h)p.set('fecha_hasta',h);
   if(c)p.set('cargo',c);if(r)p.set('region',r);
   if(rc)p.set('reclutador',rc);if(st)p.set('status',st);
@@ -248,12 +254,14 @@ function buildParams(skip=0){
 }
 function buildCSVParams(){
   const p=new URLSearchParams();
+  const b=document.getElementById('fBuscar').value.trim();
   const d=document.getElementById('fDesde').value;
   const h=document.getElementById('fHasta').value;
   const c=document.getElementById('fCargo').value;
   const r=document.getElementById('fRegion').value;
   const rc=document.getElementById('fReclutador').value;
   const st=document.getElementById('fStatus').value;
+  if(b)p.set('buscar',b);
   if(d)p.set('fecha_desde',d);if(h)p.set('fecha_hasta',h);
   if(c)p.set('cargo',c);if(r)p.set('region',r);
   if(rc)p.set('reclutador',rc);if(st)p.set('status',st);
@@ -267,6 +275,7 @@ function filtrarHoy(){
   buscar(0);
 }
 function limpiar(){
+  document.getElementById('fBuscar').value='';
   ['fDesde','fHasta'].forEach(id=>document.getElementById(id).value='');
   ['fCargo','fRegion','fStatus'].forEach(id=>document.getElementById(id).value='');
   const r=rol();
