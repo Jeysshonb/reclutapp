@@ -48,7 +48,7 @@ def reclutadores_desde_candidatos(
     from sqlalchemy import distinct
     # Nombres de usuarios activos del sistema
     nombres_usuarios = {
-        u.nombre_display for u in db.query(Usuario).filter(Usuario.activo == True).all()
+        u.nombre_display for u in db.query(Usuario).filter(Usuario.activo == True, Usuario.rol != "administrador").all()
         if u.nombre_display
     }
     # Reclutadores que aparecen en candidatos reales y son usuarios del sistema
