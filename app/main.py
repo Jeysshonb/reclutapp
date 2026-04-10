@@ -78,6 +78,11 @@ async def admin_panel():
     return FileResponse(os.path.join(_STATIC, "admin.html"))
 
 
+@app.get("/requerimientos", include_in_schema=False)
+async def requerimientos_page():
+    return FileResponse(os.path.join(_STATIC, "requerimientos.html"))
+
+
 @app.get("/health", tags=["sistema"])
 async def health():
     return {"status": "ok", "version": settings.APP_VERSION, "app": "reclutapp"}

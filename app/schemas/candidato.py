@@ -247,6 +247,14 @@ class CandidatoResumen(BaseModel):
     cargo: Optional[str] = None
     negocio: Optional[str] = None
     reclutador: Optional[str] = None
+    region: Optional[str] = None
+    genero: Optional[str] = None
+    ciudad_aplica: Optional[str] = None
+    fuente: Optional[str] = None
+    nivel_academico: Optional[str] = None
+    situacion_laboral: Optional[str] = None
+    aspiracion_salarial: Optional[float] = None
+    telefono_contacto: Optional[str] = None
     fecha_prog_operaciones: Optional[str] = None
     resultado_operaciones: Optional[str] = None
     resultado_rrhh: Optional[str] = None
