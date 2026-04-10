@@ -324,7 +324,7 @@
 <body>
 
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <div class="nav-brand">
     <img src="/img/banner%20ARA.png" class="nav-banner" alt="ARA" onerror="this.style.display='none'">
     <span class="nav-title">Reclutamiento ARA</span>
@@ -1792,6 +1792,7 @@ function quitarExp(n){
 // ── Init ──
 async function init(){
   const enIframe=window.parent!==window;
+  if(enIframe){const n=document.getElementById('mainNav');if(n)n.style.display='none';}
   if(!token()){if(!enIframe){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';}return}
   document.getElementById('userName').textContent=localStorage.getItem('nombre')||'';
   const r=rol();

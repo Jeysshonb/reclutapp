@@ -43,14 +43,21 @@ def reclutadores_desde_candidatos(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    """Usuarios activos del sistema + Bot WhatsApp para el filtro de reclutador."""
-    usuarios = (
-        db.query(Usuario)
-        .filter(Usuario.activo == True)
-        .order_by(Usuario.nombre_display)
+    """Usuarios activos con al menos 1 candidato asignado + Bot WhatsApp siempre."""
+    from sqlalchemy import distinct
+    # Nombres de usuarios activos del sistema
+    nombres_usuarios = {
+        u.nombre_display for u in db.query(Usuario).filter(Usuario.activo == True).all()
+        if u.nombre_display
+    }
+    # Reclutadores que aparecen en candidatos reales y son usuarios del sistema
+    en_candidatos = {
+        row[0] for row in db.query(distinct(Candidato.reclutador))
+        .filter(Candidato.deleted_at.is_(None), Candidato.reclutador.isnot(None))
         .all()
-    )
-    resultado = [{"id": u.nombre_display, "nombre": u.nombre_display, "activo": True} for u in usuarios if u.nombre_display]
+    }
+    validos = sorted(nombres_usuarios & en_candidatos)
+    resultado = [{"id": n, "nombre": n, "activo": True} for n in validos]
     resultado.append({"id": "Bot WhatsApp", "nombre": "Bot WhatsApp", "activo": True})
     return resultado
 
