@@ -43,16 +43,16 @@ def reclutadores_desde_candidatos(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    """Reclutadores únicos que existen en candidatos reales (incluye Bot WhatsApp)."""
-    from sqlalchemy import distinct
-    filas = (
-        db.query(distinct(Candidato.reclutador))
-        .filter(Candidato.deleted_at.is_(None), Candidato.reclutador.isnot(None), Candidato.reclutador != "")
-        .order_by(Candidato.reclutador)
+    """Usuarios activos del sistema + Bot WhatsApp para el filtro de reclutador."""
+    usuarios = (
+        db.query(Usuario)
+        .filter(Usuario.activo == True)
+        .order_by(Usuario.nombre_display)
         .all()
     )
-    nombres = [f[0] for f in filas]
-    return [{"id": n, "nombre": n, "activo": True} for n in nombres]
+    resultado = [{"id": u.nombre_display, "nombre": u.nombre_display, "activo": True} for u in usuarios if u.nombre_display]
+    resultado.append({"id": "Bot WhatsApp", "nombre": "Bot WhatsApp", "activo": True})
+    return resultado
 
 
 @router.get("/catalogos/{nombre}")
