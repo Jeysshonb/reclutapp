@@ -1708,13 +1708,14 @@ function _renderFilesEtapa(containerId, archivos){
   const c=document.getElementById(containerId);
   if(!c)return;
   if(!archivos.length){c.innerHTML='';return}
-  c.innerHTML=archivos.map(a=>`
-    <div class="pipe-file-chip">
+  c.innerHTML=archivos.map(a=>{
+    const url=a.blob_url||`/api/archivos/view/${a.id}?token=${encodeURIComponent(token())}`;
+    return`<div class="pipe-file-chip">
       <span>${_iconoTipo(a.tipo,a.nombre_original)}</span>
-      <a href="/api/archivos/view/${a.id}" target="_blank" title="${a.nombre_original}">${a.nombre_original}</a>
+      <a href="${url}" target="_blank" title="${a.nombre_original}">${a.nombre_original}</a>
       <button onclick="eliminarArchivoEtapa(${a.id},'${containerId}')" title="Eliminar">×</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 async function subirArchivoEtapa(input, etapa, containerId){
