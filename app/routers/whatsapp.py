@@ -733,9 +733,13 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
         from azure.storage.blob import BlobServiceClient
 
         def _upload():
-            from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+            import mimetypes
+            from azure.storage.blob import generate_blob_sas, BlobSasPermissions, ContentSettings
             from datetime import timezone as _tz
             data = base64.b64decode(data_b64)
+            # Validar tamaño máximo 20 MB
+            if len(data) > 20 * 1024 * 1024:
+                raise ValueError(f"Archivo demasiado grande: {len(data)//1024//1024} MB (máx 20 MB)")
             blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
             client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
             # Crear contenedor si no existe
@@ -744,8 +748,13 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
                 logger.info("[AraBot] Contenedor whatsapp-docs creado")
             except Exception:
                 pass  # ya existe
+            # Detectar content_type para que el navegador previewe correctamente
+            mime, _ = mimetypes.guess_type(nombre)
+            if not mime:
+                mime = "image/jpeg" if tipo == "imagen" else "application/pdf" if tipo == "pdf" else "application/octet-stream"
             container = client.get_container_client("whatsapp-docs")
-            container.upload_blob(blob_name, data, overwrite=True)
+            container.upload_blob(blob_name, data, overwrite=True,
+                                  content_settings=ContentSettings(content_type=mime))
             # Generar SAS con vigencia de 5 años (solo lectura)
             expiry = datetime.now(_tz.utc) + timedelta(days=365 * 5)
             sas = generate_blob_sas(
