@@ -1034,7 +1034,11 @@
 <script>
 const token=()=>localStorage.getItem('token');
 const rol=()=>localStorage.getItem('rol');
-const authH=()=>({'Authorization':'Bearer '+token(),'Content-Type':'application/json'});
+const authH=()=>{
+  const t=token();
+  if(!t){localStorage.clear();location.href='/';return{}}
+  return{'Authorization':'Bearer '+t,'Content-Type':'application/json'};
+};
 let candidatoId=null;
 let canEdit=false;
 let archivosEnCola=[];
@@ -1505,14 +1509,15 @@ async function guardar(){
     }else{
       r=await fetch('/api/candidatos/',{method:'POST',headers:authH(),body:JSON.stringify(data)});
     }
+    if(r.status===401){localStorage.clear();location.href='/';return}
     if(!r.ok){const e=await r.json();toast('Error: '+(e.detail||JSON.stringify(e)),'error');btn.textContent='Guardar Candidato';btn.disabled=false;return}
     const saved=await r.json();
     const isNew=!candidatoId;
     candidatoId=saved.id;
     history.replaceState({},'','/captura?id='+candidatoId);
-    // Mostrar botón subir archivos si hay en cola
-    if(archivosEnCola.length) document.getElementById('btnSubirArchivos').style.display='flex';
     toast(isNew?'Candidato guardado correctamente.':'Candidato actualizado correctamente.','success');
+    // Si hay archivos en cola, subirlos automáticamente
+    if(archivosEnCola.length) await subirArchivos();
   }catch(e){toast('Error de conexión: '+e.message,'error')}
   btn.textContent='Guardar Candidato';btn.disabled=false;
 }
