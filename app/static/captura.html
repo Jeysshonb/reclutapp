@@ -538,6 +538,7 @@
         <div class="card-hdr">
           <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
           <h3>Tallas e IMC</h3>
+          <span id="badgeGeneroTallas" style="display:none;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:100px"></span>
           <span class="step-tag">3 / 10</span>
         </div>
         <div class="card-body">
@@ -1165,6 +1166,14 @@ function actualizarTallas(){
   const genero=(document.getElementById('genero')||{}).value||'';
   const esFem=genero==='Femenino';
   const esMasc=genero==='Masculino';
+
+  // Badge de género en el encabezado de la sección
+  const badge=document.getElementById('badgeGeneroTallas');
+  if(badge){
+    if(esFem){badge.style.display='inline-block';badge.textContent='♀ Femenino';badge.style.background='#fce7f3';badge.style.color='#be185d';}
+    else if(esMasc){badge.style.display='inline-block';badge.textContent='♂ Masculino';badge.style.background='#dbeafe';badge.style.color='#1d4ed8';}
+    else{badge.style.display='none';}
+  }
 
   // Pantalón
   const selP=document.getElementById('talla_pantalon');
