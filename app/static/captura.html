@@ -1350,7 +1350,7 @@ function fillSelect(id,items){
 function parseId(){return new URLSearchParams(location.search).get('id')}
 async function cargarCandidato(id){
   const r=await fetch(`/api/candidatos/${id}`,{headers:{'Authorization':'Bearer '+token()}});
-  if(!r.ok){toast('Candidato no encontrado.','error');location.href='/seguimiento';return}
+  if(!r.ok){toast('Candidato no encontrado.','error');if(window.parent!==window&&window.parent.cerrarPanel)window.parent.cerrarPanel();else location.href='/seguimiento';return}
   const d=await r.json();
   Object.keys(d).forEach(k=>{
     const el=document.getElementById(k);if(!el)return;
@@ -1791,7 +1791,8 @@ function quitarExp(n){
 
 // ── Init ──
 async function init(){
-  if(!token()){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';return}
+  const enIframe=window.parent!==window;
+  if(!token()){if(!enIframe){localStorage.clear();sessionStorage.setItem('logout','1');location.href='/';}return}
   document.getElementById('userName').textContent=localStorage.getItem('nombre')||'';
   const r=rol();
   canEdit=(r==='administrador'||r==='especialista');
