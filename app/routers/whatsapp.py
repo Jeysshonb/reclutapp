@@ -733,6 +733,8 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
         from azure.storage.blob import BlobServiceClient
 
         def _upload():
+            from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+            from datetime import timezone as _tz
             data = base64.b64decode(data_b64)
             blob_name = f"{phone}/{uuid.uuid4().hex[:8]}_{nombre}"
             client = BlobServiceClient.from_connection_string(s.AZURE_STORAGE_CONNECTION_STRING)
@@ -744,7 +746,17 @@ async def _subir_blob(data_b64: str, nombre: str, tipo: str, phone: str, cedula:
                 pass  # ya existe
             container = client.get_container_client("whatsapp-docs")
             container.upload_blob(blob_name, data, overwrite=True)
-            return f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}"
+            # Generar SAS con vigencia de 5 años (solo lectura)
+            expiry = datetime.now(_tz.utc) + timedelta(days=365 * 5)
+            sas = generate_blob_sas(
+                account_name=client.account_name,
+                container_name="whatsapp-docs",
+                blob_name=blob_name,
+                account_key=client.credential.account_key,
+                permission=BlobSasPermissions(read=True),
+                expiry=expiry,
+            )
+            return f"https://{client.account_name}.blob.core.windows.net/whatsapp-docs/{blob_name}?{sas}"
 
         url = await asyncio.to_thread(_upload)
 
