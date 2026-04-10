@@ -505,7 +505,7 @@ async function cargarFiltros(){
   try{
     const [cargosR,recR]=await Promise.all([
       fetch('/api/admin/catalogos/cargo',{headers:auth()}).then(r=>r.json()),
-      fetch('/api/admin/catalogos/reclutador',{headers:auth()}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/reclutador/desde-candidatos',{headers:auth()}).then(r=>r.json()),
     ]);
     const sc=document.getElementById('fCargo');
     (cargosR||[]).forEach(c=>{const o=document.createElement('option');o.value=c.nombre;o.text=c.nombre;sc.appendChild(o)});

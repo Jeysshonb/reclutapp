@@ -10,7 +10,7 @@ from app.models.candidato import (
     CatNegocio, CatCargo, CatFuenteHV, CatResultado,
     CatDepartamento, CatMunicipio, CatMotivoRetiro,
     CatReclutador, CatProveedor,
-    Usuario, Auditoria, WaSession, WaArchivo,
+    Usuario, Auditoria, WaSession, WaArchivo, Candidato,
 )
 from app.routers.auth import get_current_user, require_role
 from app.schemas.candidato import CatalogoCreate, UsuarioCreate, UsuarioUpdate
@@ -36,6 +36,23 @@ CATALOGOS = {
 @router.get("/catalogos")
 def listar_catalogos_disponibles(_: Usuario = Depends(get_current_user)):
     return list(CATALOGOS.keys())
+
+
+@router.get("/catalogos/reclutador/desde-candidatos")
+def reclutadores_desde_candidatos(
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    """Reclutadores únicos que existen en candidatos reales (incluye Bot WhatsApp)."""
+    from sqlalchemy import distinct
+    filas = (
+        db.query(distinct(Candidato.reclutador))
+        .filter(Candidato.deleted_at.is_(None), Candidato.reclutador.isnot(None), Candidato.reclutador != "")
+        .order_by(Candidato.reclutador)
+        .all()
+    )
+    nombres = [f[0] for f in filas]
+    return [{"id": n, "nombre": n, "activo": True} for n in nombres]
 
 
 @router.get("/catalogos/{nombre}")

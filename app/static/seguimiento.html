@@ -484,7 +484,7 @@ async function cargarFiltros(){
   try{
     const [neg,rec]=await Promise.all([
       fetch('/api/admin/catalogos/negocio',{headers:auth()}).then(r=>r.json()),
-      fetch('/api/admin/catalogos/reclutador',{headers:auth()}).then(r=>r.json()),
+      fetch('/api/admin/catalogos/reclutador/desde-candidatos',{headers:auth()}).then(r=>r.json()),
     ]);
     const sNeg=document.getElementById('fNegocio');
     neg.filter(n=>n.activo).forEach(n=>{const o=document.createElement('option');o.value=n.nombre;o.textContent=n.nombre;sNeg.appendChild(o)});
