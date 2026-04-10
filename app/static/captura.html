@@ -1723,6 +1723,20 @@ async function subirArchivoEtapa(input, etapa, containerId){
   if(!canEdit){toast('Sin permisos para subir archivos.','error');return}
   const files=Array.from(input.files);
   if(!files.length)return;
+
+  // Mostrar barra de progreso
+  const uploaderEl=document.getElementById('uploader'+containerId.replace('files','').charAt(0).toUpperCase()+containerId.replace('files','').slice(1))||document.querySelector(`[id^="uploader"]`);
+  const progressId='prog_'+containerId;
+  const existing=document.getElementById(progressId);
+  if(existing)existing.remove();
+  const progBar=document.createElement('div');
+  progBar.id=progressId;
+  progBar.style.cssText='margin:6px 0;height:6px;background:#e5e7eb;border-radius:4px;overflow:hidden';
+  progBar.innerHTML='<div id="progFill_'+containerId+'" style="height:100%;background:#1A9ECC;border-radius:4px;transition:width .3s;width:0%"></div>';
+  const filesList=document.getElementById(containerId);
+  if(filesList)filesList.parentElement.insertBefore(progBar,filesList);
+
+  let done=0;
   for(const file of files){
     const fd=new FormData();
     fd.append('archivo',file);
@@ -1737,7 +1751,13 @@ async function subirArchivoEtapa(input, etapa, containerId){
       _renderFilesEtapa(containerId,_archivosPorEtapa[etapa]);
       toast(`${file.name} adjuntado.`,'success');
     }catch(e){toast('Error de red al subir archivo.','error')}
+    done++;
+    const pct=Math.round(done/files.length*100);
+    const fill=document.getElementById('progFill_'+containerId);
+    if(fill)fill.style.width=pct+'%';
   }
+  // Quitar barra al terminar
+  setTimeout(()=>{const p=document.getElementById(progressId);if(p)p.remove();},1200);
   input.value='';
 }
 
