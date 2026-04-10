@@ -512,7 +512,7 @@
               <input type="date" id="fecha_nacimiento" min="1950-01-01" max="2008-12-31" onchange="calcularEdad()">
               <span id="edadDisplay" style="display:none;margin-top:4px;font-size:.8rem;font-weight:700;color:var(--orange);background:var(--orange-light);padding:3px 10px;border-radius:6px;display:inline-block"></span>
             </div>
-            <div class="fg"><label>Género</label><select id="genero"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+            <div class="fg"><label>Género</label><select id="genero" onchange="actualizarTallas()"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
             <div class="fg"><label>Correo Electrónico</label><input type="email" id="correo" placeholder="correo@gmail.com"></div>
             <div class="fg"><label>Teléfonos de contacto (WhatsApp)</label><input type="text" id="telefono_contacto" placeholder="3001234567"></div>
             <div class="fg full"><label>Dirección de Residencia (incluir barrio)</label><input type="text" id="direccion" placeholder="Calle 5 #10-20, Barrio El Prado"></div>
@@ -542,9 +542,9 @@
         </div>
         <div class="card-body">
           <div class="grid-3">
-            <div class="fg"><label>Talla Pantalón</label><select id="talla_pantalon"><option value="">-</option><option>28</option><option>30</option><option>32</option><option>34</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option></select></div>
+            <div class="fg"><label id="lbl_talla_pantalon">Talla Pantalón</label><select id="talla_pantalon"><option value="">-</option><option>28</option><option>30</option><option>32</option><option>34</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option></select></div>
             <div class="fg"><label>Talla Camiseta</label><select id="talla_camiseta"><option value="">-</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option></select></div>
-            <div class="fg"><label>Talla Zapatos</label><select id="talla_zapatos"><option value="">-</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option></select></div>
+            <div class="fg"><label id="lbl_talla_zapatos">Talla Zapatos</label><select id="talla_zapatos"><option value="">-</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option></select></div>
             <div class="fg"><label>Peso (kg)</label><input type="number" id="peso" placeholder="Ej: 70" step="0.1" oninput="calcIMC()"></div>
             <div class="fg"><label>Altura (metros)</label><input type="number" id="altura" placeholder="Ej: 1.70" step="0.01" oninput="calcIMC()"></div>
             <div class="fg"><label>Resultado IMC</label><div id="imcDisplay" style="margin-top:6px;color:#bbb;font-size:.83rem">Ingresa peso y altura</div></div>
@@ -1129,6 +1129,7 @@ function goStep(n){
   document.getElementById('sec'+n).classList.add('active');
   document.getElementById('s'+n).classList.add('active');
   currentStep=n;
+  if(n===2){actualizarTallas()}
   if(n===10){
     const cedula = document.getElementById('cedula')?.value;
     const phone  = document.getElementById('telefono_contacto')?.value;
@@ -1159,20 +1160,60 @@ function toggleSitLab(){
 }
 function toggleNegra(){document.getElementById('fMotivoNegra').style.display=document.getElementById('lista_negra').value==='true'?'block':'none'}
 
-// ── IMC ──
+// ── Tallas según género ──
+function actualizarTallas(){
+  const genero=(document.getElementById('genero')||{}).value||'';
+  const esFem=genero==='Femenino';
+  const esMasc=genero==='Masculino';
+
+  // Pantalón
+  const selP=document.getElementById('talla_pantalon');
+  const lblP=document.getElementById('lbl_talla_pantalon');
+  const valP=selP.value;
+  selP.innerHTML='<option value="">-</option>';
+  if(esFem){
+    lblP.textContent='Talla Pantalón (F)';
+    ['6','8','10','12','14','16','18'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selP.appendChild(o)});
+  }else{
+    lblP.textContent=esMasc?'Talla Pantalón (M)':'Talla Pantalón';
+    ['28','30','32','34','36','38','40','42','44'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selP.appendChild(o)});
+  }
+  if([...selP.options].some(o=>o.value===valP))selP.value=valP;
+
+  // Zapatos
+  const selZ=document.getElementById('talla_zapatos');
+  const lblZ=document.getElementById('lbl_talla_zapatos');
+  const valZ=selZ.value;
+  selZ.innerHTML='<option value="">-</option>';
+  if(esFem){
+    lblZ.textContent='Talla Zapatos (F)';
+    ['34','35','36','37','38','39'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selZ.appendChild(o)});
+  }else{
+    lblZ.textContent=esMasc?'Talla Zapatos (M)':'Talla Zapatos';
+    ['38','39','40','41','42','43','44','45'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selZ.appendChild(o)});
+  }
+  if([...selZ.options].some(o=>o.value===valZ))selZ.value=valZ;
+
+  calcIMC();
+}
+
+// ── IMC (con referencia por sexo — rangos OMS/MinSalud Colombia) ──
 function calcIMC(){
   const p=parseFloat(document.getElementById('peso').value);
   const h=parseFloat(document.getElementById('altura').value);
   const el=document.getElementById('imcDisplay');
   if(!p||!h||h===0){el.innerHTML='<span style="color:#bbb;font-size:.82rem">Ingresa peso y altura</span>';return}
   const imc=(p/(h*h)).toFixed(2);
+  const genero=(document.getElementById('genero')||{}).value||'';
+  const sexTag=genero==='Femenino'?' · F':genero==='Masculino'?' · M':'';
   let cls='',lbl='';
-  if(imc<18.5){cls='imc-riesgo';lbl='Delgado'}
-  else if(imc<25){cls='imc-sano';lbl='Sano'}
+  // Rangos MinSalud Colombia / OMS — iguales por sexo a nivel diagnóstico
+  if(imc<18.5){cls='imc-riesgo';lbl='Bajo peso'}
+  else if(imc<25){cls='imc-sano';lbl='Peso normal'}
   else if(imc<30){cls='imc-sobrepeso';lbl='Sobrepeso'}
-  else if(imc<35){cls='imc-sobrepeso';lbl='Sobrepeso Elevado'}
-  else{cls='imc-riesgo';lbl='Obesidad'}
-  el.innerHTML=`<span class="imc-result ${cls}">IMC ${imc} — ${lbl}</span>`;
+  else if(imc<35){cls='imc-sobrepeso';lbl='Obesidad I'}
+  else{cls='imc-riesgo';lbl='Obesidad II+'}
+  el.innerHTML=`<span class="imc-result ${cls}">IMC ${imc}${sexTag} — ${lbl}</span>`;
 }
 
 // ── Cédula ──
