@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fichas de Candidatos — Reclutamiento ARA</title>
+<title>Fichas Completas — Reclutamiento ARA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f1f5f9;color:#1e293b;font-size:.9rem}
+body{font-family:'Inter',sans-serif;background:#f1f5f9;color:#1e293b;font-size:.88rem}
 nav{background:linear-gradient(135deg,#FE5000,#c73d00);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(254,80,0,.3)}
 .nav-brand{display:flex;align-items:center;gap:14px}
 .nav-banner{height:32px;object-fit:contain;filter:brightness(0) invert(1)}
@@ -26,86 +26,88 @@ nav{background:linear-gradient(135deg,#FE5000,#c73d00);padding:0 24px;height:56p
 .btn-logout svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
 
 /* ── Main ── */
-.main{max-width:1400px;margin:0 auto;padding:24px 20px}
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.page-title{font-size:1.4rem;font-weight:800;color:#1e293b}
+.main{max-width:1300px;margin:0 auto;padding:20px 16px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.page-title{font-size:1.35rem;font-weight:800}
 .page-title span{color:#FE5000}
-.page-subtitle{font-size:.83rem;color:#64748b;margin-top:3px}
+.page-sub{font-size:.8rem;color:#64748b;margin-top:3px}
 
 /* ── Filtros ── */
-.filters-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:18px}
-.filters-row{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.filter-group{display:flex;flex-direction:column;gap:4px}
-.filter-group label{font-size:.75rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
-.filter-group input,.filter-group select{padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.83rem;color:#1e293b;background:#fff;min-width:130px;font-family:inherit}
-.filter-group input:focus,.filter-group select:focus{outline:none;border-color:#FE5000}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:.82rem;font-weight:600;font-family:inherit;transition:all .15s}
-.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.filters-card{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:14px}
+.filters-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select{padding:6px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:.82rem;color:#1e293b;background:#fff;min-width:120px;font-family:inherit}
+.fg input:focus,.fg select:focus{outline:none;border-color:#FE5000}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;border:none;cursor:pointer;font-size:.81rem;font-weight:600;font-family:inherit;transition:all .15s}
+.btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn-primary{background:#FE5000;color:#fff}
 .btn-primary:hover{background:#d94400}
 .btn-gray{background:#f1f5f9;color:#475569}
 .btn-gray:hover{background:#e2e8f0}
 .btn-green{background:#16a34a;color:#fff}
 .btn-green:hover{background:#15803d}
-.btn-today{background:#fff;border:1px solid #FE5000;color:#FE5000;padding:7px 10px}
+.btn-today{background:#fff;border:1px solid #FE5000;color:#FE5000;padding:6px 10px}
 .btn-today:hover{background:#fff7f5}
 
-/* ── Barra de resultados ── */
-.results-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.results-count{font-size:.85rem;color:#64748b}
-.results-count strong{color:#1e293b;font-weight:700}
-.dl-row{display:flex;gap:8px}
+/* ── Barra ── */
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.res-count{font-size:.83rem;color:#64748b}
+.res-count strong{color:#1e293b}
 
-/* ── Tabla ── */
-.table-wrap{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow:hidden}
-table{width:100%;border-collapse:collapse}
-thead th{background:#FE5000;color:#fff;padding:10px 12px;text-align:left;font-size:.78rem;font-weight:600;white-space:nowrap}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
-tbody tr:hover{background:#fff7f5}
-tbody tr.expanded{background:#fff7f5}
-td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
-.td-ced{font-weight:700;color:#1e293b;white-space:nowrap}
-.td-nom{font-weight:600;color:#1e293b;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.td-cargo{color:#475569;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.td-rec{color:#64748b;font-size:.78rem}
-.td-fecha{color:#94a3b8;font-size:.78rem;white-space:nowrap}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
+/* ── Tarjeta candidato ── */
+.candidato-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:18px;overflow:hidden;border:1px solid #f1f5f9}
+.card-top{background:linear-gradient(90deg,#FE5000 0%,#ff7043 100%);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-top-left{display:flex;align-items:center;gap:14px}
+.card-num{background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:.78rem;padding:4px 10px;border-radius:20px}
+.card-nombre{color:#fff;font-weight:800;font-size:1rem}
+.card-cedula{color:rgba(255,255,255,.8);font-size:.8rem;margin-top:1px}
+.card-top-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
 .badge-verde{background:#dcfce7;color:#16a34a}
 .badge-rojo{background:#fee2e2;color:#dc2626}
-.badge-azul{background:#dbeafe;color:#2563eb}
-.badge-gris{background:#f1f5f9;color:#64748b}
+.badge-azul{background:rgba(255,255,255,.9);color:#2563eb}
+.badge-gris{background:rgba(255,255,255,.7);color:#475569}
 .badge-amarillo{background:#fef9c3;color:#a16207}
-.btn-expand{background:none;border:1px solid #e2e8f0;color:#64748b;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap}
-.btn-expand:hover{border-color:#FE5000;color:#FE5000}
-.btn-expand.open{background:#fff7f5;border-color:#FE5000;color:#FE5000}
-.btn-expand svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;transition:transform .2s}
-.btn-expand.open svg{transform:rotate(180deg)}
+.badge-white{background:rgba(255,255,255,.9);color:#1e293b;font-size:.72rem}
 
-/* ── Fila expandida ── */
-.expand-row{display:none}
-.expand-row.open{display:table-row}
-.expand-cell{padding:0}
-.expand-inner{padding:16px 20px;background:#fafafa;border-top:2px solid #FE5000;border-bottom:2px solid #f1f5f9}
-.sections-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.data-section{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0}
-.data-section h4{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#FE5000;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.data-section h4 svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
-.field-row{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;border-bottom:1px solid #f8fafc;gap:8px}
-.field-row:last-child{border-bottom:none}
-.field-label{font-size:.73rem;color:#94a3b8;font-weight:500;white-space:nowrap;flex-shrink:0}
-.field-val{font-size:.78rem;color:#1e293b;font-weight:500;text-align:right;word-break:break-word}
-.field-val.empty{color:#cbd5e1;font-style:italic}
-.exp-block{background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:6px;border-left:3px solid #FE5000}
-.exp-block h5{font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px}
-.loading-cell{text-align:center;padding:20px;color:#94a3b8;font-size:.82rem}
-.no-data{text-align:center;padding:40px;color:#94a3b8;font-size:.9rem}
-.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px;flex-wrap:wrap}
+/* ── Secciones de datos ── */
+.card-body{padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.sec{border:1px solid #f1f5f9;border-radius:10px;padding:12px 14px;background:#fafafa}
+.sec-title{font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#FE5000;margin-bottom:8px;display:flex;align-items:center;gap:5px;padding-bottom:6px;border-bottom:1px solid #f1f5f9}
+.sec-title svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.field{display:flex;justify-content:space-between;align-items:flex-start;padding:3px 0;gap:8px}
+.fl{font-size:.72rem;color:#94a3b8;font-weight:500;flex-shrink:0;white-space:nowrap}
+.fv{font-size:.76rem;color:#1e293b;font-weight:500;text-align:right;word-break:break-word;max-width:180px}
+.fv.na{color:#cbd5e1;font-style:italic}
+.fv.si{color:#16a34a;font-weight:700}
+.fv.no{color:#94a3b8}
+
+/* Experiencia */
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:6px}
+.exp-item{background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #e2e8f0;border-left:3px solid #FE5000}
+.exp-item.empty{border-left-color:#e2e8f0;opacity:.5}
+.exp-title{font-size:.73rem;font-weight:700;color:#475569;margin-bottom:6px}
+
+/* Pipeline */
+.pipeline-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:6px}
+.pipe-item{background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #e2e8f0}
+.pipe-label{font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+
+/* Span full row */
+.full{grid-column:1/-1}
+
+/* Paginación */
+.pagination{display:flex;align-items:center;justify-content:center;gap:5px;padding:20px 0;flex-wrap:wrap}
 .page-btn{border:1px solid #e2e8f0;background:#fff;color:#475569;padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.8rem;font-family:inherit;transition:all .15s}
 .page-btn:hover{border-color:#FE5000;color:#FE5000}
 .page-btn.active{background:#FE5000;color:#fff;border-color:#FE5000;font-weight:700}
 .page-btn:disabled{opacity:.4;cursor:default}
 
-@media(max-width:700px){.nav-title{display:none}.page-header{flex-direction:column;align-items:flex-start}.filters-row{flex-direction:column}}
+.empty-state{text-align:center;padding:50px 20px;color:#94a3b8;font-size:.9rem;background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.spinner{text-align:center;padding:60px;color:#94a3b8;font-size:.9rem}
+
+@media(max-width:700px){.nav-title{display:none}.filters-row{flex-direction:column}.card-body{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -122,7 +124,7 @@ td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
     </a>
     <a href="/captura">
       <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nuevo Candidato
+      Nuevo
     </a>
     <a href="/requerimientos" class="active">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -146,30 +148,30 @@ td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
 <div class="main">
   <div class="page-header">
     <div>
-      <div class="page-title">Fichas <span>Completas</span> de Candidatos</div>
-      <div class="page-subtitle">Todos los datos recopilados por candidato — expande cada fila para ver el perfil completo</div>
+      <div class="page-title">Fichas <span>Completas</span></div>
+      <div class="page-sub">Perfil completo de cada candidato — todos los datos visibles de una vez</div>
     </div>
   </div>
 
   <!-- Filtros -->
   <div class="filters-card">
     <div class="filters-row">
-      <div class="filter-group">
+      <div class="fg">
         <label>Desde</label>
         <input type="date" id="fDesde">
       </div>
-      <div class="filter-group">
+      <div class="fg">
         <label>Hasta</label>
         <input type="date" id="fHasta">
       </div>
-      <div class="filter-group">
+      <div class="fg" style="justify-content:flex-end">
         <button class="btn btn-today" onclick="filtrarHoy()">📅 Hoy</button>
       </div>
-      <div class="filter-group">
+      <div class="fg">
         <label>Cargo</label>
         <select id="fCargo"><option value="">Todos los cargos</option></select>
       </div>
-      <div class="filter-group">
+      <div class="fg">
         <label>Región</label>
         <select id="fRegion">
           <option value="">Todas</option>
@@ -178,11 +180,11 @@ td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
           <option>R9</option><option>R10</option><option>R11</option>
         </select>
       </div>
-      <div class="filter-group">
+      <div class="fg">
         <label>Reclutadora</label>
         <select id="fReclutador"><option value="">Todas</option></select>
       </div>
-      <div class="filter-group">
+      <div class="fg">
         <label>Status</label>
         <select id="fStatus">
           <option value="">Todos</option>
@@ -190,8 +192,7 @@ td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
           <option>No Apto</option><option>Desiste</option><option>No Asiste</option>
         </select>
       </div>
-      <div class="filter-group">
-        <label>&nbsp;</label>
+      <div class="fg" style="justify-content:flex-end">
         <div style="display:flex;gap:6px">
           <button class="btn btn-primary" onclick="buscar(0)">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -203,47 +204,24 @@ td{padding:10px 12px;font-size:.82rem;vertical-align:middle}
     </div>
   </div>
 
-  <!-- Barra resultados + descarga -->
-  <div class="results-bar">
-    <div class="results-count" id="resultCount">Cargando...</div>
-    <div class="dl-row">
-      <button class="btn btn-green" onclick="descargarCSV()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Descargar CSV Completo
-      </button>
-    </div>
+  <!-- Barra resultados -->
+  <div class="bar">
+    <div class="res-count" id="resCount">Cargando...</div>
+    <button class="btn btn-green" onclick="descargarCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Descargar CSV Completo
+    </button>
   </div>
 
-  <!-- Tabla -->
-  <div class="table-wrap">
-    <table id="tbl">
-      <thead>
-        <tr>
-          <th>Cédula</th>
-          <th>Nombre</th>
-          <th>Cargo</th>
-          <th>Reclutadora</th>
-          <th>Región</th>
-          <th>Género</th>
-          <th>Nivel Edu.</th>
-          <th>Aspiración Sal.</th>
-          <th>Status</th>
-          <th>Fecha Registro</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="11" class="loading-cell">Cargando fichas...</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- Fichas -->
+  <div id="fichas"><div class="spinner">Cargando fichas...</div></div>
 
   <!-- Paginación -->
   <div class="pagination" id="pagination"></div>
 </div>
 
 <script>
-const LIMIT=50;
+const LIMIT=10;
 let page=0,total=0;
 const _cache={};
 
@@ -251,10 +229,8 @@ function token(){return localStorage.getItem('token')||''}
 function rol(){return localStorage.getItem('rol')||''}
 function auth(){return{'Authorization':'Bearer '+token()}}
 function logout(){localStorage.clear();location.href='/'}
-function fmtMoney(v){if(!v&&v!==0)return'-';return'$'+Number(v).toLocaleString('es-CO')}
-function fmtBool(v){if(v===null||v===undefined)return'-';return v?'Sí':'No'}
-function fmtDate(s){if(!s)return'-';const p=(s.split('T')[0]||s).split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s}
-function fmtVal(v){if(v===null||v===undefined||v==='')return'<span class="empty">—</span>';return v}
+function fmtMoney(v){if(v===null||v===undefined||v==='')return null;return'$'+Number(v).toLocaleString('es-CO')}
+function fmtDate(s){if(!s)return null;const p=(s.split('T')[0]).split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s}
 
 function buildParams(skip=0){
   const p=new URLSearchParams();
@@ -264,18 +240,13 @@ function buildParams(skip=0){
   const r=document.getElementById('fRegion').value;
   const rc=document.getElementById('fReclutador').value;
   const st=document.getElementById('fStatus').value;
-  if(d)p.set('fecha_desde',d);
-  if(h)p.set('fecha_hasta',h);
-  if(c)p.set('cargo',c);
-  if(r)p.set('region',r);
-  if(rc)p.set('reclutador',rc);
-  if(st)p.set('status',st);
-  p.set('skip',skip);
-  p.set('limit',LIMIT);
+  if(d)p.set('fecha_desde',d);if(h)p.set('fecha_hasta',h);
+  if(c)p.set('cargo',c);if(r)p.set('region',r);
+  if(rc)p.set('reclutador',rc);if(st)p.set('status',st);
+  p.set('skip',skip);p.set('limit',LIMIT);
   return p.toString();
 }
-
-function buildFilterParamsCSV(){
+function buildCSVParams(){
   const p=new URLSearchParams();
   const d=document.getElementById('fDesde').value;
   const h=document.getElementById('fHasta').value;
@@ -283,12 +254,9 @@ function buildFilterParamsCSV(){
   const r=document.getElementById('fRegion').value;
   const rc=document.getElementById('fReclutador').value;
   const st=document.getElementById('fStatus').value;
-  if(d)p.set('fecha_desde',d);
-  if(h)p.set('fecha_hasta',h);
-  if(c)p.set('cargo',c);
-  if(r)p.set('region',r);
-  if(rc)p.set('reclutador',rc);
-  if(st)p.set('status',st);
+  if(d)p.set('fecha_desde',d);if(h)p.set('fecha_hasta',h);
+  if(c)p.set('cargo',c);if(r)p.set('region',r);
+  if(rc)p.set('reclutador',rc);if(st)p.set('status',st);
   return p.toString();
 }
 
@@ -298,206 +266,210 @@ function filtrarHoy(){
   document.getElementById('fHasta').value=hoy;
   buscar(0);
 }
-
 function limpiar(){
   ['fDesde','fHasta'].forEach(id=>document.getElementById(id).value='');
-  ['fCargo','fRegion','fReclutador','fStatus'].forEach(id=>document.getElementById(id).value='');
+  ['fCargo','fRegion','fStatus'].forEach(id=>document.getElementById(id).value='');
   const r=rol();
-  if(r==='especialista'){
-    document.getElementById('fReclutador').value=localStorage.getItem('nombre')||'';
-  }
+  if(r!=='especialista')document.getElementById('fReclutador').value='';
   buscar(0);
 }
 
 function statusBadge(s){
   if(!s)return'<span class="badge badge-gris">—</span>';
-  const sl=s.toLowerCase();
+  const sl=(s||'').toLowerCase();
   if(sl.includes('contrat'))return`<span class="badge badge-verde">${s}</span>`;
-  if(sl.includes('no apto')||sl.includes('lista'))return`<span class="badge badge-rojo">${s}</span>`;
+  if(sl.includes('no apto'))return`<span class="badge badge-rojo">${s}</span>`;
   if(sl.includes('proceso'))return`<span class="badge badge-azul">${s}</span>`;
   if(sl.includes('desiste')||sl.includes('asiste'))return`<span class="badge badge-amarillo">${s}</span>`;
   return`<span class="badge badge-gris">${s}</span>`;
 }
 
-function renderTabla(items){
-  const tb=document.getElementById('tbody');
-  if(!items.length){tb.innerHTML='<tr><td colspan="11" class="no-data">No se encontraron candidatos con los filtros aplicados.</td></tr>';return}
-  tb.innerHTML=items.map(c=>{
-    const fecha=c.created_at?fmtDate(c.created_at.split('T')[0]||c.created_at):'-';
-    const asp=c.aspiracion_salarial?fmtMoney(c.aspiracion_salarial):'-';
-    return`
-    <tr id="row-${c.id}">
-      <td class="td-ced">${c.cedula}</td>
-      <td class="td-nom" title="${c.nombre||''}">${c.nombre||'-'}</td>
-      <td class="td-cargo" title="${c.cargo||''}">${c.cargo||'-'}</td>
-      <td class="td-rec">${c.reclutador||'-'}</td>
-      <td>${c.region||'-'}</td>
-      <td>${c.genero||'-'}</td>
-      <td>${c.nivel_academico||'-'}</td>
-      <td>${asp}</td>
-      <td>${statusBadge(c.tipo_status||c.status)}</td>
-      <td class="td-fecha">${fecha}</td>
-      <td><button class="btn-expand" id="btn-${c.id}" onclick="toggleExpand(${c.id})">
-        Ver <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </button></td>
-    </tr>
-    <tr class="expand-row" id="expand-${c.id}">
-      <td class="expand-cell" colspan="11">
-        <div class="expand-inner" id="inner-${c.id}">
-          <div class="loading-cell">Cargando datos completos...</div>
+// Campo individual
+function f(label,val,isBool=false){
+  if(isBool){
+    const disp=val===null||val===undefined?'<span class="fv na">—</span>'
+      :(val?'<span class="fv si">Sí</span>':'<span class="fv no">No</span>');
+    return`<div class="field"><span class="fl">${label}</span>${disp}</div>`;
+  }
+  const empty=val===null||val===undefined||val==='';
+  return`<div class="field"><span class="fl">${label}</span><span class="fv${empty?' na':''}">${empty?'—':val}</span></div>`;
+}
+
+function expBlock(n,d){
+  const emp=d[`exp${n}_empresa`];
+  if(!emp)return`<div class="exp-item empty"><div class="exp-title">Experiencia ${n}</div><span style="font-size:.72rem;color:#cbd5e1">Sin datos</span></div>`;
+  const cargo=d[`exp${n}_cargo`]||'';
+  const ini=d[`exp${n}_fecha_inicio`]||'?';
+  const ret=d[`exp${n}_fecha_retiro`]||'Actual';
+  const sal=fmtMoney(d[`exp${n}_salario`]);
+  const func=d[`exp${n}_funciones`];
+  const motivo=d[`exp${n}_motivo_retiro`];
+  return`<div class="exp-item">
+    <div class="exp-title">${n}. ${emp}${cargo?' — '+cargo:''}</div>
+    ${f('Actividad',d[`exp${n}_actividad`])}
+    ${f('Ciudad',d[`exp${n}_ciudad`])}
+    ${f('Periodo',`${ini} → ${ret}`)}
+    ${f('Salario',sal)}
+    ${f('Funciones',func)}
+    ${f('Motivo Retiro',motivo)}
+  </div>`;
+}
+
+function renderFicha(d,num){
+  const status=d.tipo_status||d.status||'';
+  const cargo=d.cargo||'';
+  const rec=d.reclutador||'';
+  const fecha=fmtDate(d.created_at)||'-';
+  return`
+  <div class="candidato-card">
+    <div class="card-top">
+      <div class="card-top-left">
+        <span class="card-num">#${num}</span>
+        <div>
+          <div class="card-nombre">${d.nombre||'Sin nombre'}</div>
+          <div class="card-cedula">CC ${d.cedula} &nbsp;·&nbsp; ${cargo} &nbsp;·&nbsp; ${rec} &nbsp;·&nbsp; ${fecha}</div>
         </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function toggleExpand(id){
-  const row=document.getElementById(`expand-${id}`);
-  const btn=document.getElementById(`btn-${id}`);
-  const isOpen=row.classList.contains('open');
-  // Cerrar todos
-  document.querySelectorAll('.expand-row.open').forEach(r=>r.classList.remove('open'));
-  document.querySelectorAll('.btn-expand.open').forEach(b=>b.classList.remove('open'));
-  if(isOpen)return;
-  row.classList.add('open');
-  btn.classList.add('open');
-  if(_cache[id]){renderFicha(id,_cache[id]);return}
-  try{
-    const r=await fetch(`/api/candidatos/${id}`,{headers:auth()});
-    if(r.status===401){localStorage.clear();location.href='/';return}
-    const d=await r.json();
-    _cache[id]=d;
-    renderFicha(id,d);
-  }catch(e){document.getElementById(`inner-${id}`).innerHTML='<div class="loading-cell" style="color:#dc2626">Error cargando datos.</div>'}
-}
-
-function f(v){return`<span class="${!v&&v!==0&&v!==false?'empty':''}">${v===null||v===undefined||v===''?'—':v}</span>`}
-function fb(v){return v===null||v===undefined?f(null):v?'<span style="color:#16a34a;font-weight:600">Sí</span>':'<span style="color:#94a3b8">No</span>'}
-
-function renderFicha(id,d){
-  const inner=document.getElementById(`inner-${id}`);
-  inner.innerHTML=`
-  <div class="sections-grid">
-
-    <!-- Datos personales -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Datos Personales</h4>
-      ${fr('Cédula',d.cedula)}${fr('Nombre',d.nombre)}${fr('Fecha Nac.',d.fecha_nacimiento)}
-      ${fr('Género',d.genero)}${fr('Teléfono',d.telefono_contacto)}${fr('Correo',d.correo)}
-      ${fr('Dirección',d.direccion)}${fr('Municipio',d.municipio)}${fr('Departamento',d.departamento)}
-      ${fr('Localidad',d.localidad)}
-    </div>
-
-    <!-- Proceso -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Proceso</h4>
-      ${fr('Cargo',d.cargo)}${fr('Tipo Formulario',d.tipo_formulario)}${fr('Fuente',d.fuente)}
-      ${fr('Reclutadora',d.reclutador)}${fr('Negocio',d.negocio)}${fr('Región',d.region)}
-      ${fr('Ciudad Aplica',d.ciudad_aplica)}${fr('Creado por',d.creado_por)}${fr('Fecha Registro',fmtDate(d.created_at))}
-    </div>
-
-    <!-- Medidas -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><path d="M2 12h20M2 12l4-4M2 12l4 4"/></svg>Medidas Antropométricas</h4>
-      ${fr('Talla Pantalón',d.talla_pantalon)}${fr('Talla Camiseta',d.talla_camiseta)}
-      ${fr('Talla Zapatos',d.talla_zapatos)}${fr('Peso (kg)',d.peso)}${fr('Altura (m)',d.altura)}
-      ${fr('IMC',d.imc)}${fr('Resultado IMC',d.resultado_imc)}
-    </div>
-
-    <!-- Inclusión -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>Inclusión Laboral</h4>
-      ${frb('Tiene Discapacidad',d.tiene_discapacidad)}
-      ${fr('Tipo Discapacidad',d.tipo_discapacidad)}
-      ${frb('Cert. Discapacidad',d.tiene_certificado_discapacidad)}
-    </div>
-
-    <!-- Familia -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Familia y Disponibilidad</h4>
-      ${frb('Tiene Hijos',d.tiene_hijos)}${fr('Nro Hijos',d.num_hijos)}${fr('Edades Hijos',d.edades_hijos)}
-      ${fr('Apoyo Cuidado',d.apoyo_cuidado)}${frb('Familiar en Ara',d.familiar_en_ara)}
-      ${fr('Quién Familiar',d.quien_familiar_ara)}${fr('Transporte',d.medio_transporte)}
-      ${frb('Disponib. Desplaz.',d.disponibilidad_desplazamiento)}${fr('Destino Desplaz.',d.destino_desplazamiento)}
-      ${frb('Disponib. Reubicación',d.disponibilidad_reubicacion)}${fr('Destino Reubicación',d.destino_reubicacion)}
-    </div>
-
-    <!-- Educación -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Educación</h4>
-      ${fr('Nivel Académico',d.nivel_academico)}${fr('Título',d.titulo)}${fr('Año Graduación',d.anio_graduacion)}
-      ${frb('Estudia Actualmente',d.estudia_actualmente)}${fr('Modalidad',d.modalidad_estudio)}
-      ${fr('Proyectos Corto Plazo',d.proyectos_corto_plazo)}
-    </div>
-
-    <!-- Situación laboral -->
-    <div class="data-section">
-      <h4><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Situación Laboral</h4>
-      ${fr('Situación',d.situacion_laboral)}${fr('Tipo Contrato',d.tipo_contrato)}
-      ${fr('Salario Actual',fmtMoney(d.salario_actual))}${fr('Aspiración Salarial',fmtMoney(d.aspiracion_salarial))}
-      ${fr('Meses Desempleado',d.meses_desempleado)}${fr('Justif. Cambio',d.justificacion_cambio_indefinido)}
-    </div>
-
-    <!-- Experiencias -->
-    <div class="data-section" style="grid-column:span 2">
-      <h4><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Experiencia Laboral</h4>
-      ${expBlock(1,d)}${expBlock(2,d)}${expBlock(3,d)}
-    </div>
-
-    <!-- Pipeline -->
-    <div class="data-section" style="grid-column:span 2">
-      <h4><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Pipeline de Selección</h4>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:4px">
-        <div><div style="font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px">OPERACIONES</div>
-          ${fr('Fecha',fmtDate(d.fecha_prog_operaciones))}${fr('Entrevistador',d.entrevistador_1)}${fr('Resultado',d.resultado_operaciones)}${fr('Comentarios',d.comentarios_operaciones)}</div>
-        <div><div style="font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px">RRHH</div>
-          ${fr('Fecha',fmtDate(d.fecha_prog_rrhh))}${fr('Entrevistador',d.entrevistador_2)}${fr('Resultado',d.resultado_rrhh)}${fr('Comentarios',d.comentarios_rrhh)}</div>
-        <div><div style="font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px">EMO</div>
-          ${fr('Concepto',d.concepto_emo)}${fr('Proveedor',d.proveedor_emo)}${fr('Comentarios',d.comentarios_emo)}</div>
-        <div><div style="font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px">SEGURIDAD</div>
-          ${fr('Concepto',d.concepto_es)}${fr('Proveedor',d.proveedor_es)}${fr('Comentarios',d.comentarios_es)}</div>
-        <div><div style="font-size:.72rem;font-weight:700;color:#64748b;margin-bottom:6px">CONTRATACIÓN</div>
-          ${fr('Fecha',fmtDate(d.fecha_contratacion))}${fr('Status',d.tipo_status||d.status)}${fr('Comentarios',d.comentarios_status)}</div>
+      </div>
+      <div class="card-top-right">
+        ${statusBadge(status)}
+        ${d.region?`<span class="badge badge-white">${d.region}</span>`:''}
+        ${d.lista_negra?'<span class="badge badge-rojo">⚠ Lista Negra</span>':''}
       </div>
     </div>
 
+    <div class="card-body">
+
+      <!-- Datos Personales -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Datos Personales</div>
+        ${f('Cédula',d.cedula)}${f('Nombre',d.nombre)}${f('Fecha Nac.',d.fecha_nacimiento)}
+        ${f('Género',d.genero)}${f('Teléfono',d.telefono_contacto)}${f('Correo',d.correo)}
+        ${f('Dirección',d.direccion)}${f('Municipio',d.municipio)}${f('Departamento',d.departamento)}
+        ${f('Localidad',d.localidad)}
+      </div>
+
+      <!-- Proceso -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Proceso</div>
+        ${f('Cargo',d.cargo)}${f('Tipo Formulario',d.tipo_formulario)}${f('Fuente',d.fuente)}
+        ${f('Reclutadora',d.reclutador)}${f('Negocio',d.negocio)}${f('Región',d.region)}
+        ${f('Ciudad Aplica',d.ciudad_aplica)}${f('Creado por',d.creado_por)}${f('Fecha Registro',fmtDate(d.created_at))}
+      </div>
+
+      <!-- Medidas -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><path d="M2 12h20M2 12l4-4M2 12l4 4"/></svg>Medidas</div>
+        ${f('Talla Pantalón',d.talla_pantalon)}${f('Talla Camiseta',d.talla_camiseta)}
+        ${f('Talla Zapatos',d.talla_zapatos)}${f('Peso (kg)',d.peso)}${f('Altura (m)',d.altura)}
+        ${f('IMC',d.imc)}${f('Resultado IMC',d.resultado_imc)}
+      </div>
+
+      <!-- Inclusión -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>Inclusión Laboral</div>
+        ${f('Tiene Discapacidad',d.tiene_discapacidad,true)}
+        ${f('Tipo Discapacidad',d.tipo_discapacidad)}
+        ${f('Cert. Discapacidad',d.tiene_certificado_discapacidad,true)}
+      </div>
+
+      <!-- Familia -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Familia y Disponibilidad</div>
+        ${f('Tiene Hijos',d.tiene_hijos,true)}${f('Nro Hijos',d.num_hijos)}${f('Edades',d.edades_hijos)}
+        ${f('Apoyo Cuidado',d.apoyo_cuidado)}${f('Familiar en Ara',d.familiar_en_ara,true)}
+        ${f('Quién Familiar',d.quien_familiar_ara)}${f('Transporte',d.medio_transporte)}
+        ${f('Disponib. Desplaz.',d.disponibilidad_desplazamiento,true)}${f('Destino Desplaz.',d.destino_desplazamiento)}
+        ${f('Disponib. Reubicación',d.disponibilidad_reubicacion,true)}${f('Destino Reubicación',d.destino_reubicacion)}
+      </div>
+
+      <!-- Educación -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Educación</div>
+        ${f('Nivel Académico',d.nivel_academico)}${f('Título',d.titulo)}${f('Año Graduación',d.anio_graduacion)}
+        ${f('Estudia Actualmente',d.estudia_actualmente,true)}${f('Modalidad',d.modalidad_estudio)}
+        ${f('Proyectos Corto Plazo',d.proyectos_corto_plazo)}
+      </div>
+
+      <!-- Situación laboral -->
+      <div class="sec">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Situación Laboral</div>
+        ${f('Situación',d.situacion_laboral)}${f('Tipo Contrato',d.tipo_contrato)}
+        ${f('Salario Actual',fmtMoney(d.salario_actual))}${f('Aspiración Salarial',fmtMoney(d.aspiracion_salarial))}
+        ${f('Meses Desempleado',d.meses_desempleado)}${f('Justif. Cambio',d.justificacion_cambio_indefinido)}
+      </div>
+
+      <!-- Experiencias -->
+      <div class="sec full">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Experiencia Laboral</div>
+        <div class="exp-grid">
+          ${expBlock(1,d)}${expBlock(2,d)}${expBlock(3,d)}
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="sec full">
+        <div class="sec-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Pipeline de Selección</div>
+        <div class="pipeline-grid">
+          <div class="pipe-item">
+            <div class="pipe-label">Operaciones</div>
+            ${f('Fecha',fmtDate(d.fecha_prog_operaciones))}${f('Entrevistador',d.entrevistador_1)}
+            ${f('Resultado',d.resultado_operaciones)}${f('Comentarios',d.comentarios_operaciones)}
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-label">RRHH</div>
+            ${f('Fecha',fmtDate(d.fecha_prog_rrhh))}${f('Entrevistador',d.entrevistador_2)}
+            ${f('Resultado',d.resultado_rrhh)}${f('Comentarios',d.comentarios_rrhh)}
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-label">EMO</div>
+            ${f('Concepto',d.concepto_emo)}${f('Proveedor',d.proveedor_emo)}${f('Comentarios',d.comentarios_emo)}
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-label">Seguridad (ES)</div>
+            ${f('Concepto',d.concepto_es)}${f('Proveedor',d.proveedor_es)}${f('Comentarios',d.comentarios_es)}
+          </div>
+          <div class="pipe-item">
+            <div class="pipe-label">Contratación</div>
+            ${f('Fecha',fmtDate(d.fecha_contratacion))}${f('Status',d.tipo_status||d.status)}
+            ${f('Comentarios',d.comentarios_status)}
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>`;
 }
 
-function fr(label,val){
-  const empty=val===null||val===undefined||val==='';
-  return`<div class="field-row"><span class="field-label">${label}</span><span class="field-val${empty?' empty':''}">${empty?'—':val}</span></div>`;
-}
-function frb(label,val){
-  const disp=val===null||val===undefined?'<span class="field-val empty">—</span>'
-    :(val?'<span class="field-val" style="color:#16a34a;font-weight:700">Sí</span>'
-         :'<span class="field-val" style="color:#94a3b8">No</span>');
-  return`<div class="field-row"><span class="field-label">${label}</span>${disp}</div>`;
-}
-function expBlock(n,d){
-  const emp=d[`exp${n}_empresa`];
-  if(!emp)return`<div class="exp-block" style="border-left-color:#e2e8f0;opacity:.5"><h5>Experiencia ${n} — sin datos</h5></div>`;
-  return`<div class="exp-block">
-    <h5>Experiencia ${n}: ${emp} · ${d[`exp${n}_cargo`]||''}</h5>
-    ${fr('Actividad',d[`exp${n}_actividad`])}${fr('Ciudad',d[`exp${n}_ciudad`])}
-    ${fr('Salario',fmtMoney(d[`exp${n}_salario`]))}
-    ${fr('Periodo',`${d[`exp${n}_fecha_inicio`]||'?'} → ${d[`exp${n}_fecha_retiro`]||'Actual'}`)}
-    ${fr('Funciones',d[`exp${n}_funciones`])}${fr('Motivo Retiro',d[`exp${n}_motivo_retiro`])}
-  </div>`;
+async function cargarFicha(id){
+  if(_cache[id])return _cache[id];
+  const r=await fetch(`/api/candidatos/${id}`,{headers:auth()});
+  if(r.status===401){localStorage.clear();location.href='/';throw new Error('401')}
+  const d=await r.json();
+  _cache[id]=d;
+  return d;
 }
 
 async function buscar(p=0){
   page=p;
+  document.getElementById('fichas').innerHTML='<div class="spinner">Cargando fichas...</div>';
   try{
     const r=await fetch('/api/candidatos/?'+buildParams(p*LIMIT),{headers:auth()});
     if(r.status===401){localStorage.clear();location.href='/';return}
     const resp=await r.json();
     const items=Array.isArray(resp)?resp:(resp.items||[]);
     total=Array.isArray(resp)?items.length:(resp.total||items.length);
-    document.getElementById('resultCount').innerHTML=`<strong>${total.toLocaleString('es-CO')}</strong> candidatos encontrados`;
-    renderTabla(items);
+    document.getElementById('resCount').innerHTML=`<strong>${total.toLocaleString('es-CO')}</strong> candidatos · mostrando ${items.length} en esta página`;
+    if(!items.length){
+      document.getElementById('fichas').innerHTML='<div class="empty-state">No se encontraron candidatos con los filtros aplicados.</div>';
+      document.getElementById('pagination').innerHTML='';
+      return;
+    }
+    // Cargar fichas completas en paralelo
+    const fichas=await Promise.all(items.map(c=>cargarFicha(c.id)));
+    const offset=p*LIMIT;
+    document.getElementById('fichas').innerHTML=fichas.map((d,i)=>renderFicha(d,offset+i+1)).join('');
     renderPaginacion();
-  }catch(e){console.error(e)}
+  }catch(e){if(e.message!=='401')console.error(e)}
 }
 
 function renderPaginacion(){
@@ -505,20 +477,19 @@ function renderPaginacion(){
   const el=document.getElementById('pagination');
   if(pages<=1){el.innerHTML='';return}
   let html='';
-  html+=`<button class="page-btn" onclick="buscar(${page-1})" ${page===0?'disabled':''}>‹</button>`;
+  html+=`<button class="page-btn" onclick="buscar(${page-1})" ${page===0?'disabled':''}>‹ Anterior</button>`;
   const from=Math.max(0,page-2),to=Math.min(pages-1,page+2);
-  if(from>0)html+=`<button class="page-btn" onclick="buscar(0)">1</button>${from>1?'<span style="color:#94a3b8">…</span>':''}`;
+  if(from>0)html+=`<button class="page-btn" onclick="buscar(0)">1</button>${from>1?'<span style="color:#94a3b8;padding:0 4px">…</span>':''}`;
   for(let i=from;i<=to;i++)html+=`<button class="page-btn${i===page?' active':''}" onclick="buscar(${i})">${i+1}</button>`;
-  if(to<pages-1)html+=`${to<pages-2?'<span style="color:#94a3b8">…</span>':''}<button class="page-btn" onclick="buscar(${pages-1})">${pages}</button>`;
-  html+=`<button class="page-btn" onclick="buscar(${page+1})" ${page>=pages-1?'disabled':''}>›</button>`;
+  if(to<pages-1)html+=`${to<pages-2?'<span style="color:#94a3b8;padding:0 4px">…</span>':''}<button class="page-btn" onclick="buscar(${pages-1})">${pages}</button>`;
+  html+=`<button class="page-btn" onclick="buscar(${page+1})" ${page>=pages-1?'disabled':''}>Siguiente ›</button>`;
+  html+=`<span style="color:#94a3b8;font-size:.78rem;margin-left:8px">Pág. ${page+1} de ${pages}</span>`;
   el.innerHTML=html;
 }
 
 function descargarCSV(){
-  const token_val=localStorage.getItem('token')||'';
-  const params=buildFilterParamsCSV();
-  const url=`/api/export/csv-completo?${params}&token=${encodeURIComponent(token_val)}`;
-  window.location.href=url;
+  const t=localStorage.getItem('token')||'';
+  window.location.href=`/api/export/csv-completo?${buildCSVParams()}&token=${encodeURIComponent(t)}`;
 }
 
 async function cargarFiltros(){
@@ -542,15 +513,15 @@ async function init(){
   const ini=nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
   document.getElementById('initials').textContent=ini;
   if(r==='administrador')document.getElementById('lnkAdmin').style.display='flex';
-  // Especialista: auto-filtrar por su nombre
   if(r==='especialista'){
-    const sr=document.getElementById('fReclutador');
-    const opt=document.createElement('option');
-    opt.value=nombre;opt.text=nombre;sr.appendChild(opt);
-    sr.value=nombre;
-    sr.disabled=true;
+    document.getElementById('fReclutador').disabled=true;
+    // Se setea después de cargar opciones
+    await cargarFiltros();
+    document.getElementById('fReclutador').value=nombre;
+  }else{
+    await cargarFiltros();
   }
-  await Promise.all([cargarFiltros(),buscar(0)]);
+  await buscar(0);
 }
 
 init();
