@@ -1183,9 +1183,13 @@ function actualizarTallas(){
   if(esFem){
     lblP.textContent='Talla Pantalón (F)';
     ['6','8','10','12','14','16','18'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selP.appendChild(o)});
-  }else{
-    lblP.textContent=esMasc?'Talla Pantalón (M)':'Talla Pantalón';
+  }else if(esMasc){
+    lblP.textContent='Talla Pantalón (M)';
     ['28','30','32','34','36','38','40','42','44'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selP.appendChild(o)});
+  }else{
+    // No binario / Prefiero no decir → todas las tallas
+    lblP.textContent='Talla Pantalón';
+    ['6','8','10','12','14','16','18','28','30','32','34','36','38','40','42','44'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selP.appendChild(o)});
   }
   if([...selP.options].some(o=>o.value===valP))selP.value=valP;
 
@@ -1197,9 +1201,13 @@ function actualizarTallas(){
   if(esFem){
     lblZ.textContent='Talla Zapatos (F)';
     ['34','35','36','37','38','39'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selZ.appendChild(o)});
-  }else{
-    lblZ.textContent=esMasc?'Talla Zapatos (M)':'Talla Zapatos';
+  }else if(esMasc){
+    lblZ.textContent='Talla Zapatos (M)';
     ['38','39','40','41','42','43','44','45'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selZ.appendChild(o)});
+  }else{
+    // No binario / Prefiero no decir → todas las tallas
+    lblZ.textContent='Talla Zapatos';
+    ['34','35','36','37','38','39','40','41','42','43','44','45'].forEach(t=>{const o=document.createElement('option');o.value=t;o.text=t;selZ.appendChild(o)});
   }
   if([...selZ.options].some(o=>o.value===valZ))selZ.value=valZ;
 
